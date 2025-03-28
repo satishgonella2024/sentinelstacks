@@ -10,6 +10,9 @@ type Agentfile struct {
 	Memory       MemoryConfig  `yaml:"memory" json:"memory"`
 	Tools        []ToolConfig  `yaml:"tools,omitempty" json:"tools,omitempty"`
 	Permissions  Permissions   `yaml:"permissions,omitempty" json:"permissions,omitempty"`
+	Author       string        `yaml:"author,omitempty" json:"author,omitempty"`
+	Tags         []string      `yaml:"tags,omitempty" json:"tags,omitempty"`
+	Registry     RegistryInfo  `yaml:"registry,omitempty" json:"registry,omitempty"`
 }
 
 // ModelConfig defines which AI model to use
@@ -35,6 +38,14 @@ type ToolConfig struct {
 type Permissions struct {
 	FileAccess []string `yaml:"file_access,omitempty" json:"file_access,omitempty"`
 	Network    bool     `yaml:"network" json:"network"`
+}
+
+// RegistryInfo contains metadata about the agent in the registry
+type RegistryInfo struct {
+	Source      string    `yaml:"source" json:"source"`
+	Visibility  string    `yaml:"visibility" json:"visibility"`
+	PulledAt    string    `yaml:"pulled_at,omitempty" json:"pulled_at,omitempty"`
+	PushedAt    string    `yaml:"pushed_at,omitempty" json:"pushed_at,omitempty"`
 }
 
 // DefaultAgentfile creates a default agent configuration

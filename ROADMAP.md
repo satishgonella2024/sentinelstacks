@@ -3,10 +3,11 @@
 ## Phase 1: Core CLI & Runtime (Current)
 
 - [x] Project initialization
-- [ ] Basic CLI structure
-- [ ] Agentfile parser (Natural Language → YAML)
-- [ ] Simple agent runtime with Ollama adapter
-- [ ] Local file-based registry
+- [x] Basic CLI structure
+- [x] Agentfile parser (Natural Language → YAML)
+- [x] Simple agent runtime with Ollama adapter
+- [x] Local file-based registry
+- [ ] Multi-model provider support (Ollama, OpenAI, Claude)
 
 ## Phase 2: Desktop UI Foundations
 
@@ -31,17 +32,25 @@
 
 ## Weekly Progress Tracker
 
-### Week 1 (Current)
-- Set up repository structure
-- Implement basic CLI commands
-- Create Agentfile parser prototype
+### Week 1 (Completed)
+- [x] Set up repository structure
+- [x] Implement basic CLI commands
+- [x] Create Agentfile parser prototype
 
-### Week 2
-- Complete Ollama integration
-- Build local agent runtime
-- Implement basic state management
+### Week 2 (Completed)
+- [x] Complete Ollama integration
+- [x] Build local agent runtime
+- [x] Implement basic state management
+- [x] Develop file-based registry
 
-### Week 3
-- Develop file-based registry
-- Create initial agent examples
-- Document Agentfile specification
+### Week 3 (Current)
+- [ ] Add OpenAI and Claude model adapters
+- [ ] Improve conversation history handling
+- [ ] Add testing infrastructure
+- [ ] Create initial agent examples
+
+### Week 4
+- [ ] Set up CI/CD with GitHub Actions
+- [ ] Document Agentfile specification
+- [ ] Add tool support infrastructure
+- [ ] Begin Tauri desktop UI implementation
