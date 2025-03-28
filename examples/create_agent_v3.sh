@@ -1,16 +1,15 @@
 #!/bin/bash
-# Example script to create and run a new agent with SentinelStacks
+# Script to create and run a new agent with SentinelStacks
 
-# Create a new agent
-echo "Creating a new assistant agent..."
-./sentinel agentfile create --name my-assistant
+# Navigate to the SentinelStacks root directory
+cd ..
 
-# Navigate to the agent directory
-cd my-assistant
+echo "Creating a new assistant agent directory..."
+mkdir -p my-coding-assistant
 
-# Edit the natural language definition
+# Create a custom natural language definition
 echo "Creating a custom natural language definition..."
-cat > agentfile.natural.txt << EOL
+cat > my-coding-assistant/agentfile.natural.txt << EOL
 Create an AI assistant that helps users with coding tasks.
 It should be able to:
 - Generate code examples in Python, JavaScript, and Go
@@ -24,9 +23,12 @@ EOL
 
 # Convert the natural language to YAML
 echo "Converting natural language to YAML configuration..."
-../sentinel agentfile convert agentfile.natural.txt
+./sentinel agentfile convert my-coding-assistant/agentfile.natural.txt
+
+# Create an empty state file
+echo "Creating empty state file..."
+echo "{}" > my-coding-assistant/agent.state.json
 
 # Run the agent
 echo "Starting the agent... (Press Ctrl+C to exit)"
-cd ..
-./sentinel agent run my-assistant
+./sentinel agent run my-coding-assistant
