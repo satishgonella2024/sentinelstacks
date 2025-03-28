@@ -1,0 +1,63 @@
+package agentfile
+
+// Agentfile represents the structure of an agent definition
+type Agentfile struct {
+	Name         string        `yaml:"name" json:"name"`
+	Version      string        `yaml:"version" json:"version"`
+	Description  string        `yaml:"description" json:"description"`
+	Model        ModelConfig   `yaml:"model" json:"model"`
+	Capabilities []string      `yaml:"capabilities" json:"capabilities"`
+	Memory       MemoryConfig  `yaml:"memory" json:"memory"`
+	Tools        []ToolConfig  `yaml:"tools,omitempty" json:"tools,omitempty"`
+	Permissions  Permissions   `yaml:"permissions,omitempty" json:"permissions,omitempty"`
+}
+
+// ModelConfig defines which AI model to use
+type ModelConfig struct {
+	Provider string            `yaml:"provider" json:"provider"`
+	Name     string            `yaml:"name" json:"name"`
+	Options  map[string]interface{} `yaml:"options,omitempty" json:"options,omitempty"`
+}
+
+// MemoryConfig defines how the agent stores state
+type MemoryConfig struct {
+	Type        string `yaml:"type" json:"type"`
+	Persistence bool   `yaml:"persistence" json:"persistence"`
+}
+
+// ToolConfig defines a tool the agent can use
+type ToolConfig struct {
+	ID      string `yaml:"id" json:"id"`
+	Version string `yaml:"version,omitempty" json:"version,omitempty"`
+}
+
+// Permissions defines what the agent is allowed to do
+type Permissions struct {
+	FileAccess []string `yaml:"file_access,omitempty" json:"file_access,omitempty"`
+	Network    bool     `yaml:"network" json:"network"`
+}
+
+// DefaultAgentfile creates a default agent configuration
+func DefaultAgentfile(name string) Agentfile {
+	return Agentfile{
+		Name:        name,
+		Version:     "0.1.0",
+		Description: "A SentinelStacks agent",
+		Model: ModelConfig{
+			Provider: "ollama",
+			Name:     "llama3",
+			Options: map[string]interface{}{
+				"temperature": 0.7,
+			},
+		},
+		Capabilities: []string{"conversation"},
+		Memory: MemoryConfig{
+			Type:        "simple",
+			Persistence: true,
+		},
+		Permissions: Permissions{
+			FileAccess: []string{"read"},
+			Network:    false,
+		},
+	}
+}
