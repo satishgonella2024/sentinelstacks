@@ -1,0 +1,44 @@
+site_name: SentinelStacks Documentation
+site_description: Documentation for SentinelStacks, the Docker for AI Agents
+site_author: Satish Gonella
+repo_url: https://github.com/satishgonella2024/sentinelstacks
+repo_name: satishgonella2024/sentinelstacks
+
+# Theme and customization
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: indigo
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+  icon:
+    repo: fontawesome/brands/github
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - codehilite
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.details
+
+# Navigation structure
+nav:
+  - Home: index.md
+  - Getting Started: 
+    - Installation: getting-started/installation.md
+    - First Agent: getting-started/first-agent.md
+  - User Guide:
+    - Agentfile Spec: user-guide/agentfile-spec.md
+    - CLI Reference: user-guide/cli-reference.md
+    - Model Adapters: user-guide/model-adapters.md
+  - Developer Guide:
+    - Architecture: developer-guide/architecture.md
+    - Contributing: developer-guide/contributing.md
+  - Roadmap: roadmap.md
