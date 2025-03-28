@@ -2,23 +2,24 @@ package agentfile
 
 // Agentfile represents the structure of an agent definition
 type Agentfile struct {
-	Name         string        `yaml:"name" json:"name"`
-	Version      string        `yaml:"version" json:"version"`
-	Description  string        `yaml:"description" json:"description"`
-	Model        ModelConfig   `yaml:"model" json:"model"`
-	Capabilities []string      `yaml:"capabilities" json:"capabilities"`
-	Memory       MemoryConfig  `yaml:"memory" json:"memory"`
-	Tools        []ToolConfig  `yaml:"tools,omitempty" json:"tools,omitempty"`
-	Permissions  Permissions   `yaml:"permissions,omitempty" json:"permissions,omitempty"`
-	Author       string        `yaml:"author,omitempty" json:"author,omitempty"`
-	Tags         []string      `yaml:"tags,omitempty" json:"tags,omitempty"`
-	Registry     RegistryInfo  `yaml:"registry,omitempty" json:"registry,omitempty"`
+	Name         string       `yaml:"name" json:"name"`
+	Version      string       `yaml:"version" json:"version"`
+	Description  string       `yaml:"description" json:"description"`
+	Model        ModelConfig  `yaml:"model" json:"model"`
+	Capabilities []string     `yaml:"capabilities" json:"capabilities"`
+	Memory       MemoryConfig `yaml:"memory" json:"memory"`
+	Tools        []ToolConfig `yaml:"tools,omitempty" json:"tools,omitempty"`
+	Permissions  Permissions  `yaml:"permissions,omitempty" json:"permissions,omitempty"`
+	Author       string       `yaml:"author,omitempty" json:"author,omitempty"`
+	Tags         []string     `yaml:"tags,omitempty" json:"tags,omitempty"`
+	Registry     RegistryInfo `yaml:"registry,omitempty" json:"registry,omitempty"`
 }
 
 // ModelConfig defines which AI model to use
 type ModelConfig struct {
-	Provider string            `yaml:"provider" json:"provider"`
-	Name     string            `yaml:"name" json:"name"`
+	Provider string                 `yaml:"provider" json:"provider"`
+	Name     string                 `yaml:"name" json:"name"`
+	Endpoint string                 `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
 	Options  map[string]interface{} `yaml:"options,omitempty" json:"options,omitempty"`
 }
 
@@ -42,10 +43,10 @@ type Permissions struct {
 
 // RegistryInfo contains metadata about the agent in the registry
 type RegistryInfo struct {
-	Source      string    `yaml:"source" json:"source"`
-	Visibility  string    `yaml:"visibility" json:"visibility"`
-	PulledAt    string    `yaml:"pulled_at,omitempty" json:"pulled_at,omitempty"`
-	PushedAt    string    `yaml:"pushed_at,omitempty" json:"pushed_at,omitempty"`
+	Source     string `yaml:"source" json:"source"`
+	Visibility string `yaml:"visibility" json:"visibility"`
+	PulledAt   string `yaml:"pulled_at,omitempty" json:"pulled_at,omitempty"`
+	PushedAt   string `yaml:"pushed_at,omitempty" json:"pushed_at,omitempty"`
 }
 
 // DefaultAgentfile creates a default agent configuration
