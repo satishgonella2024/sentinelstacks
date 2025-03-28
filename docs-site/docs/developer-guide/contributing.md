@@ -1,149 +1,229 @@
 # Contributing to SentinelStacks
 
-Thank you for your interest in contributing to SentinelStacks! This document provides guidelines and instructions for contributing to the project.
+This guide will help you set up your development environment and start contributing to SentinelStacks.
 
-## Getting Started
+## Development Environment Setup
 
 ### Prerequisites
 
-- Go 1.18 or higher
-- Git
-- Basic knowledge of LLMs and AI agents
+1. Install the following tools:
+   - Go 1.20 or later
+   - Docker and Docker Compose
+   - Git
+   - Make (optional, but recommended)
+   - Your favorite code editor (VS Code recommended)
 
-### Setting Up the Development Environment
+2. Install Go development tools:
+```bash
+go install golang.org/x/tools/cmd/goimports@latest
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+```
+
+### Repository Setup
 
 1. Fork the repository on GitHub
-2. Clone your fork locally:
-   ```bash
-   git clone https://github.com/YOUR-USERNAME/sentinelstacks.git
-   cd sentinelstacks
-   ```
-3. Add the upstream repository:
-   ```bash
-   git remote add upstream https://github.com/satishgonella2024/sentinelstacks.git
-   ```
+
+2. Clone your fork:
+```bash
+git clone https://github.com/yourusername/sentinelstacks.git
+cd sentinelstacks
+```
+
+3. Add the upstream remote:
+```bash
+git remote add upstream https://github.com/originalorg/sentinelstacks.git
+```
+
 4. Install dependencies:
-   ```bash
-   go mod download
-   ```
+```bash
+go mod download
+```
 
-## Development Workflow
-
-1. Create a new branch for your feature or bugfix:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-2. Make your changes and write tests as needed
-
-3. Run the tests:
-   ```bash
-   go test ./...
-   ```
-
-4. Build the project:
-   ```bash
-   go build -o sentinel ./cmd/sentinel
-   ```
-
-5. Commit your changes with a descriptive message:
-   ```bash
-   git commit -m "Feature: Add new capability to the agent runtime"
-   ```
-
-6. Push to your fork:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-7. Create a pull request on GitHub
+5. Install pre-commit hooks:
+```bash
+make install-hooks
+```
 
 ## Project Structure
 
-SentinelStacks follows standard Go project layout:
+```
+sentinelstacks/
+├── cmd/                    # Command-line tools
+│   ├── sentinel/          # Main CLI tool
+│   └── registry/          # Registry service
+├── internal/              # Private application code
+│   ├── agent/            # Agent runtime
+│   ├── auth/             # Authentication
+│   ├── config/           # Configuration
+│   └── registry/         # Registry implementation
+├── pkg/                   # Public libraries
+│   ├── agentfile/        # Agentfile parser
+│   ├── models/           # Data models
+│   └── api/              # API client
+├── web/                  # Web interfaces
+│   ├── landing/          # Landing page
+│   └── registry-ui/      # Registry UI
+├── scripts/              # Development scripts
+├── examples/             # Example agents
+└── docs/                 # Documentation
+```
 
-- `cmd/sentinel`: CLI application entry point
-  - `commands/`: Command implementations
-- `pkg/`: Core libraries
-  - `agentfile/`: Agentfile parser and schema
-  - `models/`: Model adapters
-  - `runtime/`: Agent execution runtime
-  - `registry/`: Registry client and server
-- `docs/`: Documentation
-  - `docs-site/`: MkDocs documentation site
-- `examples/`: Example agent definitions
+## Development Workflow
 
-## Coding Guidelines
+### Creating a New Feature
 
-### Go Style
+1. Create a feature branch:
+```bash
+git checkout -b feature/your-feature-name
+```
 
-- Follow the [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
-- Use `gofmt` to format your code
-- Add comments to exported functions, types, and constants
-- Use meaningful variable names
+2. Make your changes, following our coding standards
 
-### Documentation
+3. Run tests:
+```bash
+make test
+```
 
-- Update documentation when changing functionality
-- Document new features, including examples
-- Keep the API documentation up-to-date
+4. Run linters:
+```bash
+make lint
+```
+
+5. Commit your changes:
+```bash
+git add .
+git commit -m "feat: add your feature description"
+```
+
+6. Push to your fork:
+```bash
+git push origin feature/your-feature-name
+```
+
+7. Create a Pull Request on GitHub
+
+### Running the Development Environment
+
+1. Start all services:
+```bash
+docker-compose up -d
+```
+
+2. Run the API server:
+```bash
+make run-api
+```
+
+3. Run the registry:
+```bash
+make run-registry
+```
 
 ### Testing
 
-- Write unit tests for new functionality
-- Ensure existing tests pass before submitting a PR
-- Include integration tests for complex features
+We use Go's built-in testing framework. Run tests with:
 
-## Pull Request Process
+```bash
+# Run all tests
+make test
 
-1. Update the documentation with details of your changes
-2. Add or update tests as needed
-3. Make sure all tests pass
-4. Update the README.md if appropriate
-5. The PR will be merged once it's reviewed and approved
+# Run specific tests
+go test ./pkg/agentfile/...
 
-## Documentation
+# Run tests with coverage
+make test-coverage
+```
 
-SentinelStacks uses MkDocs with the Material theme for documentation. The documentation source is in the `docs-site` directory.
+### Debugging
 
-To preview the documentation locally:
+1. API Server logs:
+```bash
+docker-compose logs -f api
+```
 
-1. Install MkDocs and the Material theme:
-   ```bash
-   pip install mkdocs-material
-   ```
+2. Database access:
+```bash
+docker-compose exec db psql -U postgres -d sentinelstacks
+```
 
-2. Run the local development server:
-   ```bash
-   cd docs-site
-   mkdocs serve
-   ```
+3. Redis CLI:
+```bash
+docker-compose exec redis redis-cli
+```
 
-3. Open your browser to [http://localhost:8000](http://localhost:8000)
+## Common Tasks
 
-4. Edit the Markdown files in the `docs-site/docs` directory to update the documentation.
+### Adding a New API Endpoint
 
-## Communication
+1. Define the endpoint in `internal/api/routes.go`
+2. Create handler in `internal/api/handlers/`
+3. Add tests in `internal/api/handlers/handler_test.go`
+4. Update API documentation
+5. Update OpenAPI specification
 
-- GitHub Issues: For bug reports and feature requests
-- GitHub Discussions: For general questions and discussions
+### Creating a New Agent
 
-## Project Governance
+1. Create agent directory in `examples/`
+2. Write Agentfile
+3. Add documentation
+4. Add tests
+5. Submit to registry
 
-SentinelStacks is currently maintained by Satish Gonella. The project follows a benevolent dictator model, with input from community contributors.
+### Adding a Feature Flag
 
-### Roles
+1. Add flag to `internal/config/feature_flags.go`
+2. Update configuration documentation
+3. Add migration if needed
+4. Update deployment scripts
 
-- **Maintainer**: Has commit access and is responsible for reviewing PRs
-- **Contributor**: Anyone who contributes code, documentation, or other artifacts
-- **User**: Anyone who uses SentinelStacks
+## Troubleshooting
 
-## Roadmap and Feature Requests
+### Common Issues
 
-See the [ROADMAP.md](https://github.com/satishgonella2024/sentinelstacks/blob/main/ROADMAP.md) file for the current development roadmap.
+1. **Database Connection Issues**
+   - Check PostgreSQL logs
+   - Verify connection string
+   - Ensure migrations are up to date
 
-To suggest new features, create an issue using the feature request template.
+2. **Redis Connection Issues**
+   - Check Redis logs
+   - Verify Redis is running
+   - Check connection settings
 
-## License
+3. **API Server Issues**
+   - Check API logs
+   - Verify configuration
+   - Check dependencies
 
-By contributing to SentinelStacks, you agree that your contributions will be licensed under the project's [MIT License](https://github.com/satishgonella2024/sentinelstacks/blob/main/LICENSE).
+### Getting Help
+
+- Join our [Discord server](https://discord.gg/sentinelstacks)
+- Check existing issues on GitHub
+- Ask in our developer forum
+
+## Release Process
+
+1. Update version in `version.go`
+2. Update CHANGELOG.md
+3. Create release branch:
+```bash
+git checkout -b release/v1.2.3
+```
+4. Run full test suite:
+```bash
+make test-all
+```
+5. Create GitHub release
+6. Push Docker images
+7. Update documentation
+
+## Additional Resources
+
+- [Go Style Guide](https://golang.org/doc/effective_go.html)
+- [Docker Documentation](https://docs.docker.com/)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [Redis Documentation](https://redis.io/documentation)
+
+## Code of Conduct
+
+Please read our [Code of Conduct](../community/code-of-conduct.md) before contributing.
