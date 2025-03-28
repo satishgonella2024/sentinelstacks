@@ -30,7 +30,7 @@ This will install the `sentinel` command in your `$GOPATH/bin` directory, which 
 To verify that SentinelStacks is installed correctly, run:
 
 ```bash
-sentinel --version
+sentinel version
 ```
 
 You should see the version information for SentinelStacks.
@@ -51,7 +51,15 @@ ollama run llama3
 
 ## Configuration
 
-By default, SentinelStacks looks for Ollama at `http://localhost:11434`. If your Ollama instance is running elsewhere, you can configure it when creating or running agents.
+By default, SentinelStacks looks for Ollama at `http://localhost:11434`. If your Ollama instance is running elsewhere, you can configure it when creating or running agents:
+
+```bash
+# When converting an Agentfile
+sentinel agentfile convert --endpoint http://your-ollama-server:11434 my-agent/agentfile.natural.txt
+
+# When running an agent
+sentinel agent run --endpoint http://your-ollama-server:11434 my-agent
+```
 
 ## Next Steps
 

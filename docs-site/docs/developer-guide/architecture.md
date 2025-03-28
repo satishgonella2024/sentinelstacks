@@ -6,6 +6,8 @@ This document outlines the architecture and design decisions for SentinelStacks.
 
 SentinelStacks is composed of several key components that work together to create a flexible and powerful AI agent platform.
 
+![SentinelStacks Architecture Diagram](../images/architecture-diagram.svg)
+
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │    CLI / GUI    │     │     Registry    │     │  Model Adapters │

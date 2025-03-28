@@ -6,9 +6,18 @@ The Agentfile is the core configuration format for SentinelStacks agents. It def
 
 An agent can be defined using two file formats:
 
-### Natural Language (agentfile.natural.txt)
+1. **Natural Language (agentfile.natural.txt)**:
+   - Human-readable description of the agent's purpose and behavior
+   - Automatically converted to structured YAML
 
-This human-readable format describes the agent's purpose and behavior in plain English. For example:
+2. **Structured YAML (agentfile.yaml)**:
+   - Machine-readable configuration
+   - Generated from natural language or created directly
+   - Used by the runtime to execute the agent
+
+## Natural Language Format
+
+The natural language format allows you to describe your agent in plain English. Here's an example:
 
 ```
 This agent helps with research tasks. It should be able to
@@ -18,63 +27,77 @@ bibliography of sources it has processed. The agent should
 use Llama3 as its model and should have access to a PDF parser.
 ```
 
-### Structured YAML (agentfile.yaml)
+## YAML Structure
 
-This machine-readable format is used by the runtime to execute the agent. It's either generated from the natural language description or created directly.
+The structured YAML follows this schema:
 
 ```yaml
-name: research-assistant
+name: agent-name
 version: "1.0.0"
-description: "Helps analyze academic papers"
+description: "A brief description of the agent"
 
+# Model configuration
 model:
-  provider: "ollama"
-  name: "llama3"
-  options:
-    temperature: 0.3
+  provider: "ollama"  # Could be ollama, openai, claude, etc.
+  name: "llama3"      # Model name within the provider
+  options:            # Provider-specific options
+    temperature: 0.7
 
+# Agent capabilities
 capabilities:
+  - text_processing
+  - conversation
   - summarization
-  - question_answering
-  - citation_management
 
+# Memory configuration
 memory:
-  type: "vector"
-  persistence: true
+  type: "simple"      # simple, vector, etc.
+  persistence: true   # Whether to save state between runs
 
+# Tools the agent can use
 tools:
   - id: "pdf-parser"
     version: "^1.0.0"
-  - id: "citation-formatter"
-    version: "^1.0.0"
 
+# Security permissions
 permissions:
-  file_access: ["read"]
-  network: false
+  file_access: ["read"]  # read, write, none
+  network: false         # Whether the agent can access the network
+  
+# Registry information
+registry:
+  source: "username/agent-name"
+  visibility: "public"
+  pulled_at: "2025-03-28T12:34:56Z"
+  pushed_at: "2025-03-28T12:34:56Z"
 ```
 
-## YAML Structure
+## Required Fields
+
+At minimum, an Agentfile must specify:
+- `name`
+- `model.provider`
+- `model.name`
+
+## Field Descriptions
 
 ### Top-Level Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Unique identifier for the agent |
-| `version` | string | Yes | Semantic version of the agent definition |
-| `description` | string | No | Human-readable description of the agent |
+- `name`: Unique identifier for the agent
+- `version`: Semantic version of the agent definition
+- `description`: Human-readable description of the agent
+- `author`: Creator of the agent (added automatically when pushing to registry)
+- `tags`: List of tags for categorizing the agent
 
 ### Model Configuration
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `model.provider` | string | Yes | The AI model provider (ollama, openai, claude) |
-| `model.name` | string | Yes | The specific model to use |
-| `model.options` | object | No | Provider-specific parameters |
+- `model.provider`: The AI model provider (ollama, openai, claude)
+- `model.name`: The specific model to use
+- `model.options`: Provider-specific parameters like temperature, max tokens, etc.
 
 ### Capabilities
 
-A list of capabilities the agent has, which will be used to generate the system prompt:
-
+A list of capabilities the agent has, which will be used to generate the system prompt. Common capabilities include:
 - `conversation`: General dialogue ability
 - `summarization`: Creating summaries of content
 - `code_generation`: Writing code
@@ -83,47 +106,68 @@ A list of capabilities the agent has, which will be used to generate the system 
 
 ### Memory Configuration
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `memory.type` | string | Yes | How the agent stores information |
-| `memory.persistence` | boolean | Yes | Whether to save state between runs |
-| `memory.ttl` | string | No | Time-to-live for memory items |
-| `memory.capacity` | integer | No | Maximum number of items to store |
+- `memory.type`: How the agent stores information (simple, vector, hierarchical)
+- `memory.persistence`: Whether to save state between runs
+- `memory.ttl`: Optional time-to-live for memory items
+- `memory.capacity`: Optional maximum number of items to store
 
 ### Tools Configuration
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `tools[].id` | string | Yes | The tool identifier |
-| `tools[].version` | string | No | Version requirement for the tool |
-| `tools[].config` | object | No | Tool-specific configuration |
+Tools extend the agent's capabilities:
+- `tools[].id`: The tool identifier
+- `tools[].version`: Version requirement for the tool
+- `tools[].config`: Optional tool-specific configuration
 
 ### Permissions
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `permissions.file_access` | array | No | Level of filesystem access |
-| `permissions.network` | boolean | No | Whether the agent can make network requests |
+Security boundaries for the agent:
+- `permissions.file_access`: Level of filesystem access (read, write, none)
+- `permissions.network`: Whether the agent can make network requests
+- `permissions.tools`: Specific tools the agent is allowed to use
+
+### Registry Information
+
+Metadata for registry interactions:
+- `registry.source`: Source reference in the format "username/agent-name"
+- `registry.visibility`: Access control setting ("public" or "private")
+- `registry.pulled_at`: Timestamp when the agent was pulled from registry
+- `registry.pushed_at`: Timestamp when the agent was pushed to registry
+
+## Version Compatibility
+
+The Agentfile format uses semantic versioning:
+- `1.0.0`: Initial stable release
+- `1.x.y`: Backward-compatible changes
+- `2.0.0`: Changes that may require updating agents
 
 ## Examples
 
-### Conversation Assistant
+### Research Assistant
 
 ```yaml
-name: conversation-assistant
+name: research-assistant
 version: "1.0.0"
-description: "General purpose conversational agent"
+description: "Helps analyze academic papers"
 model:
   provider: "ollama"
   name: "llama3"
   options:
-    temperature: 0.7
+    temperature: 0.3
 capabilities:
-  - conversation
+  - summarization
   - question_answering
+  - citation_management
 memory:
-  type: "simple"
+  type: "vector"
   persistence: true
+tools:
+  - id: "pdf-parser"
+    version: "^1.0.0"
+  - id: "citation-formatter"
+    version: "^1.0.0"
+permissions:
+  file_access: ["read"]
+  network: false
 ```
 
 ### Code Assistant
@@ -152,12 +196,12 @@ permissions:
   network: false
 ```
 
-## Converting Between Formats
+## Converting Natural Language to YAML
 
-Use the CLI to convert natural language to YAML:
+Use the following command to convert a natural language description to YAML:
 
 ```bash
-sentinel agentfile convert myagent/agentfile.natural.txt
+sentinel agentfile convert my-agent/agentfile.natural.txt
 ```
 
-This will create or update `myagent/agentfile.yaml` based on the natural language description.
+This will create `my-agent/agentfile.yaml` with the structured configuration.

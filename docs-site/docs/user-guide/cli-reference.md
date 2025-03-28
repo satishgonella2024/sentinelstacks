@@ -4,13 +4,28 @@ The SentinelStacks CLI (`sentinel`) provides a command-line interface for managi
 
 ## Global Commands
 
+### `sentinel version`
+
+Shows version information for the CLI.
+
+```bash
+sentinel version
+```
+
+**Output Example:**
+```
+SentinelStacks v0.1.0
+Git commit: development
+Built on: unknown
+```
+
 ### `sentinel --help`
 
 Shows general help information and lists available commands.
 
-### `sentinel --version`
-
-Shows version information for the CLI.
+```bash
+sentinel --help
+```
 
 ## Agentfile Commands
 
@@ -32,6 +47,16 @@ sentinel agentfile create --name <agent-name>
 sentinel agentfile create --name my-assistant
 ```
 
+**Output:**
+```
+Creating new Agentfile 'my-assistant'
+✓ Initialized agentfile.yaml
+✓ Created agentfile.natural.txt for natural language definition
+✓ Added default state schema
+
+Done! Edit agentfile.natural.txt to define your agent's purpose and behavior.
+```
+
 ### `sentinel agentfile convert`
 
 Converts a natural language description to a structured YAML Agentfile.
@@ -40,22 +65,19 @@ Converts a natural language description to a structured YAML Agentfile.
 sentinel agentfile convert <path/to/agentfile.natural.txt>
 ```
 
+**Flags:**
+- `--endpoint, -e`: Override the model endpoint URL (default: http://localhost:11434)
+- `--verbose, -v`: Enable verbose output
+
 **Example:**
 ```bash
 sentinel agentfile convert my-assistant/agentfile.natural.txt
 ```
 
-### `sentinel agentfile validate`
-
-Validates an Agentfile against the schema.
-
-```bash
-sentinel agentfile validate <path/to/agentfile.yaml>
+**Output:**
 ```
-
-**Example:**
-```bash
-sentinel agentfile validate my-assistant/agentfile.yaml
+Converting 'my-assistant/agentfile.natural.txt' to YAML using endpoint 'http://localhost:11434'...
+✓ Successfully converted to 'my-assistant/agentfile.yaml'
 ```
 
 ## Agent Commands
@@ -71,20 +93,22 @@ sentinel agent run <agent-name>
 ```
 
 **Flags:**
-- `--model <model-name>`: Override the model specified in the Agentfile
-- `--endpoint <url>`: Override the model endpoint (e.g., for Ollama)
+- `--endpoint, -e`: Override the model endpoint URL
 
 **Example:**
 ```bash
-sentinel agent run my-assistant --model llama3
+sentinel agent run my-assistant
 ```
 
-### `sentinel agent list`
+**Output:**
+```
+Running agent: my-assistant
+Agent 'my-assistant' is ready. Type 'exit' to quit.
 
-Lists all available agents.
+> Hello
+Hello! How can I help you today?
 
-```bash
-sentinel agent list
+> exit
 ```
 
 ## Registry Commands
@@ -100,12 +124,11 @@ sentinel registry push <agent-name>
 ```
 
 **Flags:**
-- `--visibility <public|private>`: Set the visibility of the agent (default: public)
-- `--version <version>`: Specify a version (default: current version in Agentfile)
+- `--visibility, -v`: Set the visibility of the agent (`public` or `private`, default: `public`)
 
 **Example:**
 ```bash
-sentinel registry push my-assistant --visibility public --version 1.0.0
+sentinel registry push my-assistant --visibility public
 ```
 
 ### `sentinel registry pull`
@@ -121,6 +144,12 @@ sentinel registry pull <username/agent-name>
 sentinel registry pull satishgonella/research-assistant
 ```
 
+**Output:**
+```
+Pulling agent 'satishgonella/research-assistant' from registry...
+Successfully pulled agent to 'research-assistant'
+```
+
 ### `sentinel registry search`
 
 Searches for agents in the registry.
@@ -130,55 +159,41 @@ sentinel registry search <query>
 ```
 
 **Flags:**
-- `--tags <tags>`: Filter by tags (comma-separated)
-- `--model <model>`: Filter by compatible model
+- `--tags, -t`: Filter by tags (comma-separated)
 
 **Example:**
 ```bash
-sentinel registry search research --tags academic,papers --model llama3
+sentinel registry search research --tags academic,papers
 ```
 
-## Stack Commands
+### `sentinel registry list`
 
-Commands for managing multi-agent workflows.
-
-### `sentinel stack create`
-
-Creates a new stack of agents.
+Lists all agents in the registry.
 
 ```bash
-sentinel stack create --name <stack-name>
+sentinel registry list
 ```
 
-### `sentinel stack run`
+**Output Example:**
+```
+Listing agents in registry...
+Found 2 agents:
 
-Runs a stack of agents.
+1. satishgonella/research-assistant@0.1.0
+   Description: A research assistant that helps with academic papers
+   Models: ollama/llama3
+   Capabilities: summarization, question_answering
 
-```bash
-sentinel stack run <stack-name>
+2. satishgonella/code-helper@0.2.0
+   Description: Helps write and debug code
+   Models: ollama/llama3
+   Capabilities: code_generation, debugging
 ```
 
-## Model Commands
+## Environment Variables
 
-Commands for managing model connections.
+SentinelStacks respects the following environment variables:
 
-### `sentinel model list`
-
-Lists available models.
-
-```bash
-sentinel model list
-```
-
-### `sentinel model add`
-
-Adds a new model connection.
-
-```bash
-sentinel model add --provider <provider> --name <name> --endpoint <url>
-```
-
-**Example:**
-```bash
-sentinel model add --provider ollama --name llama3 --endpoint http://localhost:11434
-```
+- `SENTINEL_CONFIG`: Path to the configuration file (default: `~/.sentinelstacks/config.yaml`)
+- `SENTINEL_REGISTRY`: Path to the local registry (default: `~/.sentinelstacks/registry`)
+- `SENTINEL_MODEL_ENDPOINT`: Default model endpoint URL (default: `http://localhost:11434`)

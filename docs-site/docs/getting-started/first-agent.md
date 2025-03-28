@@ -87,11 +87,51 @@ func main() {
 
 Save this code to a file named `server.go` and run it with `go run server.go`. Then open your browser to http://localhost:8080.
 
-> 
+> Can you explain how the handler function works?
+
+In Go's HTTP server, the handler function is responsible for processing HTTP requests and generating responses. Let's break down how it works:
+
+1. The function signature: `func handler(w http.ResponseWriter, r *http.Request)`
+   - It takes two parameters:
+     - `w http.ResponseWriter`: An interface used to send the response back to the client
+     - `r *http.Request`: Contains all the information about the incoming request
+
+2. Inside the function:
+   - `fmt.Fprintf(w, "Hello, World!")` writes the text "Hello, World!" to the response
+   - The ResponseWriter interface implements methods for writing HTTP responses
+
+3. How it gets called:
+   - `http.HandleFunc("/", handler)` registers this function to handle requests to the root path "/"
+   - When a request comes in, the server calls this function with the appropriate parameters
+
+Handler functions can do much more, like reading request data, setting headers, or returning different status codes.
 ```
+
+## Sharing Your Agent
+
+Once you've created and tested your agent, you can share it with others through the registry:
+
+```bash
+sentinel registry push my-assistant
+```
+
+This will:
+- Package your agent files
+- Upload them to the registry
+- Make the agent available for others to discover and use
+
+## Pulling an Agent from the Registry
+
+To use an agent someone else has created:
+
+```bash
+sentinel registry pull username/agent-name
+```
+
+This will download the agent to your local machine, allowing you to run it.
 
 ## Next Steps
 
-- Explore more [advanced agent capabilities](../user-guide/agentfile-spec.md)
-- Learn how to [share your agent](../user-guide/registry.md) with others
-- Create [multi-agent workflows](../user-guide/stacks.md)
+- [Learn about the Agentfile specification](../user-guide/agentfile-spec.md)
+- [Explore the registry to discover agents](../user-guide/registry.md)
+- [Create more complex agents with tools](../user-guide/tools.md)

@@ -63,12 +63,14 @@ Thank you for your interest in contributing to SentinelStacks! This document pro
 SentinelStacks follows standard Go project layout:
 
 - `cmd/sentinel`: CLI application entry point
+  - `commands/`: Command implementations
 - `pkg/`: Core libraries
   - `agentfile/`: Agentfile parser and schema
   - `models/`: Model adapters
   - `runtime/`: Agent execution runtime
   - `registry/`: Registry client and server
 - `docs/`: Documentation
+  - `docs-site/`: MkDocs documentation site
 - `examples/`: Example agent definitions
 
 ## Coding Guidelines
@@ -100,11 +102,31 @@ SentinelStacks follows standard Go project layout:
 4. Update the README.md if appropriate
 5. The PR will be merged once it's reviewed and approved
 
+## Documentation
+
+SentinelStacks uses MkDocs with the Material theme for documentation. The documentation source is in the `docs-site` directory.
+
+To preview the documentation locally:
+
+1. Install MkDocs and the Material theme:
+   ```bash
+   pip install mkdocs-material
+   ```
+
+2. Run the local development server:
+   ```bash
+   cd docs-site
+   mkdocs serve
+   ```
+
+3. Open your browser to [http://localhost:8000](http://localhost:8000)
+
+4. Edit the Markdown files in the `docs-site/docs` directory to update the documentation.
+
 ## Communication
 
 - GitHub Issues: For bug reports and feature requests
 - GitHub Discussions: For general questions and discussions
-- Discord: For real-time communication (link to be added)
 
 ## Project Governance
 
