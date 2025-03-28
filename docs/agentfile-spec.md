@@ -1,190 +1,174 @@
 # Agentfile Specification
 
-The Agentfile is the core configuration format for SentinelStacks agents. It defines how an agent behaves, what capabilities it has, and how it interacts with users and other systems.
+This document describes the format and structure of Agentfiles used by SentinelStacks. An Agentfile defines an AI agent's behavior, capabilities, and configuration in a structured YAML format.
 
-## File Formats
+## Overview
 
-An agent can be defined using two file formats:
+Agentfiles can be defined in two ways:
+1. Natural language description (`agentfile.natural.txt`)
+2. Structured YAML configuration (`agentfile.yaml`)
 
-1. **Natural Language (agentfile.natural.txt)**:
-   - Human-readable description of the agent's purpose and behavior
-   - Automatically converted to structured YAML
-
-2. **Structured YAML (agentfile.yaml)**:
-   - Machine-readable configuration
-   - Generated from natural language or created directly
-   - Used by the runtime to execute the agent
-
-## Natural Language Format
-
-The natural language format allows you to describe your agent in plain English. Here's an example:
-
-```
-This agent helps with research tasks. It should be able to
-summarize academic papers, extract key information, and
-answer questions about the content. It should maintain a
-bibliography of sources it has processed. The agent should
-use Llama3 as its model and should have access to a PDF parser.
+The natural language description can be automatically converted to YAML using the SentinelStacks CLI:
+```bash
+sentinel agentfile convert agentfile.natural.txt
 ```
 
-## YAML Structure
+## Schema
 
-The structured YAML follows this schema:
+An Agentfile must conform to the following schema:
 
 ```yaml
-name: agent-name
-version: "1.0.0"
-description: "A brief description of the agent"
-
-# Model configuration
-model:
-  provider: "ollama"  # Could be ollama, openai, claude, etc.
-  name: "llama3"      # Model name within the provider
-  options:            # Provider-specific options
-    temperature: 0.7
-
-# Agent capabilities
-capabilities:
-  - text_processing
-  - conversation
-  - summarization
-
-# Memory configuration
-memory:
-  type: "simple"      # simple, vector, etc.
-  persistence: true   # Whether to save state between runs
-
-# Tools the agent can use
-tools:
-  - id: "pdf-parser"
-    version: "^1.0.0"
-
-# Security permissions
-permissions:
-  file_access: ["read"]  # read, write, none
-  network: false         # Whether the agent can access the network
+name: string                # Name of the agent
+version: string             # Semantic version (e.g., "0.1.0")
+description: string         # Short description of the agent's purpose
+model:                      # Configuration for the AI model
+  provider: string          # Model provider (ollama, openai, claude)
+  name: string              # Model name (llama3, gpt-4, claude-3-sonnet, etc.)
+  options:                  # Provider-specific options
+    temperature: float      # Creativity/randomness (0.0-1.0)
+    max_tokens: int         # Maximum output tokens (optional)
+    top_p: float            # Nucleus sampling parameter (optional)
+capabilities:               # List of agent capabilities
+  - string                  # e.g., conversation, code_generation, etc.
+memory:                     # Memory/state configuration
+  type: string              # Memory type (simple, vector)
+  persistence: boolean      # Whether to persist state between runs
+tools:                      # Optional list of tools the agent can use
+  - id: string              # Tool identifier
+    version: string         # Tool version (semantic version)
+permissions:                # Optional security constraints
+  file_access: [string]     # File access permissions (read, write, none)
+  network: boolean          # Whether network access is allowed
+author: string              # Optional author information
+tags: [string]              # Optional tags for categorization
+registry:                   # Optional registry metadata
+  source: string            # Registry source
+  visibility: string        # public or private
 ```
 
-## Required Fields
+## Fields in Detail
 
-At minimum, an Agentfile must specify:
-- `name`
-- `model.provider`
-- `model.name`
+### `name`
+Identifies the agent. Should be unique, kebab-case, and descriptive.
 
-## Field Descriptions
+### `version`
+Semantic versioning string in the format `MAJOR.MINOR.PATCH`. 
 
-### Top-Level Fields
+### `description`
+A concise description of what the agent does.
 
-- `name`: Unique identifier for the agent
-- `version`: Semantic version of the agent definition
-- `description`: Human-readable description of the agent
+### `model`
+Configuration for the AI model powering the agent.
 
-### Model Configuration
+#### `provider`
+One of:
+- `ollama`: Local models via Ollama
+- `openai`: OpenAI API (requires OPENAI_API_KEY)
+- `claude`: Anthropic Claude API (requires ANTHROPIC_API_KEY)
 
-- `model.provider`: The AI model provider (ollama, openai, claude)
-- `model.name`: The specific model to use
-- `model.options`: Provider-specific parameters like temperature, max tokens, etc.
+#### `name`
+Model name depends on the provider:
+- Ollama: `llama3`, `mistral`, etc.
+- OpenAI: `gpt-4`, `gpt-3.5-turbo`, etc.
+- Claude: `claude-3-opus-20240229`, `claude-3-sonnet-20240229`, etc.
 
-### Capabilities
+#### `options`
+Provider-specific parameters:
+- `temperature`: Controls randomness/creativity (0.0-1.0)
+- `max_tokens`: Maximum response length in tokens
+- `top_p`: Nucleus sampling parameter (alternative to temperature)
 
-A list of capabilities the agent has, which will be used to generate the system prompt. Common capabilities include:
-- `conversation`: General dialogue ability
-- `summarization`: Creating summaries of content
+### `capabilities`
+List of capabilities the agent supports. Common values include:
+- `conversation`: Basic chat functionality
 - `code_generation`: Writing code
-- `search`: Finding information
-- `tools_use`: Using specialized tools
+- `explanation`: Explaining concepts
+- `summarization`: Summarizing content
+- `research`: Looking up information
+- `translation`: Translating languages
 
-### Memory Configuration
+### `memory`
+Configuration for the agent's state management.
 
-- `memory.type`: How the agent stores information (simple, vector, hierarchical)
-- `memory.persistence`: Whether to save state between runs
-- `memory.ttl`: Optional time-to-live for memory items
-- `memory.capacity`: Optional maximum number of items to store
+#### `type`
+Memory storage type:
+- `simple`: Basic key-value storage
+- `vector`: Vector-based memory for semantic search (not yet implemented)
 
-### Tools Configuration
+#### `persistence`
+Boolean indicating whether state should be saved between sessions.
 
-Tools extend the agent's capabilities:
-- `tools[].id`: The tool identifier
-- `tools[].version`: Version requirement for the tool
-- `tools[].config`: Optional tool-specific configuration
+### `tools` (Optional)
+External tools the agent can use. Each tool has:
+- `id`: Tool identifier
+- `version`: Semantic version
 
-### Permissions
+### `permissions` (Optional)
+Security constraints for the agent:
 
-Security boundaries for the agent:
-- `permissions.file_access`: Level of filesystem access (read, write, none)
-- `permissions.network`: Whether the agent can make network requests
-- `permissions.tools`: Specific tools the agent is allowed to use
+#### `file_access`
+Array of file access permissions:
+- `read`: Read-only access
+- `write`: Write access
+- `none`: No file access
 
-## Version Compatibility
+#### `network`
+Boolean indicating whether network access is allowed.
 
-The Agentfile format uses semantic versioning:
-- `1.0.0`: Initial stable release
-- `1.x.y`: Backward-compatible changes
-- `2.0.0`: Changes that may require updating agents
+### `author` (Optional)
+Username or organization that created the agent.
 
-## Examples
+### `tags` (Optional)
+Array of tags for categorization.
 
-### Research Assistant
+### `registry` (Optional)
+Metadata for registry operations.
 
-```yaml
-name: research-assistant
-version: "1.0.0"
-description: "Helps analyze academic papers"
-model:
-  provider: "ollama"
-  name: "llama3"
-  options:
-    temperature: 0.3
-capabilities:
-  - summarization
-  - question_answering
-  - citation_management
-memory:
-  type: "vector"
-  persistence: true
-tools:
-  - id: "pdf-parser"
-    version: "^1.0.0"
-  - id: "citation-formatter"
-    version: "^1.0.0"
-permissions:
-  file_access: ["read"]
-  network: false
-```
+#### `source`
+Registry source URL or identifier.
 
-### Code Assistant
+#### `visibility`
+- `public`: Visible to all users
+- `private`: Restricted visibility
+
+## Example
 
 ```yaml
 name: code-assistant
-version: "1.0.0"
-description: "Helps write and debug code"
+version: "0.1.0"
+description: "An agent that helps with coding tasks and explains concepts"
 model:
-  provider: "openai"
-  name: "gpt-4"
+  provider: ollama
+  name: llama3
   options:
-    temperature: 0.1
+    temperature: 0.5
 capabilities:
+  - conversation
   - code_generation
-  - code_explanation
-  - debugging
+  - explanation
 memory:
-  type: "simple"
+  type: simple
   persistence: true
-tools:
-  - id: "code-analyzer"
-    version: "^1.0.0"
 permissions:
-  file_access: ["read", "write"]
+  file_access: ["read"]
   network: false
+author: sentinelstacks
+tags:
+  - coding
+  - tutorial
 ```
 
-## Converting Natural Language to YAML
+## Using Environment Variables
 
-Use the following command to convert a natural language description to YAML:
+Some configuration options can be set via environment variables:
+- `OLLAMA_ENDPOINT`: Override the default Ollama API endpoint
+- `OPENAI_API_KEY`: API key for OpenAI models
+- `ANTHROPIC_API_KEY`: API key for Claude models
 
-```bash
-sentinel agentfile convert my-agent/agentfile.natural.txt
-```
+## Best Practices
 
-This will create `my-agent/agentfile.yaml` with the structured configuration.
+1. **Start Simple**: Begin with basic capabilities and add more as needed
+2. **Use Natural Language**: Define your agent in plain English first, then convert to YAML
+3. **Test Thoroughly**: Verify agent behavior with different inputs
+4. **Version Carefully**: Increment versions when making significant changes
+5. **Document Well**: Include clear descriptions and usage examples

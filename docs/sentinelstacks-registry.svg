@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 600">
+  <!-- Background -->
+  <rect width="950" height="600" fill="#f8fafc" rx="5" ry="5" />
+  
+  <!-- Header -->
+  <rect x="0" y="0" width="950" height="60" fill="#6c5ce7" />
+  <text x="30" y="38" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#ffffff">SentinelStacks Registry</text>
+  
+  <!-- Search bar -->
+  <rect x="350" y="15" width="400" height="30" rx="15" ry="15" fill="#ffffff" />
+  <text x="370" y="35" font-family="Arial, sans-serif" font-size="14" fill="#a0aec0">Search agents...</text>
+  <circle cx="730" cy="30" r="10" fill="#6c5ce7" />
+  <line x1="726" y1="26" x2="734" y2="34" stroke="#ffffff" stroke-width="2" />
+  <line x1="726" y1="34" x2="734" y2="26" stroke="#ffffff" stroke-width="2" />
+  
+  <!-- User Profile -->
+  <circle cx="900" cy="30" r="15" fill="#ffffff" />
+  <text x="900" y="35" font-family="Arial, sans-serif" font-size="15" text-anchor="middle" fill="#6c5ce7">ME</text>
+  
+  <!-- Sidebar -->
+  <rect x="0" y="60" width="200" height="540" fill="#f1f5f9" />
+  <text x="20" y="90" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">Browse</text>
+  <text x="30" y="120" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Popular</text>
+  <text x="30" y="150" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Featured</text>
+  <text x="30" y="180" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#6c5ce7">Categories</text>
+  
+  <text x="20" y="220" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">Categories</text>
+  <text x="30" y="250" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Productivity</text>
+  <text x="30" y="280" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Development</text>
+  <text x="30" y="310" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Research</text>
+  <text x="30" y="340" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Data Analysis</text>
+  <text x="30" y="370" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Creative</text>
+  <text x="30" y="400" font-family="Arial, sans-serif" font-size="14" fill="#64748b">All Categories</text>
+  
+  <text x="20" y="440" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">My Agents</text>
+  <text x="30" y="470" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Published</text>
+  <text x="30" y="500" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Starred</text>
+  <text x="30" y="530" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Downloaded</text>
+  
+  <rect x="30" y="560" width="140" height="30" rx="5" ry="5" fill="#6c5ce7" />
+  <text x="100" y="580" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#ffffff">+ Publish New</text>
+  
+  <!-- Main Content -->
+  <text x="220" y="90" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1e293b">Categories: Research</text>
+  
+  <!-- Filter Bar -->
+  <rect x="220" y="110" width="710" height="40" rx="5" ry="5" fill="#f1f5f9" />
+  <text x="240" y="135" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Filter by:</text>
+  
+  <rect x="320" y="115" width="100" height="30" rx="15" ry="15" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="370" y="135" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#64748b">Model ▼</text>
+  
+  <rect x="430" y="115" width="100" height="30" rx="15" ry="15" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="480" y="135" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#64748b">Tools ▼</text>
+  
+  <rect x="540" y="115" width="120" height="30" rx="15" ry="15" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="600" y="135" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#64748b">License ▼</text>
+  
+  <rect x="670" y="115" width="100" height="30" rx="15" ry="15" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="720" y="135" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#64748b">Stars ▼</text>
+  
+  <rect x="780" y="115" width="130" height="30" rx="15" ry="15" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="845" y="135" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#64748b">Last Updated ▼</text>
+  
+  <!-- Agent Cards -->
+  <!-- Card 1 -->
+  <rect x="220" y="170" width="230" height="200" rx="10" ry="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="240" y="195" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">Research Assistant</text>
+  <text x="240" y="215" font-family="Arial, sans-serif" font-size="12" fill="#64748b">by researchlab</text>
+  
+  <rect x="240" y="225" width="190" height="80" rx="5" ry="5" fill="#f8fafc" />
+  <text x="250" y="245" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Summarizes research papers, extracts key findings, and generates literature reviews.</text>
+  
+  <text x="240" y="325" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Models: Ollama, Claude</text>
+  <text x="240" y="345" font-family="Arial, sans-serif" font-size="12" fill="#64748b">★ 4.8 (243 ratings)</text>
+  
+  <text x="400" y="345" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#6c5ce7">PULL</text>
+  
+  <!-- Card 2 -->
+  <rect x="460" y="170" width="230" height="200" rx="10" ry="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="480" y="195" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">Literature Navigator</text>
+  <text x="480" y="215" font-family="Arial, sans-serif" font-size="12" fill="#64748b">by academictools</text>
+  
+  <rect x="480" y="225" width="190" height="80" rx="5" ry="5" fill="#f8fafc" />
+  <text x="490" y="245" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Connects to academic databases, searches for relevant papers, and creates citation networks.</text>
+  
+  <text x="480" y="325" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Models: GPT-4, Claude</text>
+  <text x="480" y="345" font-family="Arial, sans-serif" font-size="12" fill="#64748b">★ 4.6 (187 ratings)</text>
+  
+  <text x="640" y="345" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#6c5ce7">PULL</text>
+  
+  <!-- Card 3 -->
+  <rect x="700" y="170" width="230" height="200" rx="10" ry="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="720" y="195" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">Citation Helper</text>
+  <text x="720" y="215" font-family="Arial, sans-serif" font-size="12" fill="#64748b">by scholartools</text>
+  
+  <rect x="720" y="225" width="190" height="80" rx="5" ry="5" fill="#f8fafc" />
+  <text x="730" y="245" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Formats citations in various styles, checks references, and validates bibliography entries.</text>
+  
+  <text x="720" y="325" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Models: Llama3, GPT-3.5</text>
+  <text x="720" y="345" font-family="Arial, sans-serif" font-size="12" fill="#64748b">★ 4.7 (156 ratings)</text>
+  
+  <text x="880" y="345" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#6c5ce7">PULL</text>
+  
+  <!-- Card 4 -->
+  <rect x="220" y="380" width="230" height="200" rx="10" ry="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="240" y="405" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">Study Note Generator</text>
+  <text x="240" y="425" font-family="Arial, sans-serif" font-size="12" fill="#64748b">by edutech</text>
+  
+  <rect x="240" y="435" width="190" height="80" rx="5" ry="5" fill="#f8fafc" />
+  <text x="250" y="455" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Creates study notes, flashcards, and mind maps from research papers and textbooks.</text>
+  
+  <text x="240" y="535" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Models: Mistral, Llama3</text>
+  <text x="240" y="555" font-family="Arial, sans-serif" font-size="12" fill="#64748b">★ 4.5 (132 ratings)</text>
+  
+  <text x="400" y="555" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#6c5ce7">PULL</text>
+  
+  <!-- Card 5 -->
+  <rect x="460" y="380" width="230" height="200" rx="10" ry="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="480" y="405" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">Research Reviewer</text>
+  <text x="480" y="425" font-family="Arial, sans-serif" font-size="12" fill="#64748b">by peerreview</text>
+  
+  <rect x="480" y="435" width="190" height="80" rx="5" ry="5" fill="#f8fafc" />
+  <text x="490" y="455" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Analyzes methodology, evaluates results, and provides constructive feedback on research papers.</text>
+  
+  <text x="480" y="535" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Models: Claude, GPT-4</text>
+  <text x="480" y="555" font-family="Arial, sans-serif" font-size="12" fill="#64748b">★ 4.9 (97 ratings)</text>
+  
+  <text x="640" y="555" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#6c5ce7">PULL</text>
+  
+  <!-- Card 6 -->
+  <rect x="700" y="380" width="230" height="200" rx="10" ry="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="720" y="405" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">Data Extractor</text>
+  <text x="720" y="425" font-family="Arial, sans-serif" font-size="12" fill="#64748b">by datalab</text>
+  
+  <rect x="720" y="435" width="190" height="80" rx="5" ry="5" fill="#f8fafc" />
+  <text x="730" y="455" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Extracts structured data from research papers, converts tables to CSV, and visualizes results.</text>
+  
+  <text x="720" y="535" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Models: GPT-4, Claude</text>
+  <text x="720" y="555" font-family="Arial, sans-serif" font-size="12" fill="#64748b">★ 4.8 (108 ratings)</text>
+  
+  <text x="880" y="555" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#6c5ce7">PULL</text>
+</svg>

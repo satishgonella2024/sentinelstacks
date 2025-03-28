@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <!-- Background -->
+  <rect width="800" height="600" fill="#f8f9fa" />
+  
+  <!-- Title -->
+  <text x="400" y="30" font-family="Arial" font-size="20" text-anchor="middle" font-weight="bold">SentinelStacks Architecture</text>
+  
+  <!-- Client Layer -->
+  <rect x="50" y="70" width="700" height="100" rx="10" fill="#e9ecef" stroke="#343a40" stroke-width="2" />
+  <text x="400" y="95" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Client Layer</text>
+  
+  <rect x="80" y="110" width="120" height="40" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="140" y="135" font-family="Arial" font-size="14" text-anchor="middle">CLI (Go/Cobra)</text>
+  
+  <rect x="220" y="110" width="160" height="40" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="300" y="135" font-family="Arial" font-size="14" text-anchor="middle">Desktop (Tauri)</text>
+  
+  <rect x="400" y="110" width="160" height="40" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="480" y="135" font-family="Arial" font-size="14" text-anchor="middle">Web UI (React)</text>
+  
+  <rect x="580" y="110" width="140" height="40" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="650" y="135" font-family="Arial" font-size="14" text-anchor="middle">API Clients</text>
+  
+  <!-- API Layer -->
+  <rect x="50" y="190" width="700" height="80" rx="10" fill="#e9ecef" stroke="#343a40" stroke-width="2" />
+  <text x="400" y="215" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">API Layer</text>
+  
+  <rect x="120" y="230" width="250" height="30" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="245" y="250" font-family="Arial" font-size="14" text-anchor="middle">gRPC Services</text>
+  
+  <rect x="430" y="230" width="250" height="30" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="555" y="250" font-family="Arial" font-size="14" text-anchor="middle">REST Gateway</text>
+  
+  <!-- Core Services -->
+  <rect x="50" y="290" width="700" height="120" rx="10" fill="#e9ecef" stroke="#343a40" stroke-width="2" />
+  <text x="400" y="315" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Core Services</text>
+  
+  <rect x="80" y="330" width="150" height="60" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="155" y="365" font-family="Arial" font-size="14" text-anchor="middle">Agent Runtime</text>
+  
+  <rect x="250" y="330" width="150" height="60" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="325" y="365" font-family="Arial" font-size="14" text-anchor="middle">Registry Service</text>
+  
+  <rect x="420" y="330" width="150" height="60" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="495" y="365" font-family="Arial" font-size="14" text-anchor="middle">State Manager</text>
+  
+  <rect x="590" y="330" width="130" height="60" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="655" y="365" font-family="Arial" font-size="14" text-anchor="middle">Auth Service</text>
+  
+  <!-- Adapters Layer -->
+  <rect x="50" y="430" width="700" height="80" rx="10" fill="#e9ecef" stroke="#343a40" stroke-width="2" />
+  <text x="400" y="455" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Adapters Layer</text>
+  
+  <rect x="80" y="470" width="120" height="30" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="140" y="490" font-family="Arial" font-size="14" text-anchor="middle">Ollama</text>
+  
+  <rect x="210" y="470" width="120" height="30" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="270" y="490" font-family="Arial" font-size="14" text-anchor="middle">OpenAI</text>
+  
+  <rect x="340" y="470" width="120" height="30" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="400" y="490" font-family="Arial" font-size="14" text-anchor="middle">Claude</text>
+  
+  <rect x="470" y="470" width="120" height="30" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="530" y="490" font-family="Arial" font-size="14" text-anchor="middle">ToolKit</text>
+  
+  <rect x="600" y="470" width="120" height="30" rx="5" fill="#ffffff" stroke="#495057" stroke-width="2" />
+  <text x="660" y="490" font-family="Arial" font-size="14" text-anchor="middle">Custom</text>
+  
+  <!-- Storage Layer -->
+  <rect x="50" y="530" width="700" height="50" rx="10" fill="#e9ecef" stroke="#343a40" stroke-width="2" />
+  <text x="400" y="560" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Storage Layer (SQLite/PostgreSQL, Vector DB, File System)</text>
+  
+  <!-- Connecting Lines -->
+  <!-- Client to API -->
+  <line x1="140" y1="150" x2="140" y2="190" stroke="#6c757d" stroke-width="2" />
+  <line x1="300" y1="150" x2="300" y2="190" stroke="#6c757d" stroke-width="2" />
+  <line x1="480" y1="150" x2="480" y2="190" stroke="#6c757d" stroke-width="2" />
+  <line x1="650" y1="150" x2="650" y2="190" stroke="#6c757d" stroke-width="2" />
+  
+  <!-- API to Core -->
+  <line x1="245" y1="260" x2="245" y2="290" stroke="#6c757d" stroke-width="2" />
+  <line x1="555" y1="260" x2="555" y2="290" stroke="#6c757d" stroke-width="2" />
+  
+  <!-- Core to Adapters -->
+  <line x1="155" y1="390" x2="155" y2="430" stroke="#6c757d" stroke-width="2" />
+  <line x1="325" y1="390" x2="325" y2="430" stroke="#6c757d" stroke-width="2" />
+  <line x1="495" y1="390" x2="495" y2="430" stroke="#6c757d" stroke-width="2" />
+  <line x1="655" y1="390" x2="655" y2="430" stroke="#6c757d" stroke-width="2" />
+  
+  <!-- Adapters to Storage -->
+  <line x1="140" y1="500" x2="140" y2="530" stroke="#6c757d" stroke-width="2" />
+  <line x1="270" y1="500" x2="270" y2="530" stroke="#6c757d" stroke-width="2" />
+  <line x1="400" y1="500" x2="400" y2="530" stroke="#6c757d" stroke-width="2" />
+  <line x1="530" y1="500" x2="530" y2="530" stroke="#6c757d" stroke-width="2" />
+  <line x1="660" y1="500" x2="660" y2="530" stroke="#6c757d" stroke-width="2" />
+</svg>

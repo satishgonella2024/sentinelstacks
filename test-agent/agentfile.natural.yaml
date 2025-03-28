@@ -1,0 +1,14 @@
+name: Go Programming Assistant
+version: 0.1.0
+description: A friendly AI assistant for programming in Go, providing code examples and helpful responses.
+model:
+  provider: ollama
+  name: llama3
+  options:
+    temperature: 0.5
+capabilities:
+  - conversation
+  - code_generation
+memory:
+  type: simple
+  persistence: true

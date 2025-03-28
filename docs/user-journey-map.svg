@@ -1,0 +1,195 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 680">
+  <!-- Background -->
+  <rect width="1000" height="680" fill="#f8f9fa" />
+  
+  <!-- Title -->
+  <text x="500" y="30" font-family="Arial" font-size="24" text-anchor="middle" font-weight="bold">SentinelStacks User Journey</text>
+  
+  <!-- Journey Phases -->
+  <rect x="50" y="60" width="900" height="40" rx="5" fill="#e9ecef" stroke="#343a40" stroke-width="2" />
+  <text x="125" y="85" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Discovery</text>
+  <text x="275" y="85" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Onboarding</text>
+  <text x="425" y="85" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">First Success</text>
+  <text x="575" y="85" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Regular Usage</text>
+  <text x="725" y="85" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Advanced Usage</text>
+  <text x="875" y="85" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Expansion</text>
+  
+  <!-- Vertical lines separating phases -->
+  <line x1="200" y1="60" x2="200" y2="660" stroke="#adb5bd" stroke-width="1" stroke-dasharray="5,5" />
+  <line x1="350" y1="60" x2="350" y2="660" stroke="#adb5bd" stroke-width="1" stroke-dasharray="5,5" />
+  <line x1="500" y1="60" x2="500" y2="660" stroke="#adb5bd" stroke-width="1" stroke-dasharray="5,5" />
+  <line x1="650" y1="60" x2="650" y2="660" stroke="#adb5bd" stroke-width="1" stroke-dasharray="5,5" />
+  <line x1="800" y1="60" x2="800" y2="660" stroke="#adb5bd" stroke-width="1" stroke-dasharray="5,5" />
+  
+  <!-- User Persona 1: Developer -->
+  <rect x="50" y="120" width="900" height="160" rx="10" fill="#ffffff" stroke="#343a40" stroke-width="2" />
+  <text x="70" y="145" font-family="Arial" font-size="18" font-weight="bold">Developer</text>
+  
+  <!-- Journey steps for Developer -->
+  <rect x="70" y="160" width="110" height="100" rx="5" fill="#e3f2fd" stroke="#0d6efd" stroke-width="1" />
+  <text x="125" y="180" font-family="Arial" font-size="14" text-anchor="middle">GitHub Star</text>
+  <text x="125" y="200" font-family="Arial" font-size="12" text-anchor="middle">Finds via Hacker News</text>
+  <text x="125" y="220" font-family="Arial" font-size="12" text-anchor="middle">Reads README</text>
+  <text x="125" y="240" font-family="Arial" font-size="12" text-anchor="middle">Checks Docker analogy</text>
+  
+  <rect x="220" y="160" width="110" height="100" rx="5" fill="#e3f2fd" stroke="#0d6efd" stroke-width="1" />
+  <text x="275" y="180" font-family="Arial" font-size="14" text-anchor="middle">CLI Install</text>
+  <text x="275" y="200" font-family="Arial" font-size="12" text-anchor="middle">brew install</text>
+  <text x="275" y="220" font-family="Arial" font-size="12" text-anchor="middle">sentinel init</text>
+  <text x="275" y="240" font-family="Arial" font-size="12" text-anchor="middle">Connects Ollama</text>
+  
+  <rect x="370" y="160" width="110" height="100" rx="5" fill="#e3f2fd" stroke="#0d6efd" stroke-width="1" />
+  <text x="425" y="180" font-family="Arial" font-size="14" text-anchor="middle">First Agent</text>
+  <text x="425" y="200" font-family="Arial" font-size="12" text-anchor="middle">stack pull demo</text>
+  <text x="425" y="220" font-family="Arial" font-size="12" text-anchor="middle">Runs code assistant</text>
+  <text x="425" y="240" font-family="Arial" font-size="12" text-anchor="middle">Gets help with task</text>
+  
+  <rect x="520" y="160" width="110" height="100" rx="5" fill="#e3f2fd" stroke="#0d6efd" stroke-width="1" />
+  <text x="575" y="180" font-family="Arial" font-size="14" text-anchor="middle">Daily Tool</text>
+  <text x="575" y="200" font-family="Arial" font-size="12" text-anchor="middle">Creates custom agent</text>
+  <text x="575" y="220" font-family="Arial" font-size="12" text-anchor="middle">Integrates with workflow</text>
+  <text x="575" y="240" font-family="Arial" font-size="12" text-anchor="middle">Automates tasks</text>
+  
+  <rect x="670" y="160" width="110" height="100" rx="5" fill="#e3f2fd" stroke="#0d6efd" stroke-width="1" />
+  <text x="725" y="180" font-family="Arial" font-size="14" text-anchor="middle">Power User</text>
+  <text x="725" y="200" font-family="Arial" font-size="12" text-anchor="middle">Custom Agentfiles</text>
+  <text x="725" y="220" font-family="Arial" font-size="12" text-anchor="middle">Multi-agent workflows</text>
+  <text x="725" y="240" font-family="Arial" font-size="12" text-anchor="middle">Writes agent plugins</text>
+  
+  <rect x="820" y="160" width="110" height="100" rx="5" fill="#e3f2fd" stroke="#0d6efd" stroke-width="1" />
+  <text x="875" y="180" font-family="Arial" font-size="14" text-anchor="middle">Team Adoption</text>
+  <text x="875" y="200" font-family="Arial" font-size="12" text-anchor="middle">Upgrades to Pro</text>
+  <text x="875" y="220" font-family="Arial" font-size="12" text-anchor="middle">Shares team registry</text>
+  <text x="875" y="240" font-family="Arial" font-size="12" text-anchor="middle">Creates templates</text>
+  
+  <!-- User Persona 2: Data Scientist -->
+  <rect x="50" y="300" width="900" height="160" rx="10" fill="#ffffff" stroke="#343a40" stroke-width="2" />
+  <text x="70" y="325" font-family="Arial" font-size="18" font-weight="bold">Data Scientist</text>
+  
+  <!-- Journey steps for Data Scientist -->
+  <rect x="70" y="340" width="110" height="100" rx="5" fill="#e8f5e9" stroke="#198754" stroke-width="1" />
+  <text x="125" y="360" font-family="Arial" font-size="14" text-anchor="middle">Exploration</text>
+  <text x="125" y="380" font-family="Arial" font-size="12" text-anchor="middle">Twitter mention</text>
+  <text x="125" y="400" font-family="Arial" font-size="12" text-anchor="middle">Reads use cases</text>
+  <text x="125" y="420" font-family="Arial" font-size="12" text-anchor="middle">Compares to notebooks</text>
+  
+  <rect x="220" y="340" width="110" height="100" rx="5" fill="#e8f5e9" stroke="#198754" stroke-width="1" />
+  <text x="275" y="360" font-family="Arial" font-size="14" text-anchor="middle">Desktop Install</text>
+  <text x="275" y="380" font-family="Arial" font-size="12" text-anchor="middle">Downloads app</text>
+  <text x="275" y="400" font-family="Arial" font-size="12" text-anchor="middle">Visual setup</text>
+  <text x="275" y="420" font-family="Arial" font-size="12" text-anchor="middle">Connects models</text>
+  
+  <rect x="370" y="340" width="110" height="100" rx="5" fill="#e8f5e9" stroke="#198754" stroke-width="1" />
+  <text x="425" y="360" font-family="Arial" font-size="14" text-anchor="middle">Data Assistant</text>
+  <text x="425" y="380" font-family="Arial" font-size="12" text-anchor="middle">Pulls data agent</text>
+  <text x="425" y="400" font-family="Arial" font-size="12" text-anchor="middle">Analyzes CSV</text>
+  <text x="425" y="420" font-family="Arial" font-size="12" text-anchor="middle">Gets initial insights</text>
+  
+  <rect x="520" y="340" width="110" height="100" rx="5" fill="#e8f5e9" stroke="#198754" stroke-width="1" />
+  <text x="575" y="360" font-family="Arial" font-size="14" text-anchor="middle">Research Aid</text>
+  <text x="575" y="380" font-family="Arial" font-size="12" text-anchor="middle">Custom data flows</text>
+  <text x="575" y="400" font-family="Arial" font-size="12" text-anchor="middle">Research summaries</text>
+  <text x="575" y="420" font-family="Arial" font-size="12" text-anchor="middle">Literature search</text>
+  
+  <rect x="670" y="340" width="110" height="100" rx="5" fill="#e8f5e9" stroke="#198754" stroke-width="1" />
+  <text x="725" y="360" font-family="Arial" font-size="14" text-anchor="middle">Model Integration</text>
+  <text x="725" y="380" font-family="Arial" font-size="12" text-anchor="middle">Connects own models</text>
+  <text x="725" y="400" font-family="Arial" font-size="12" text-anchor="middle">Creates pipelines</text>
+  <text x="725" y="420" font-family="Arial" font-size="12" text-anchor="middle">Enhanced analytics</text>
+  
+  <rect x="820" y="340" width="110" height="100" rx="5" fill="#e8f5e9" stroke="#198754" stroke-width="1" />
+  <text x="875" y="360" font-family="Arial" font-size="14" text-anchor="middle">Lab Adoption</text>
+  <text x="875" y="380" font-family="Arial" font-size="12" text-anchor="middle">Research team license</text>
+  <text x="875" y="400" font-family="Arial" font-size="12" text-anchor="middle">Shared model registry</text>
+  <text x="875" y="420" font-family="Arial" font-size="12" text-anchor="middle">Custom integrations</text>
+  
+  <!-- User Persona 3: Business User -->
+  <rect x="50" y="480" width="900" height="160" rx="10" fill="#ffffff" stroke="#343a40" stroke-width="2" />
+  <text x="70" y="505" font-family="Arial" font-size="18" font-weight="bold">Business User</text>
+  
+  <!-- Journey steps for Business User -->
+  <rect x="70" y="520" width="110" height="100" rx="5" fill="#fff3cd" stroke="#ffc107" stroke-width="1" />
+  <text x="125" y="540" font-family="Arial" font-size="14" text-anchor="middle">Word of Mouth</text>
+  <text x="125" y="560" font-family="Arial" font-size="12" text-anchor="middle">Colleague referral</text>
+  <text x="125" y="580" font-family="Arial" font-size="12" text-anchor="middle">Productivity promise</text>
+  <text x="125" y="600" font-family="Arial" font-size="12" text-anchor="middle">No-code appeal</text>
+  
+  <rect x="220" y="520" width="110" height="100" rx="5" fill="#fff3cd" stroke="#ffc107" stroke-width="1" />
+  <text x="275" y="540" font-family="Arial" font-size="14" text-anchor="middle">Guided Setup</text>
+  <text x="275" y="560" font-family="Arial" font-size="12" text-anchor="middle">Desktop download</text>
+  <text x="275" y="580" font-family="Arial" font-size="12" text-anchor="middle">Wizard onboarding</text>
+  <text x="275" y="600" font-family="Arial" font-size="12" text-anchor="middle">Template selection</text>
+  
+  <rect x="370" y="520" width="110" height="100" rx="5" fill="#fff3cd" stroke="#ffc107" stroke-width="1" />
+  <text x="425" y="540" font-family="Arial" font-size="14" text-anchor="middle">Email Helper</text>
+  <text x="425" y="560" font-family="Arial" font-size="12" text-anchor="middle">Uses email assistant</text>
+  <text x="425" y="580" font-family="Arial" font-size="12" text-anchor="middle">Gets draft responses</text>
+  <text x="425" y="600" font-family="Arial" font-size="12" text-anchor="middle">Saves time</text>
+  
+  <rect x="520" y="520" width="110" height="100" rx="5" fill="#fff3cd" stroke="#ffc107" stroke-width="1" />
+  <text x="575" y="540" font-family="Arial" font-size="14" text-anchor="middle">Daily Assistant</text>
+  <text x="575" y="560" font-family="Arial" font-size="12" text-anchor="middle">Meeting summaries</text>
+  <text x="575" y="580" font-family="Arial" font-size="12" text-anchor="middle">Document analysis</text>
+  <text x="575" y="600" font-family="Arial" font-size="12" text-anchor="middle">Report generation</text>
+  
+  <rect x="670" y="520" width="110" height="100" rx="5" fill="#fff3cd" stroke="#ffc107" stroke-width="1" />
+  <text x="725" y="540" font-family="Arial" font-size="14" text-anchor="middle">Custom Agents</text>
+  <text x="725" y="560" font-family="Arial" font-size="12" text-anchor="middle">Natural language config</text>
+  <text x="725" y="580" font-family="Arial" font-size="12" text-anchor="middle">Domain-specific assistants</text>
+  <text x="725" y="600" font-family="Arial" font-size="12" text-anchor="middle">Process automation</text>
+  
+  <rect x="820" y="520" width="110" height="100" rx="5" fill="#fff3cd" stroke="#ffc107" stroke-width="1" />
+  <text x="875" y="540" font-family="Arial" font-size="14" text-anchor="middle">Team Advocate</text>
+  <text x="875" y="560" font-family="Arial" font-size="12" text-anchor="middle">Team subscription</text>
+  <text x="875" y="580" font-family="Arial" font-size="12" text-anchor="middle">Department workflows</text>
+  <text x="875" y="600" font-family="Arial" font-size="12" text-anchor="middle">Enterprise integration</text>
+  
+  <!-- Journey Arrows -->
+  <!-- Developer Journey -->
+  <path d="M180 210 C190 210, 200 210, 220 210" fill="none" stroke="#0d6efd" stroke-width="2" />
+  <polygon points="215,205 220,210 215,215" fill="#0d6efd" />
+  
+  <path d="M330 210 C340 210, 350 210, 370 210" fill="none" stroke="#0d6efd" stroke-width="2" />
+  <polygon points="365,205 370,210 365,215" fill="#0d6efd" />
+  
+  <path d="M480 210 C490 210, 500 210, 520 210" fill="none" stroke="#0d6efd" stroke-width="2" />
+  <polygon points="515,205 520,210 515,215" fill="#0d6efd" />
+  
+  <path d="M630 210 C640 210, 650 210, 670 210" fill="none" stroke="#0d6efd" stroke-width="2" />
+  <polygon points="665,205 670,210 665,215" fill="#0d6efd" />
+  
+  <path d="M780 210 C790 210, 800 210, 820 210" fill="none" stroke="#0d6efd" stroke-width="2" />
+  <polygon points="815,205 820,210 815,215" fill="#0d6efd" />
+  
+  <!-- Data Scientist Journey -->
+  <path d="M180 390 C190 390, 200 390, 220 390" fill="none" stroke="#198754" stroke-width="2" />
+  <polygon points="215,385 220,390 215,395" fill="#198754" />
+  
+  <path d="M330 390 C340 390, 350 390, 370 390" fill="none" stroke="#198754" stroke-width="2" />
+  <polygon points="365,385 370,390 365,395" fill="#198754" />
+  
+  <path d="M480 390 C490 390, 500 390, 520 390" fill="none" stroke="#198754" stroke-width="2" />
+  <polygon points="515,385 520,390 515,395" fill="#198754" />
+  
+  <path d="M630 390 C640 390, 650 390, 670 390" fill="none" stroke="#198754" stroke-width="2" />
+  <polygon points="665,385 670,390 665,395" fill="#198754" />
+  
+  <path d="M780 390 C790 390, 800 390, 820 390" fill="none" stroke="#198754" stroke-width="2" />
+  <polygon points="815,385 820,390 815,395" fill="#198754" />
+  
+  <!-- Business User Journey -->
+  <path d="M180 570 C190 570, 200 570, 220 570" fill="none" stroke="#ffc107" stroke-width="2" />
+  <polygon points="215,565 220,570 215,575" fill="#ffc107" />
+  
+  <path d="M330 570 C340 570, 350 570, 370 570" fill="none" stroke="#ffc107" stroke-width="2" />
+  <polygon points="365,565 370,570 365,575" fill="#ffc107" />
+  
+  <path d="M480 570 C490 570, 500 570, 520 570" fill="none" stroke="#ffc107" stroke-width="2" />
+  <polygon points="515,565 520,570 515,575" fill="#ffc107" />
+  
+  <path d="M630 570 C640 570, 650 570, 670 570" fill="none" stroke="#ffc107" stroke-width="2" />
+  <polygon points="665,565 670,570 665,575" fill="#ffc107" />
+  
+  <path d="M780 570 C790 570, 800 570, 820 570" fill="none" stroke="#ffc107" stroke-width="2" />
+  <polygon points="815,565 820,570 815,575" fill="#ffc107" />
+</svg>
