@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentinelStacks Registry</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .agent-card {
+            transition: transform 0.2s;
+        }
+        .agent-card:hover {
+            transform: translateY(-5px);
+        }
+        .tag {
+            background-color: #e2e8f0;
+            color: #4a5568;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            margin: 0.25rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="/">
+                            <img class="h-8 w-auto" src="/registry/images/logo.svg" alt="SentinelStacks">
+                        </a>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="/registry" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Registry
+                        </a>
+                        <a href="/" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Search and Filter -->
+        <div class="px-4 py-6 sm:px-0">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex-1 max-w-lg">
+                    <div class="relative">
+                        <input type="text" id="search" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Search agents...">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <select id="filter" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="all">All Agents</option>
+                        <option value="infrastructure">Infrastructure</option>
+                        <option value="security">Security</option>
+                        <option value="monitoring">Monitoring</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Agents Grid -->
+            <div id="agents-grid" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <!-- Agent cards will be dynamically inserted here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Agent Details Modal -->
+    <div id="agent-modal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title"></h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500" id="modal-description"></p>
+                            </div>
+                            <div class="mt-4">
+                                <h4 class="text-sm font-medium text-gray-900">Capabilities</h4>
+                                <div id="modal-capabilities" class="mt-2 flex flex-wrap"></div>
+                            </div>
+                            <div class="mt-4">
+                                <h4 class="text-sm font-medium text-gray-900">Commands</h4>
+                                <div id="modal-commands" class="mt-2 space-y-4"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm" onclick="closeModal()">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debug logging
+        console.log('Registry UI loaded');
+
+        // Load agents from API
+        async function loadAgents() {
+            console.log('Loading agents...');
+            try {
+                const response = await fetch('/api/agents');
+                console.log('API response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const agents = await response.json();
+                console.log('Loaded agents:', agents);
+                
+                if (Array.isArray(agents) && agents.length > 0) {
+                    displayAgents(agents);
+                } else {
+                    const grid = document.getElementById('agents-grid');
+                    grid.innerHTML = `
+                        <div class="col-span-full text-center py-8">
+                            <p class="text-gray-500">No agents found. Install some agents to get started.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading agents:', error);
+                // Show error message to user
+                const grid = document.getElementById('agents-grid');
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <p class="text-red-600">Error loading agents. Please try again later.</p>
+                        <p class="text-sm text-gray-500 mt-2">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Display agents in the grid
+        function displayAgents(agents) {
+            console.log('Displaying agents:', agents);
+            const grid = document.getElementById('agents-grid');
+            grid.innerHTML = '';
+
+            agents.forEach(agent => {
+                const card = createAgentCard(agent);
+                grid.appendChild(card);
+            });
+        }
+
+        // Create an agent card
+        function createAgentCard(agent) {
+            const card = document.createElement('div');
+            card.className = 'agent-card bg-white overflow-hidden shadow rounded-lg';
+            card.innerHTML = `
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-robot text-3xl text-indigo-600"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">
+                                    ${agent.name}
+                                </dt>
+                                <dd class="text-lg font-medium text-gray-900">
+                                    ${agent.version}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-sm text-gray-500">${agent.description}</p>
+                    </div>
+                    <div class="mt-4 flex flex-wrap">
+                        ${agent.capabilities.map(cap => `<span class="tag">${cap}</span>`).join('')}
+                    </div>
+                    <div class="mt-4">
+                        <button onclick="showAgentDetails(${JSON.stringify(agent)})" class="text-indigo-600 hover:text-indigo-900">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        // Show agent details in modal
+        function showAgentDetails(agent) {
+            const modal = document.getElementById('agent-modal');
+            const title = document.getElementById('modal-title');
+            const description = document.getElementById('modal-description');
+            const capabilities = document.getElementById('modal-capabilities');
+            const commands = document.getElementById('modal-commands');
+
+            title.textContent = `${agent.name}:${agent.version}`;
+            description.textContent = agent.description;
+            capabilities.innerHTML = agent.capabilities.map(cap => `<span class="tag">${cap}</span>`).join('');
+            commands.innerHTML = agent.commands.map(cmd => `
+                <div class="border rounded p-3">
+                    <h5 class="font-medium">${cmd.name}</h5>
+                    <p class="text-sm text-gray-500">${cmd.description}</p>
+                    <div class="mt-2">
+                        ${cmd.args.map(arg => `
+                            <div class="text-sm">
+                                <span class="font-medium">${arg.name}</span>
+                                <span class="text-gray-500">(${arg.type})</span>
+                                ${arg.required ? '<span class="text-red-500">*</span>' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            modal.classList.remove('hidden');
+        }
+
+        // Close modal
+        function closeModal() {
+            const modal = document.getElementById('agent-modal');
+            modal.classList.add('hidden');
+        }
+
+        // Search functionality
+        document.getElementById('search').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.agent-card');
+            
+            cards.forEach(card => {
+                const name = card.querySelector('dt').textContent.toLowerCase();
+                const description = card.querySelector('p').textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || description.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Filter functionality
+        document.getElementById('filter').addEventListener('change', function(e) {
+            const filterValue = e.target.value;
+            const cards = document.querySelectorAll('.agent-card');
+            
+            cards.forEach(card => {
+                const capabilities = Array.from(card.querySelectorAll('.tag')).map(tag => tag.textContent);
+                
+                if (filterValue === 'all' || capabilities.includes(filterValue)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Load agents when page loads
+        document.addEventListener('DOMContentLoaded', loadAgents);
+    </script>
+</body>
+</html> 

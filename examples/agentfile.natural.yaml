@@ -1,0 +1,19 @@
+name: Coding Assistant
+version: 0.1.0
+description: AI assistant for coding tasks, friendly and patient.
+
+model:
+  provider: ollama
+  name: llama3
+  options:
+    temperature: 0.5
+
+capabilities:
+  - code_generation
+  - explanation
+  - debugging
+  - best_practices
+
+memory:
+  type: simple
+  persistence: true

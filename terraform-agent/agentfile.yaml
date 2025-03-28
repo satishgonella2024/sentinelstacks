@@ -1,0 +1,26 @@
+name: terraform-agent
+version: "0.1.0"
+description: "An AI assistant that helps users with Terraform infrastructure as code tasks"
+model:
+  provider: ollama
+  name: llama3
+  endpoint: "http://model.gonella.co.uk"
+  options:
+    temperature: 0.7
+capabilities:
+  - terraform_planning
+  - infrastructure_design
+  - resource_optimization
+  - security_best_practices
+  - troubleshooting
+  - conversation
+  - tool_usage
+memory:
+  type: simple
+  persistence: true
+tools:
+  - id: terraform
+    version: "0.1.0"
+permissions:
+  file_access: ["read", "write"]
+  network: true

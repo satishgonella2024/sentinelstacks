@@ -1,0 +1,33 @@
+name: terraform-agent
+version: latest
+description: Agent for managing Terraform infrastructure
+capabilities:
+  - terraform
+  - aws
+  - azure
+  - gcp
+
+commands:
+  - name: plan
+    description: Generate Terraform plan
+    args:
+      - name: path
+        type: string
+        required: true
+        description: Path to Terraform configuration
+
+  - name: apply
+    description: Apply Terraform changes
+    args:
+      - name: path
+        type: string
+        required: true
+        description: Path to Terraform configuration
+
+  - name: destroy
+    description: Destroy Terraform infrastructure
+    args:
+      - name: path
+        type: string
+        required: true
+        description: Path to Terraform configuration 

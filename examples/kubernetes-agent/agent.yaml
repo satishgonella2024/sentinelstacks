@@ -1,0 +1,36 @@
+name: kubernetes-agent
+version: latest
+description: Agent for managing Kubernetes clusters
+capabilities:
+  - kubernetes
+  - helm
+  - kubectl
+
+commands:
+  - name: deploy
+    description: Deploy a Kubernetes application
+    args:
+      - name: manifest
+        type: string
+        required: true
+        description: Path to Kubernetes manifest file
+
+  - name: scale
+    description: Scale a Kubernetes deployment
+    args:
+      - name: deployment
+        type: string
+        required: true
+        description: Name of the deployment
+      - name: replicas
+        type: int
+        required: true
+        description: Number of replicas
+
+  - name: status
+    description: Check cluster status
+    args:
+      - name: resource
+        type: string
+        required: false
+        description: Resource type to check (pods, services, etc.) 

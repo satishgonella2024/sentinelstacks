@@ -1,180 +1,110 @@
 # SentinelStacks
 
-SentinelStacks is a "Docker for AI agents" - providing tools to define, run, share, and orchestrate AI agents across different model providers.
+SentinelStacks is an AI-powered infrastructure management platform that helps you automate, secure, and manage your cloud resources using intelligent agents.
 
 ## Features
 
-- Natural language Agentfile definitions
-- CLI-first development with GUI desktop interface
-- Registry for discovering and sharing agents
-- Pluggable foundation model backends (Ollama, OpenAI, Claude, etc.)
-- State management for persistent agent memory
-
-## Installation
-
-### Prerequisites
-
-- Go 1.20 or later
-- [Ollama](https://ollama.com/) for local LLM support (optional)
-
-### Installing from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/satishgonella2024/sentinelstacks.git
-cd sentinelstacks
-
-# Build the CLI
-go build -o sentinel cmd/sentinel/main.go
-
-# Add to your PATH (optional)
-sudo mv sentinel /usr/local/bin/
-```
-
-### Environment Setup
-
-If you want to use OpenAI or Claude models, set the following environment variables:
-
-```bash
-# For OpenAI models
-export OPENAI_API_KEY="your-api-key"
-
-# For Claude models
-export ANTHROPIC_API_KEY="your-api-key"
-
-# For custom Ollama endpoint
-export OLLAMA_ENDPOINT="http://your-ollama-server:11434"
-```
+- 🤖 **AI-Powered Automation**: Intelligent agents that understand your infrastructure and automate complex tasks
+- 🔒 **Security First**: Built-in security features and compliance checks
+- ☁️ **Multi-Cloud Support**: Manage resources across multiple cloud providers
+- 🔌 **Extensible Platform**: Create and share custom agents
 
 ## Quick Start
 
+### Prerequisites
+
+- Docker and Docker Compose
+- Go 1.20 or later
+- Git
+
+### Installation
+
+1. Clone the repository:
 ```bash
-# Create a new agent
-sentinel agentfile create --name my-assistant
-
-# Edit the Agentfile natural language definition
-vim my-assistant/agentfile.natural.txt
-
-# Convert to YAML
-sentinel agentfile convert my-assistant/agentfile.natural.txt
-
-# Run your agent
-sentinel agent run my-assistant
-
-# Share your agent
-sentinel registry push my-assistant
+git clone https://github.com/yourusername/sentinelstacks.git
+cd sentinelstacks
 ```
 
-## Usage
-
-### Creating an Agent
-
+2. Start the services:
 ```bash
-# Create a new agent with a name
-sentinel agentfile create --name my-agent-name
+docker-compose up -d
 ```
 
-This creates a directory with the agent name containing:
-- `agentfile.natural.txt`: Natural language definition
-- `agentfile.yaml`: YAML configuration
-- `agent.state.json`: Empty state file
+3. Access the web interface:
+- Landing page: https://localhost
+- Registry UI: https://localhost/registry
 
-### Converting Natural Language to YAML
+### Using the CLI
 
+Install agents:
 ```bash
-# Convert natural language to structured YAML
-sentinel agentfile convert path/to/agentfile.natural.txt
+./sentinel registry pull -name terraform-agent -version latest
+./sentinel registry pull -name kubernetes-agent -version latest
 ```
 
-This uses an LLM to convert your natural language description into a structured YAML configuration.
-
-### Running an Agent
-
+Run an agent:
 ```bash
-# Run an agent with the default model endpoint
-sentinel agent run my-agent-name
-
-# Run with a custom model endpoint
-sentinel agent run my-agent-name --endpoint http://custom-model-server:11434
+./sentinel agent run -name terraform-agent -version latest
 ```
-
-### Registry Operations
-
-```bash
-# Push an agent to the registry
-sentinel registry push my-agent-name
-
-# Pull an agent from the registry
-sentinel registry pull username/agent-name
-
-# Search the registry
-sentinel registry search "coding assistant" --tags python,tutorial
-
-# List all agents in the registry
-sentinel registry list
-```
-
-### Advanced Usage
-
-#### Using Different Model Providers
-
-Edit the `model` section in your `agentfile.yaml`:
-
-```yaml
-model:
-  provider: openai  # or claude, ollama
-  name: gpt-4       # model name
-  options:
-    temperature: 0.7
-```
-
-Don't forget to set the required environment variables for API access.
 
 ## Project Structure
 
 ```
-sentinelstacks/
-├── cmd/
-│   └── sentinel/           # CLI application
-│       ├── commands/       # Command implementations
-│       └── main.go         # Entry point
-├── pkg/
-│   ├── agentfile/          # Agentfile parser and schema
-│   ├── models/             # Model adapters (Ollama, OpenAI)
-│   ├── registry/           # Registry client and server
-│   └── runtime/            # Agent execution runtime
-├── docs/                   # Documentation assets
-├── docs-site/              # MkDocs documentation site
-│   ├── docs/               # Markdown documentation
-│   └── mkdocs.yml          # MkDocs configuration
-└── examples/               # Example agent definitions
+.
+├── cmd/                    # Command-line tools
+│   ├── api/               # API server
+│   └── sentinel/          # CLI tool
+├── internal/              # Internal packages
+│   ├── api/              # API implementation
+│   ├── agent/            # Agent management
+│   └── registry/         # Registry implementation
+├── landing/              # Landing page
+├── registry-ui/          # Registry web interface
+├── nginx/                # Nginx configuration
+└── docker-compose.yml    # Docker services configuration
 ```
 
-## Documentation
+## Development
 
-Comprehensive documentation is available in the `/docs-site` directory. To view the documentation locally:
+### Building from Source
 
-1. Install MkDocs and the Material theme:
-   ```bash
-   pip install mkdocs-material
-   ```
+```bash
+# Build the CLI tool
+go build -o sentinel cmd/sentinel/main.go
 
-2. Run the local development server:
-   ```bash
-   cd docs-site
-   mkdocs serve
-   ```
+# Build the API server
+go build -o api-server cmd/api/main.go
+```
 
-3. Open your browser to [http://localhost:8000](http://localhost:8000)
+### Running Tests
 
-## Development Status
+```bash
+go test ./...
+```
 
-SentinelStacks is currently in early development. See the [ROADMAP.md](ROADMAP.md) for current status and planned features.
+### Adding a New Agent
+
+1. Create a new directory in `examples/agents/`
+2. Add your agent configuration in `agent.yaml`
+3. Implement the required commands
+4. Build and push to the registry:
+```bash
+./sentinel registry push -path examples/agents/your-agent
+```
 
 ## Contributing
 
-Contributions are welcome! See [CONTRIBUTING.md](docs-site/docs/developer-guide/contributing.md) for guidelines.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-[MIT License](LICENSE)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Thanks to all contributors who have helped shape SentinelStacks
+- Built with Go, Docker, and ❤️

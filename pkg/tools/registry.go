@@ -34,6 +34,16 @@ func GetToolRegistry() *ToolRegistry {
 			apiKey := os.Getenv("OPENWEATHER_API_KEY")
 			return NewWeatherTool(apiKey)
 		})
+		
+		// Register Terraform tool
+		globalRegistry.RegisterFactory("terraform", func() Tool {
+			return &TerraformTool{}
+		})
+
+		// Register URLFetcher tool if it exists
+		globalRegistry.RegisterFactory("urlfetcher", func() Tool {
+			return &URLFetcherTool{}
+		})
 	})
 	
 	return globalRegistry

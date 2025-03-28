@@ -1,0 +1,20 @@
+name: terraform-assistant
+version: "0.1.0"
+description: "An AI assistant that helps with Terraform infrastructure as code tasks, providing guidance on best practices, troubleshooting, and code examples."
+model:
+  provider: ollama
+  name: llama3
+  endpoint: http://model.gonella.co.uk
+  options:
+    temperature: 0.7
+capabilities:
+  - conversation
+  - infrastructure_planning
+  - troubleshooting
+  - optimization
+  - security_guidance
+  - code_generation
+  - debugging
+memory:
+  type: simple
+  persistence: true

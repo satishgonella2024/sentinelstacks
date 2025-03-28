@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # Nginx for serving the landing page and registry UI
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./landing:/usr/share/nginx/html/landing
+      - ./registry-ui:/usr/share/nginx/html/registry
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - registry
+      - api
+    networks:
+      - sentinel-network
+
+  # Registry service
+  registry:
+    image: registry:2
+    ports:
+      - "5000:5000"
+    environment:
+      REGISTRY_STORAGE: filesystem
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+    volumes:
+      - registry_data:/var/lib/registry
+      - ./auth:/auth
+    networks:
+      - sentinel-network
+    restart: always
+
+  # Database for user management
+  db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_DB: sentinelstacks
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-sentinel}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - sentinel-network
+
+  # Redis for caching
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sentinel-network
+
+  # API service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=sentinelstacks
+      - DB_USER=sentinel
+      - DB_PASSWORD=${DB_PASSWORD:-sentinel}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REGISTRY_URL=http://registry:5000
+      - HOME=/root
+    volumes:
+      - ${HOME}/.sentinel:/root/.sentinel
+    depends_on:
+      - db
+      - redis
+      - registry
+    networks:
+      - sentinel-network
+
+networks:
+  sentinel-network:
+    driver: bridge
+
+volumes:
+  registry_data:
+  postgres_data:
+  redis_data: 
