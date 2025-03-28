@@ -47,9 +47,12 @@ The following improvements have been made to the SentinelStacks codebase:
    - Implement better error handling and user feedback
 
 3. **Enhance Agent Capabilities**:
-   - Implement tool support infrastructure
-   - Create several basic tools (e.g., web search, calculator)
+   - ✓ Implemented tool support infrastructure
+   - ✓ Created basic tools (calculator, weather)
+   - ✓ Updated agent runtime to support tool execution
+   - ✓ Added example agent demonstrating tool usage
    - Add support for function calling in compatible models
+   - Implement more advanced tools (web search, document analysis)
 
 4. **Expand Testing**:
    - Add integration tests

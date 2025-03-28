@@ -1,0 +1,23 @@
+name: ToolHelper
+version: "0.1.0"
+description: "An AI assistant that can perform calculations and get weather information"
+model:
+  provider: ollama
+  name: llama3
+  options:
+    temperature: 0.7
+capabilities:
+  - conversation
+  - tool_usage
+  - explanation
+memory:
+  type: simple
+  persistence: true
+tools:
+  - id: calculator
+    version: "0.1.0"
+  - id: weather
+    version: "0.1.0"
+permissions:
+  file_access: ["read"]
+  network: true

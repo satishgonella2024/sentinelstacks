@@ -7,7 +7,9 @@
 - [x] Agentfile parser (Natural Language → YAML)
 - [x] Simple agent runtime with Ollama adapter
 - [x] Local file-based registry
-- [ ] Multi-model provider support (Ollama, OpenAI, Claude)
+- [x] Multi-model provider support (Ollama, OpenAI, Claude)
+- [x] Tool support infrastructure
+- [ ] Advanced state management
 
 ## Phase 2: Desktop UI Foundations
 
@@ -43,14 +45,17 @@
 - [x] Implement basic state management
 - [x] Develop file-based registry
 
-### Week 3 (Current)
-- [ ] Add OpenAI and Claude model adapters
-- [ ] Improve conversation history handling
-- [ ] Add testing infrastructure
-- [ ] Create initial agent examples
+### Week 3 (Completed)
+- [x] Add OpenAI and Claude model adapters
+- [x] Improve conversation history handling
+- [x] Add testing infrastructure
+- [x] Create initial agent examples
+- [x] Implement tool support infrastructure
 
-### Week 4
-- [ ] Set up CI/CD with GitHub Actions
-- [ ] Document Agentfile specification
-- [ ] Add tool support infrastructure
+### Week 4 (Current)
+- [x] Set up CI/CD with GitHub Actions
+- [x] Document Agentfile specification
+- [ ] Enhance state management with vector storage
 - [ ] Begin Tauri desktop UI implementation
+- [ ] Create advanced agent examples
+- [ ] Add integration tests
