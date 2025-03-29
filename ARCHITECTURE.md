@@ -1,89 +1,193 @@
 # SentinelStacks Architecture
 
-This document outlines the architecture and design decisions for SentinelStacks, a platform for creating, running, and sharing AI agents.
+This document outlines the architecture and implementation status of SentinelStacks, a platform for creating, running, and sharing AI agents.
 
-## System Components
+## System Components and Implementation Status
 
-### 1. CLI (`sentinel`)
-- Command-line interface for interacting with all system components
-- Implemented using Cobra for command structure
-- Provides direct access to agent management, registry, and runtime
+### 1. CLI (`sentinel`) ✅
+**Status: Production Ready**
+- Command-line interface using Cobra framework
+- Enhanced UI with animated progress indicators
+- Color-coded output for better UX
+- Implemented commands:
+  - `agent`: Create and manage agents
+  - `registry`: Interact with agent registry
+  - `memory`: Manage agent memory
+  - `version`: Version information
 
-### 2. Agentfile Parser
-- Converts natural language agent descriptions to structured YAML
-- Uses LLMs for understanding and extraction
-- Validates and normalizes the generated configuration
+### 2. Model Adapters ✅
+**Status: Production Ready**
+- Unified interface for all LLM providers
+- Implemented adapters:
+  - OpenAI (GPT-3.5, GPT-4)
+  - Anthropic Claude
+  - Ollama (local models)
+- Embedding support for vector storage
+- Configurable model parameters
 
-### 3. Agent Runtime
-- Executes agents based on their Agentfile configuration
-- Manages agent lifecycle (init, run, pause, terminate)
-- Handles state persistence and retrieval
+### 3. Memory System 🔄
+**Status: Partially Complete (75%)**
+- Implemented features:
+  - Simple key-value storage
+  - Vector-based storage
+  - Basic persistence
+- Pending features:
+  - Context window management
+  - Advanced retrieval mechanisms
+  - Memory optimization
+  - Comprehensive testing
 
-### 4. Model Adapters
-- Provides unified interface to different LLM backends
-- Handles model-specific quirks and capabilities
-- Supports local models (Ollama) and API-based services (OpenAI, Claude)
+### 4. Desktop Application 🚧
+**Status: Early Development (25%)**
+- Implemented features:
+  - Basic Tauri setup
+  - React project structure
+- Pending features:
+  - Agent management UI
+  - Monitoring interface
+  - Settings management
+  - Performance metrics
 
-### 5. Registry
-- Stores and manages agent definitions
-- Enables discovery and sharing
-- Tracks versions and dependencies
+### 5. Registry System 🚧
+**Status: Early Development (15%)**
+- Implemented features:
+  - Basic UI structure
+  - Simple file-based storage
+- Pending features:
+  - Backend API
+  - User authentication
+  - Version control
+  - Search functionality
 
-### 6. Desktop Application
-- Visual interface for SentinelStacks
-- Agent monitoring and management
-- Built with Tauri and React
+## Data Flow (Current Implementation)
 
-## Data Flow
-
-1. User defines agent in natural language
-2. Parser converts to structured YAML
-3. Agent runtime initializes based on configuration
-4. Runtime connects to appropriate model through adapter
-5. State is maintained and persisted as needed
-6. Results are returned to user via CLI or Desktop UI
+```mermaid
+graph TD
+    A[User Input] --> B[CLI Interface]
+    B --> C[Agent Runtime]
+    C --> D[Model Adapter]
+    D --> E[LLM Service]
+    C --> F[Memory System]
+    F --> G[Local Storage]
+    B --> H[Registry Client]
+    H --> I[Local Registry]
+```
 
 ## Key Interfaces
 
-### Agentfile Format
+### Model Adapter Interface ✅
+```go
+type ModelAdapter interface {
+    Generate(prompt string, systemPrompt string, options Options) (string, error)
+    GetCapabilities() ModelCapabilities
+    GetEmbedding(text string) ([]float32, error)
+}
+```
 
+### Memory Interface 🔄
+```go
+type Memory interface {
+    Add(content string, metadata map[string]interface{}) (string, error)
+    Get(id string) (*MemoryEntry, error)
+    Search(query string, limit int) ([]MemoryEntry, error)
+    List(limit int) ([]MemoryEntry, error)
+    Delete(id string) error
+    Clear() error
+}
+```
+
+### Agent Configuration ✅
 ```yaml
 name: agent-name
 version: "1.0.0"
 description: "Agent description"
 model:
   provider: "ollama"
-  name: "llama3"
+  name: "llama2"
+  options:
+    temperature: 0.7
 capabilities:
-  - capability1
-  - capability2
+  - file_access
+  - network_access
 memory:
-  type: "simple"
+  type: "vector"
   persistence: true
+  maxItems: 1000
 ```
 
-### Model Adapter Interface
+## Current Deployment Architecture
 
-```go
-type ModelAdapter interface {
-    Generate(prompt string, systemPrompt string, options Options) (string, error)
-    GetCapabilities() ModelCapabilities
-}
-```
+### Phase 1: Local-First (Current) ✅
+- File-based storage
+- Local model support via Ollama
+- CLI-first interface
+- Basic agent persistence
 
-### Agent Runtime Interface
+### Phase 2: Registry (Planned) 🚧
+- Remote registry service
+- User authentication
+- Version control
+- Agent sharing
 
-```go
-type AgentRuntime interface {
-    Initialize(agentfile string) error
-    Run(input string) (string, error)
-    GetState() map[string]interface{}
-    SaveState() error
-}
-```
+### Phase 3: Enterprise (Future) 📋
+- Private registries
+- Team management
+- Audit logging
+- Custom model hosting
 
-## Deployment Architecture
+## Testing Status
 
-Phase 1: Local-first with file-based storage
-Phase 2: Optional remote registry with authentication
-Phase 3: Enterprise deployment with private registries
+### Unit Tests 🔄
+- Model adapters: 90% coverage
+- Memory system: 60% coverage
+- CLI commands: 40% coverage
+
+### Integration Tests 🚧
+- Basic CLI tests
+- Memory persistence tests
+- Pending: E2E testing
+
+### Performance Tests 📋
+- Not implemented yet
+- Planned for core components
+
+## Security Considerations
+
+### Implemented ✅
+- Basic file permissions
+- Environment variable handling
+- API key management
+
+### In Progress 🔄
+- Input validation
+- Rate limiting
+- Error handling
+
+### Planned 📋
+- Authentication system
+- Audit logging
+- Sandbox environments
+
+## Known Limitations
+
+1. Memory System
+   - Limited context window management
+   - Basic vector search implementation
+   - No memory optimization
+
+2. Desktop UI
+   - Early development stage
+   - Limited functionality
+   - No real-time updates
+
+3. Registry
+   - Local-only functionality
+   - No version control
+   - Basic storage mechanisms
+
+## Next Steps
+
+1. Complete memory system implementation
+2. Add comprehensive testing
+3. Develop registry backend
+4. Continue desktop UI development

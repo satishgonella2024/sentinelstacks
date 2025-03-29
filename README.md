@@ -1,110 +1,154 @@
 # SentinelStacks
 
-SentinelStacks is an AI-powered infrastructure management platform that helps you automate, secure, and manage your cloud resources using intelligent agents.
+🤖 An AI-powered infrastructure management platform that helps organizations automate, secure, and manage their cloud resources using intelligent agents.
 
-## Features
+## Current Status
 
-- 🤖 **AI-Powered Automation**: Intelligent agents that understand your infrastructure and automate complex tasks
-- 🔒 **Security First**: Built-in security features and compliance checks
-- ☁️ **Multi-Cloud Support**: Manage resources across multiple cloud providers
-- 🔌 **Extensible Platform**: Create and share custom agents
+SentinelStacks is currently in active development. Here's what's working:
+
+### ✅ Production Ready
+- CLI tool with enhanced UI
+- Model integrations (OpenAI, Claude, Ollama)
+- Basic agent runtime
+- Local file storage
+
+### 🔄 In Development
+- Memory system enhancements
+- Desktop application
+- Registry system
+- Advanced agent features
 
 ## Quick Start
 
 ### Prerequisites
-
-- Docker and Docker Compose
-- Go 1.20 or later
-- Git
+- Go 1.21 or later
+- Node.js 18+ (for desktop UI)
+- Rust (for Tauri desktop app)
+- One of the supported LLM providers:
+  - OpenAI API key
+  - Anthropic API key
+  - Ollama (local models)
 
 ### Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/sentinelstacks.git
+git clone https://github.com/satishgonella2024/sentinelstacks.git
 cd sentinelstacks
 ```
 
-2. Start the services:
+2. Build the CLI:
 ```bash
-docker-compose up -d
+./scripts/build.sh
 ```
 
-3. Access the web interface:
-- Landing page: https://localhost
-- Registry UI: https://localhost/registry
-
-### Using the CLI
-
-Install agents:
+3. Set up your environment:
 ```bash
-./sentinel registry pull -name terraform-agent -version latest
-./sentinel registry pull -name kubernetes-agent -version latest
+# For OpenAI
+export OPENAI_API_KEY=your_key_here
+
+# For Anthropic
+export ANTHROPIC_API_KEY=your_key_here
+
+# For local models
+# Install Ollama from https://ollama.ai
 ```
 
-Run an agent:
+### Basic Usage
+
+1. List available agents:
 ```bash
-./sentinel agent run -name terraform-agent -version latest
+./dist/darwin-arm64/sentinel registry list
 ```
 
-## Project Structure
+2. Create a new agent:
+```bash
+./dist/darwin-arm64/sentinel agent create --name test-agent
+```
 
+3. Run an agent:
+```bash
+./dist/darwin-arm64/sentinel agent run --name test-agent --interactive
 ```
-.
-├── cmd/                    # Command-line tools
-│   ├── api/               # API server
-│   └── sentinel/          # CLI tool
-├── internal/              # Internal packages
-│   ├── api/              # API implementation
-│   ├── agent/            # Agent management
-│   └── registry/         # Registry implementation
-├── landing/              # Landing page
-├── registry-ui/          # Registry web interface
-├── nginx/                # Nginx configuration
-└── docker-compose.yml    # Docker services configuration
-```
+
+## Features
+
+### Implemented ✅
+
+1. **Enhanced CLI**
+   - Animated progress indicators
+   - Color-coded output
+   - Interactive mode
+   - Clear success/error states
+
+2. **Model Integration**
+   - OpenAI (GPT-3.5, GPT-4)
+   - Anthropic Claude
+   - Ollama (local models)
+   - Configurable parameters
+
+3. **Basic Memory System**
+   - Key-value storage
+   - Vector embeddings
+   - Persistence
+   - Simple search
+
+### In Development 🔄
+
+1. **Memory Enhancements**
+   - Context window management
+   - Advanced retrieval
+   - Optimization
+
+2. **Desktop Application**
+   - Agent management
+   - Monitoring
+   - Settings
+
+3. **Registry System**
+   - Remote storage
+   - Version control
+   - Sharing
 
 ## Development
 
-### Building from Source
-
-```bash
-# Build the CLI tool
-go build -o sentinel cmd/sentinel/main.go
-
-# Build the API server
-go build -o api-server cmd/api/main.go
+### Project Structure
+```
+sentinelstacks/
+├── cmd/                    # Command-line tools
+├── internal/              # Private application code
+├── pkg/                   # Public libraries
+├── desktop/              # Tauri desktop app
+├── docs/                 # Documentation
+└── scripts/              # Build and utility scripts
 ```
 
 ### Running Tests
-
 ```bash
 go test ./...
 ```
 
-### Adding a New Agent
-
-1. Create a new directory in `examples/agents/`
-2. Add your agent configuration in `agent.yaml`
-3. Implement the required commands
-4. Build and push to the registry:
+### Building Desktop App
 ```bash
-./sentinel registry push -path examples/agents/your-agent
+cd desktop
+npm install
+npm run tauri dev
 ```
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Documentation
+
+- [Architecture](ARCHITECTURE.md)
+- [Development Plan](DEVELOPMENT_PLAN.md)
+- [API Reference](docs/api/README.md)
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## Roadmap
 
-- Thanks to all contributors who have helped shape SentinelStacks
-- Built with Go, Docker, and ❤️
+See [ROADMAP.md](ROADMAP.md) for planned features and enhancements.

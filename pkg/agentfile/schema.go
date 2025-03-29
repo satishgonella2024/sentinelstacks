@@ -25,8 +25,11 @@ type ModelConfig struct {
 
 // MemoryConfig defines how the agent stores state
 type MemoryConfig struct {
-	Type        string `yaml:"type" json:"type"`
-	Persistence bool   `yaml:"persistence" json:"persistence"`
+	Type           string                 `yaml:"type" json:"type"`
+	Persistence    bool                   `yaml:"persistence" json:"persistence"`
+	MaxItems       int                    `yaml:"maxItems,omitempty" json:"maxItems,omitempty"`
+	EmbeddingModel string                 `yaml:"embeddingModel,omitempty" json:"embeddingModel,omitempty"`
+	VectorOptions  map[string]interface{} `yaml:"vectorOptions,omitempty" json:"vectorOptions,omitempty"`
 }
 
 // ToolConfig defines a tool the agent can use
@@ -66,10 +69,26 @@ func DefaultAgentfile(name string) Agentfile {
 		Memory: MemoryConfig{
 			Type:        "simple",
 			Persistence: true,
+			MaxItems:    1000,
 		},
 		Permissions: Permissions{
 			FileAccess: []string{"read"},
 			Network:    false,
 		},
 	}
+}
+
+// DefaultVectorAgentfile creates a default agent configuration with vector memory
+func DefaultVectorAgentfile(name string) Agentfile {
+	agent := DefaultAgentfile(name)
+	agent.Memory = MemoryConfig{
+		Type:           "vector",
+		Persistence:    true,
+		MaxItems:       1000,
+		EmbeddingModel: "openai:text-embedding-3-small",
+		VectorOptions: map[string]interface{}{
+			"similarityType": "cosine",
+		},
+	}
+	return agent
 }

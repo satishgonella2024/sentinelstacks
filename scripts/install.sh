@@ -1,24 +1,45 @@
 #!/bin/bash
 
-# Installation directory
-INSTALL_DIR="/usr/local/bin"
-CONFIG_DIR="$HOME/.sentinel"
+# Installation script for SentinelStacks CLI
 
-# Create necessary directories
-mkdir -p "$CONFIG_DIR/registry"
+# Colors for output
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
 
-# Copy binary
-cp sentinel "$INSTALL_DIR/"
+# Detect OS and architecture
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
 
-# Set permissions
-chmod +x "$INSTALL_DIR/sentinel"
+# Convert architecture to Go format
+case "${ARCH}" in
+    x86_64)  ARCH="amd64" ;;
+    arm64)   ARCH="arm64" ;;
+    *)       echo -e "${RED}Unsupported architecture: ${ARCH}${NC}" && exit 1 ;;
+esac
 
-# Copy examples if they exist
-if [ -d "examples" ]; then
-    mkdir -p "$CONFIG_DIR/examples"
-    cp -r examples/* "$CONFIG_DIR/examples/"
+# Set binary path based on OS and architecture
+BINARY_PATH="dist/${OS}-${ARCH}/sentinel"
+
+# Check if binary exists
+if [ ! -f "${BINARY_PATH}" ]; then
+    echo -e "${RED}Binary not found: ${BINARY_PATH}${NC}"
+    echo "Please run ./scripts/build.sh first"
+    exit 1
 fi
 
-echo "SentinelStacks installed successfully!"
-echo "Binary location: $INSTALL_DIR/sentinel"
-echo "Configuration directory: $CONFIG_DIR" 
+# Installation directory
+INSTALL_DIR="/usr/local/bin"
+
+# Create directory if it doesn't exist
+sudo mkdir -p "${INSTALL_DIR}"
+
+# Copy binary
+echo -e "${GREEN}Installing SentinelStacks CLI to ${INSTALL_DIR}/sentinel...${NC}"
+sudo cp "${BINARY_PATH}" "${INSTALL_DIR}/sentinel"
+sudo chmod +x "${INSTALL_DIR}/sentinel"
+
+echo -e "${GREEN}Installation complete!${NC}"
+echo
+echo "You can now use the 'sentinel' command. Try:"
+echo "  sentinel --help" 
