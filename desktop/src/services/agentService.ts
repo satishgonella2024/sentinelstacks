@@ -1,20 +1,48 @@
+import axios from 'axios';
+import type { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { Agent } from '../types/Agent';
-import { invoke } from '@tauri-apps/api/tauri';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_VERSION = import.meta.env.VITE_API_VERSION;
+
+const api: AxiosInstance = axios.create({
+  baseURL: `${API_BASE_URL}/api/${API_VERSION}`,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add request interceptor for authentication
+api.interceptors.request.use((config: AxiosRequestConfig) => {
+  const token = localStorage.getItem('auth_token');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      // Handle unauthorized access
+      localStorage.removeItem('auth_token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 /**
  * Fetches all agents from the backend
  */
 export const getAgents = async (): Promise<Agent[]> => {
   try {
-    // Call the Tauri command to get agents
-    const agents = await invoke<Agent[]>('get_agents');
-    return agents;
+    const response = await api.get<Agent[]>('/agents');
+    return response.data;
   } catch (error) {
     console.error('Error fetching agents:', error);
-    // For development, return mock data
-    if (process.env.NODE_ENV === 'development') {
-      return getMockAgents();
-    }
     throw error;
   }
 };
@@ -22,21 +50,12 @@ export const getAgents = async (): Promise<Agent[]> => {
 /**
  * Fetches a single agent by ID
  */
-export const getAgentById = async (id: string): Promise<Agent> => {
+export const getAgent = async (id: string): Promise<Agent> => {
   try {
-    // Call the Tauri command to get the agent
-    const agent = await invoke<Agent>('get_agent_by_id', { id });
-    return agent;
+    const response = await api.get<Agent>(`/agents/${id}`);
+    return response.data;
   } catch (error) {
     console.error(`Error fetching agent ${id}:`, error);
-    // For development, return mock data
-    if (process.env.NODE_ENV === 'development') {
-      const mockAgents = getMockAgents();
-      const agent = mockAgents.find(a => a.id === id);
-      if (agent) {
-        return agent;
-      }
-    }
     throw error;
   }
 };
@@ -44,11 +63,10 @@ export const getAgentById = async (id: string): Promise<Agent> => {
 /**
  * Creates a new agent
  */
-export const createAgent = async (agent: Omit<Agent, 'id' | 'createdAt' | 'updatedAt'>): Promise<Agent> => {
+export const createAgent = async (agent: Omit<Agent, 'id'>): Promise<Agent> => {
   try {
-    // Call the Tauri command to create the agent
-    const newAgent = await invoke<Agent>('create_agent', { agent });
-    return newAgent;
+    const response = await api.post<Agent>('/agents', agent);
+    return response.data;
   } catch (error) {
     console.error('Error creating agent:', error);
     throw error;
@@ -58,11 +76,10 @@ export const createAgent = async (agent: Omit<Agent, 'id' | 'createdAt' | 'updat
 /**
  * Updates an existing agent
  */
-export const updateAgent = async (id: string, updates: Partial<Agent>): Promise<Agent> => {
+export const updateAgent = async (id: string, agent: Partial<Agent>): Promise<Agent> => {
   try {
-    // Call the Tauri command to update the agent
-    const updatedAgent = await invoke<Agent>('update_agent', { id, updates });
-    return updatedAgent;
+    const response = await api.put<Agent>(`/agents/${id}`, agent);
+    return response.data;
   } catch (error) {
     console.error(`Error updating agent ${id}:`, error);
     throw error;
@@ -74,8 +91,7 @@ export const updateAgent = async (id: string, updates: Partial<Agent>): Promise<
  */
 export const deleteAgent = async (id: string): Promise<void> => {
   try {
-    // Call the Tauri command to delete the agent
-    await invoke<void>('delete_agent', { id });
+    await api.delete(`/agents/${id}`);
   } catch (error) {
     console.error(`Error deleting agent ${id}:`, error);
     throw error;
@@ -87,8 +103,7 @@ export const deleteAgent = async (id: string): Promise<void> => {
  */
 export const startAgent = async (id: string): Promise<void> => {
   try {
-    // Call the Tauri command to start the agent
-    await invoke<void>('start_agent', { id });
+    await api.post(`/agents/${id}/start`);
   } catch (error) {
     console.error(`Error starting agent ${id}:`, error);
     throw error;
@@ -100,126 +115,54 @@ export const startAgent = async (id: string): Promise<void> => {
  */
 export const stopAgent = async (id: string): Promise<void> => {
   try {
-    // Call the Tauri command to stop the agent
-    await invoke<void>('stop_agent', { id });
+    await api.post(`/agents/${id}/stop`);
   } catch (error) {
     console.error(`Error stopping agent ${id}:`, error);
     throw error;
   }
 };
 
-/**
- * Get mock agents data for development
- */
-const getMockAgents = (): Agent[] => {
-  return [
-    {
-      id: '1',
-      name: 'Infrastructure Monitor',
-      description: 'Monitors cloud infrastructure and reports issues',
-      status: 'active',
-      model: {
-        provider: 'openai',
-        name: 'gpt-4',
-        options: {
-          temperature: 0.7,
-          max_tokens: 2000
-        }
-      },
-      tools: [
-        {
-          id: 'terraform',
-          name: 'Terraform',
-          description: 'Manages infrastructure as code',
-          version: '1.0.0'
-        },
-        {
-          id: 'aws',
-          name: 'AWS',
-          description: 'AWS cloud operations',
-          version: '1.0.0'
-        }
-      ],
-      capabilities: ['conversation', 'code', 'infrastructure'],
-      memory: {
-        persistence: true,
-        vectorStorage: true,
-        messageCount: 150,
-        lastUpdated: '2025-03-29T10:15:30Z'
-      },
-      createdAt: '2025-02-15T08:30:00Z',
-      updatedAt: '2025-03-29T10:15:30Z',
-      lastActiveAt: '2025-03-29T10:15:30Z'
-    },
-    {
-      id: '2',
-      name: 'Security Auditor',
-      description: 'Performs security checks and compliance audits',
-      status: 'inactive',
-      model: {
-        provider: 'claude',
-        name: 'claude-3-opus',
-        options: {
-          temperature: 0.5,
-          max_tokens: 4000
-        }
-      },
-      tools: [
-        {
-          id: 'security-scanner',
-          name: 'Security Scanner',
-          description: 'Scans for vulnerabilities',
-          version: '1.2.0'
-        }
-      ],
-      capabilities: ['conversation', 'security', 'compliance'],
-      memory: {
-        persistence: true,
-        vectorStorage: true,
-        messageCount: 75,
-        lastUpdated: '2025-03-28T16:45:20Z'
-      },
-      createdAt: '2025-02-20T11:20:00Z',
-      updatedAt: '2025-03-28T16:45:20Z',
-      lastActiveAt: '2025-03-28T16:45:20Z'
-    },
-    {
-      id: '3',
-      name: 'Code Helper',
-      description: 'Assists with coding tasks and code reviews',
-      status: 'error',
-      model: {
-        provider: 'ollama',
-        name: 'codellama:13b',
-        options: {
-          temperature: 0.2,
-          max_tokens: 2048
-        }
-      },
-      tools: [
-        {
-          id: 'code-analyzer',
-          name: 'Code Analyzer',
-          description: 'Analyzes code quality and suggests improvements',
-          version: '0.9.5'
-        },
-        {
-          id: 'git',
-          name: 'Git',
-          description: 'Git operations',
-          version: '1.0.0'
-        }
-      ],
-      capabilities: ['conversation', 'code', 'documentation'],
-      memory: {
-        persistence: false,
-        vectorStorage: false,
-        messageCount: 42,
-        lastUpdated: '2025-03-29T09:12:15Z'
-      },
-      createdAt: '2025-03-01T14:10:00Z',
-      updatedAt: '2025-03-29T09:12:15Z',
-      lastActiveAt: '2025-03-29T09:12:15Z'
-    }
-  ];
+interface AgentMemory {
+  messages: Array<{
+    role: string;
+    content: string;
+    timestamp: string;
+  }>;
+  vectorStore: {
+    size: number;
+    lastUpdated: string;
+  };
+}
+
+interface AgentConversation {
+  messages: Array<{
+    id: string;
+    role: string;
+    content: string;
+    timestamp: string;
+  }>;
+  metadata: {
+    totalMessages: number;
+    lastMessageAt: string;
+  };
+}
+
+export const getAgentMemory = async (id: string): Promise<AgentMemory> => {
+  try {
+    const response = await api.get<AgentMemory>(`/agents/${id}/memory`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching agent ${id} memory:`, error);
+    throw error;
+  }
+};
+
+export const getAgentConversation = async (id: string): Promise<AgentConversation> => {
+  try {
+    const response = await api.get<AgentConversation>(`/agents/${id}/conversation`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching agent ${id} conversation:`, error);
+    throw error;
+  }
 };
