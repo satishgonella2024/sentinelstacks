@@ -28,6 +28,12 @@ const asciiLogo = `
     ║              [K]nowledgeable • [S]calable                   ║
     ╚══════════════════════════════════════════════════════════════╝`
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func getColoredLogo() string {
 	lines := strings.Split(asciiLogo, "\n")
 	var coloredLines []string
@@ -83,6 +89,13 @@ func getColoredLogo() string {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "version" {
+		fmt.Printf("SentinelStacks CLI %s (%s) built on %s\n", version, commit, date)
+		return
+	}
+
+	fmt.Println("SentinelStacks CLI - AI-powered infrastructure management")
+
 	var rootCmd = &cobra.Command{
 		Use:   "sentinel",
 		Short: "SentinelStacks - AI Agent Management Platform",
@@ -120,12 +133,12 @@ func main() {
 
 			// Simulate network delay (in a real app, this would be an actual API call)
 			err := registry.Login(server, username, password)
-			
+
 			if err != nil {
 				spinner.Error(fmt.Sprintf("Login failed: %v", err))
 				os.Exit(1)
 			}
-			
+
 			spinner.Success("Login successful!")
 		},
 	}
@@ -150,19 +163,19 @@ func main() {
 			go func() {
 				time.Sleep(1 * time.Second)
 				spinner.UpdateMessage(fmt.Sprintf("Preparing %s:%s for upload...", name, version))
-				
+
 				time.Sleep(1 * time.Second)
 				spinner.UpdateMessage(fmt.Sprintf("Uploading %s:%s to registry...", name, version))
 			}()
 
 			// Simulate network delay (in a real app, this would be an actual API call)
 			err := registry.Push(name, version)
-			
+
 			if err != nil {
 				spinner.Error(fmt.Sprintf("Push failed: %v", err))
 				os.Exit(1)
 			}
-			
+
 			spinner.Success(fmt.Sprintf("Successfully pushed %s:%s", name, version))
 		},
 	}
@@ -187,22 +200,22 @@ func main() {
 			go func() {
 				time.Sleep(800 * time.Millisecond)
 				spinner.UpdateMessage(fmt.Sprintf("Downloading %s:%s from registry...", name, version))
-				
+
 				time.Sleep(1200 * time.Millisecond)
 				spinner.UpdateMessage(fmt.Sprintf("Verifying package integrity...", name, version))
-				
+
 				time.Sleep(700 * time.Millisecond)
 				spinner.UpdateMessage(fmt.Sprintf("Installing %s:%s locally...", name, version))
 			}()
 
 			// Simulate network delay (in a real app, this would be an actual API call)
 			err := registry.Pull(name, version)
-			
+
 			if err != nil {
 				spinner.Error(fmt.Sprintf("Pull failed: %v", err))
 				os.Exit(1)
 			}
-			
+
 			spinner.Success(fmt.Sprintf("Successfully pulled %s:%s", name, version))
 		},
 	}
@@ -217,12 +230,12 @@ func main() {
 
 			// Simulate network delay (in a real app, this would be an actual API call)
 			agents, err := registry.List()
-			
+
 			if err != nil {
 				spinner.Error(fmt.Sprintf("List failed: %v", err))
 				os.Exit(1)
 			}
-			
+
 			spinner.Success("Successfully fetched agents")
 
 			color.HiWhite("\nAvailable Agents:\n")
@@ -262,10 +275,10 @@ func main() {
 			go func() {
 				time.Sleep(800 * time.Millisecond)
 				spinner.UpdateMessage(fmt.Sprintf("Loading agent configuration..."))
-				
+
 				time.Sleep(1200 * time.Millisecond)
 				spinner.UpdateMessage(fmt.Sprintf("Initializing model..."))
-				
+
 				time.Sleep(700 * time.Millisecond)
 				spinner.UpdateMessage(fmt.Sprintf("Preparing runtime environment..."))
 			}()
@@ -277,53 +290,53 @@ func main() {
 					spinner.Error(fmt.Sprintf("Failed to load agent: %v", err))
 					os.Exit(1)
 				}
-				
+
 				spinner.Success(fmt.Sprintf("Agent %s:%s is ready", name, version))
-				
+
 				color.HiWhite("\nRunning %s in interactive mode. Type 'exit' to quit.\n", name)
 				color.HiGreen("Agent is ready. What would you like to do?\n")
-				
+
 				// Interactive loop
 				reader := bufio.NewReader(os.Stdin)
 				for {
 					// Print prompt
 					fmt.Print(color.HiCyanString("You: "))
-					
+
 					// Read user input (handle multiline)
 					input, err := reader.ReadString('\n')
 					if err != nil {
 						color.Red("✗ Error reading input: %v\n", err)
 						continue
 					}
-					
+
 					// Trim whitespace
 					input = strings.TrimSpace(input)
-					
+
 					// Check for exit command
 					if input == "exit" || input == "quit" {
 						break
 					}
-					
+
 					// Show thinking spinner
 					thinkingSpinner := ui.NewSpinnerWithStyle("Agent is thinking...", "dots")
 					thinkingSpinner.Start()
-					
+
 					// Execute agent
 					response, err := ag.Execute(input)
-					
+
 					if err != nil {
 						thinkingSpinner.Error(fmt.Sprintf("Error: %v", err))
 						continue
 					}
-					
+
 					thinkingSpinner.Stop()
-					
+
 					// Print response
 					fmt.Print(color.HiMagentaString("Agent: "))
 					fmt.Println(response)
 					fmt.Println()
 				}
-				
+
 				color.Green("✓ Agent session completed successfully")
 			} else {
 				// Run in non-interactive mode
@@ -354,15 +367,15 @@ func main() {
 			// Create and start spinner
 			spinner := ui.NewSpinnerWithStyle(fmt.Sprintf("Creating agent %s...", name), "smooth")
 			spinner.Start()
-			
+
 			// Update messages to show progress
 			go func() {
 				time.Sleep(500 * time.Millisecond)
 				spinner.UpdateMessage(fmt.Sprintf("Creating directory structure..."))
-				
+
 				time.Sleep(700 * time.Millisecond)
 				spinner.UpdateMessage(fmt.Sprintf("Generating Agentfile..."))
-				
+
 				time.Sleep(800 * time.Millisecond)
 				spinner.UpdateMessage(fmt.Sprintf("Creating example script..."))
 			}()
@@ -414,7 +427,7 @@ if __name__ == "__main__":
 			}
 
 			spinner.Success(fmt.Sprintf("Successfully created agent %s", name))
-			
+
 			color.HiWhite("\nNext steps:\n")
 			fmt.Printf("1. Edit %s/Agentfile to configure your agent\n", agentDir)
 			fmt.Printf("2. Edit %s/agent.py to add your agent's logic\n", agentDir)

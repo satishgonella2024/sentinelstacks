@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Shield background -->
+    <path d="M16 2L4 7V15C4 22.1797 9.32031 28.9062 16 30C22.6797 28.9062 28 22.1797 28 15V7L16 2Z" fill="#4F46E5"/>
+    <!-- Server stack lines -->
+    <rect x="10" y="12" width="12" height="2" rx="1" fill="white"/>
+    <rect x="10" y="16" width="12" height="2" rx="1" fill="white"/>
+    <rect x="10" y="20" width="12" height="2" rx="1" fill="white"/>
+</svg> 

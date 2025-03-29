@@ -10,6 +10,7 @@ services:
     volumes:
       - ./landing:/usr/share/nginx/html/landing
       - ./registry-ui:/usr/share/nginx/html/registry
+      - ./docs-site/docs:/usr/share/nginx/html/docs
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/ssl:/etc/nginx/ssl
     depends_on:

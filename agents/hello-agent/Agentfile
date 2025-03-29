@@ -1,0 +1,12 @@
+name: hello-agent
+version: "1.0.0"
+description: "A simple hello world agent"
+model:
+  provider: "ollama"
+  name: "llama2"
+capabilities:
+  - basic
+  - file-io
+memory:
+  type: "simple"
+  persistence: true

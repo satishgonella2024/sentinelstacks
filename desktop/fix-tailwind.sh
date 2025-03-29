@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "==== TAILWIND CSS v4 FIX ===="
+echo "1. Try running this command first:"
+echo "   npm install -D @tailwindcss/postcss"
+echo ""
+echo "2. If that doesn't work, you can try downgrading Tailwind CSS to v3:"
+echo "   npm uninstall tailwindcss"
+echo "   npm install -D tailwindcss@3.4.1"
+echo ""
+echo "3. If errors persist, try to clean node_modules and reinstall:"
+echo "   rm -rf node_modules"
+echo "   rm package-lock.json"
+echo "   npm install"
+echo ""
+echo "==== END OF INSTRUCTIONS ====="
+echo "You need to execute these commands manually in your terminal"

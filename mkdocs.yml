@@ -1,0 +1,112 @@
+site_name: SentinelStacks Documentation
+site_description: Documentation for SentinelStacks - AI Agent Management Platform
+site_author: SentinelStacks Team
+site_url: https://docs.sentinelstacks.io
+
+repo_name: sentinelstacks
+repo_url: https://github.com/satishgonella2024/sentinelstacks
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: cyan
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: cyan
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+  logo: images/logo.png
+  favicon: images/favicon.png
+
+plugins:
+  - search
+  - mermaid:
+      version: 9.3.0
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+    - First Agent: getting-started/first-agent.md
+  - User Guide:
+    - Overview: user-guide/overview.md
+    - Agentfile: user-guide/agentfile.md
+    - Model Adapters: user-guide/model-adapters.md
+    - Memory System: memory/memory-system.md
+    - Command Reference: user-guide/command-reference.md
+    - Registry: user-guide/registry.md
+    - Tools: user-guide/tools.md
+  - Desktop UI:
+    - Implementation Plan: desktop-ui/implementation-plan.md
+    - UI Design: desktop-ui/ui-design.md
+  - Examples:
+    - Terraform Agent: examples/terraform-agent.md
+    - Weather Agent: examples/weather-agent.md
+    - Security Scanner: examples/security-scanner.md
+  - Architecture:
+    - Overview: architecture/overview.md
+    - Components: architecture/components.md
+    - Data Flow: architecture/data-flow.md
+  - Contributing:
+    - Guidelines: contributing/guidelines.md
+    - Development Setup: contributing/development-setup.md
+    - Testing: contributing/testing.md
+  - API Reference:
+    - Core API: api/core.md
+    - Agent API: api/agent.md
+    - Registry API: api/registry.md
+  - Roadmap: roadmap.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/satishgonella2024/sentinelstacks
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/sentinelstacks
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/sentinelstacks
+
+copyright: Copyright &copy; 2025 SentinelStacks Team
