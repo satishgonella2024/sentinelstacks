@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from '../utils/toast';
 import { Agent } from '../types/Agent';
 import { getAgents } from '../services/agentService';
 
@@ -24,7 +25,9 @@ export function useAgentList() {
       const data = await getAgents();
       setAgents(data);
     } catch (error) {
-      setError(`Failed to load agents: ${error instanceof Error ? error.message : String(error)}`);
+      const errorMsg = `Failed to load agents: ${error instanceof Error ? error.message : String(error)}`;
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }

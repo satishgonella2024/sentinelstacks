@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import toast from '../utils/toast';
 import { Agent } from '../types/Agent';
-import { getAgentById, startAgent, stopAgent, deleteAgent } from '../services/agentService';
+import { getAgent, startAgent, stopAgent, deleteAgent } from '../services/agentService';
 
 export function useAgent(id: string | undefined) {
   const [agent, setAgent] = useState<Agent | null>(null);
@@ -19,10 +20,12 @@ export function useAgent(id: string | undefined) {
     setError(null);
     
     try {
-      const data = await getAgentById(agentId);
+      const data = await getAgent(agentId);
       setAgent(data);
     } catch (err) {
-      setError(`Failed to load agent: ${err instanceof Error ? err.message : String(err)}`);
+      const errorMsg = `Failed to load agent: ${err instanceof Error ? err.message : String(err)}`;
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -36,9 +39,12 @@ export function useAgent(id: string | undefined) {
       await startAgent(agent.id);
       // Update agent status
       setAgent(prev => prev ? { ...prev, status: 'active' } : null);
+      toast.success(`Agent ${agent.name} started successfully`);
       return true;
     } catch (err) {
-      setError(`Failed to start agent: ${err instanceof Error ? err.message : String(err)}`);
+      const errorMsg = `Failed to start agent: ${err instanceof Error ? err.message : String(err)}`;
+      setError(errorMsg);
+      toast.error(errorMsg);
       return false;
     } finally {
       setIsBusy(false);
@@ -53,9 +59,12 @@ export function useAgent(id: string | undefined) {
       await stopAgent(agent.id);
       // Update agent status
       setAgent(prev => prev ? { ...prev, status: 'inactive' } : null);
+      toast.success(`Agent ${agent.name} stopped successfully`);
       return true;
     } catch (err) {
-      setError(`Failed to stop agent: ${err instanceof Error ? err.message : String(err)}`);
+      const errorMsg = `Failed to stop agent: ${err instanceof Error ? err.message : String(err)}`;
+      setError(errorMsg);
+      toast.error(errorMsg);
       return false;
     } finally {
       setIsBusy(false);
@@ -68,9 +77,12 @@ export function useAgent(id: string | undefined) {
     setIsBusy(true);
     try {
       await deleteAgent(agent.id);
+      toast.success(`Agent ${agent.name} deleted successfully`);
       return true;
     } catch (err) {
-      setError(`Failed to delete agent: ${err instanceof Error ? err.message : String(err)}`);
+      const errorMsg = `Failed to delete agent: ${err instanceof Error ? err.message : String(err)}`;
+      setError(errorMsg);
+      toast.error(errorMsg);
       return false;
     } finally {
       setIsBusy(false);

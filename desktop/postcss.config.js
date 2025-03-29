@@ -1,2 +1,7 @@
-// This file is deprecated.
-// Please use postcss.config.cjs instead.
+// Using ES Module format since package.json has "type": "module"
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  }
+}

@@ -16,7 +16,10 @@ import {
   KeyIcon
 } from '@heroicons/react/24/outline';
 import { Agent, AgentStatus } from '../types/Agent';
-import { getAgentById, startAgent, stopAgent, deleteAgent } from '../services/agentService';
+import { getAgent, startAgent, stopAgent, deleteAgent } from '../services/agentService';
+import MemoryVisualizer from '../components/memory/MemoryVisualizer';
+import ConversationInterface from '../components/conversation/ConversationInterface';
+import toast from '../utils/toast';
 
 const AgentDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,7 +42,7 @@ const AgentDetail: React.FC = () => {
     setError(null);
     
     try {
-      const data = await getAgentById(agentId);
+      const data = await getAgent(agentId);
       setAgent(data);
     } catch (err) {
       setError(`Failed to load agent: ${err instanceof Error ? err.message : String(err)}`);
@@ -57,7 +60,9 @@ const AgentDetail: React.FC = () => {
       // Update agent status
       setAgent(prev => prev ? { ...prev, status: 'active' } : null);
     } catch (err) {
-      setError(`Failed to start agent: ${err instanceof Error ? err.message : String(err)}`);
+      const errorMsg = `Failed to start agent: ${err instanceof Error ? err.message : String(err)}`;
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setRunningAgentOperation(false);
     }
@@ -72,7 +77,9 @@ const AgentDetail: React.FC = () => {
       // Update agent status
       setAgent(prev => prev ? { ...prev, status: 'inactive' } : null);
     } catch (err) {
-      setError(`Failed to stop agent: ${err instanceof Error ? err.message : String(err)}`);
+      const errorMsg = `Failed to stop agent: ${err instanceof Error ? err.message : String(err)}`;
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setRunningAgentOperation(false);
     }
@@ -85,7 +92,9 @@ const AgentDetail: React.FC = () => {
       await deleteAgent(agent.id);
       navigate('/agents');
     } catch (err) {
-      setError(`Failed to delete agent: ${err instanceof Error ? err.message : String(err)}`);
+      const errorMsg = `Failed to delete agent: ${err instanceof Error ? err.message : String(err)}`;
+      setError(errorMsg);
+      toast.error(errorMsg);
       setShowDeleteConfirm(false);
     }
   };
@@ -272,66 +281,14 @@ const AgentDetail: React.FC = () => {
       {/* Tab content */}
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
         {activeTab === 'conversation' && (
-          <div className="p-6">
-            <div className="flex flex-col h-96 border rounded-lg">
-              <div className="flex-grow p-4 overflow-y-auto">
-                {/* Conversation history would go here */}
-                <div className="text-center text-gray-500 dark:text-gray-400 my-8">
-                  No conversation history yet.
-                </div>
-              </div>
-              <div className="border-t p-4">
-                <div className="flex">
-                  <input
-                    type="text"
-                    className="flex-grow block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600"
-                    placeholder="Type a message..."
-                  />
-                  <button
-                    className="ml-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                  >
-                    Send
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div className="h-[500px]">
+            {agent && <ConversationInterface agentId={agent.id} />}
           </div>
         )}
         
         {activeTab === 'memory' && (
           <div className="p-6">
-            <div className="mb-6">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Memory Configuration</h3>
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Persistence</p>
-                    <p className="mt-1">{agent.memory.persistence ? 'Enabled' : 'Disabled'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Vector Storage</p>
-                    <p className="mt-1">{agent.memory.vectorStorage ? 'Enabled' : 'Disabled'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Message Count</p>
-                    <p className="mt-1">{agent.memory.messageCount}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated</p>
-                    <p className="mt-1">{new Date(agent.memory.lastUpdated).toLocaleString()}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Memory Explorer</h3>
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
-                <p className="text-gray-500 dark:text-gray-400 text-center my-8">
-                  Memory explorer is under development.
-                </p>
-              </div>
-            </div>
+            {agent && <MemoryVisualizer agentId={agent.id} />}
           </div>
         )}
         
