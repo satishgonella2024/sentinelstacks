@@ -1,0 +1,189 @@
+name: Frontend
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'desktop/**'
+      - 'landing/**'
+      - 'registry-ui/**'
+      - '.github/workflows/frontend.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'desktop/**'
+      - 'landing/**'
+      - 'registry-ui/**'
+      - '.github/workflows/frontend.yml'
+
+jobs:
+  desktop:
+    name: Desktop App
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: ['18.x']
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: desktop/package-lock.json
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      
+      - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+      
+      - name: Install dependencies
+        run: |
+          cd desktop
+          npm install
+      
+      - name: Lint
+        run: |
+          cd desktop
+          npm run lint
+      
+      - name: Test
+        run: |
+          cd desktop
+          npm test
+      
+      - name: Build
+        run: |
+          cd desktop
+          npm run build
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sentinel-desktop-${{ matrix.os }}
+          path: |
+            desktop/dist
+            desktop/src-tauri/target/release/bundle
+
+  registry-ui:
+    name: Registry UI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: registry-ui/package-lock.json
+      
+      - name: Install dependencies
+        run: |
+          cd registry-ui
+          npm install
+      
+      - name: Lint
+        run: |
+          cd registry-ui
+          npm run lint
+      
+      - name: Test
+        run: |
+          cd registry-ui
+          npm test
+      
+      - name: Build
+        run: |
+          cd registry-ui
+          npm run build
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: registry-ui
+          path: registry-ui/dist
+
+  landing:
+    name: Landing Page
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: landing/package-lock.json
+      
+      - name: Install dependencies
+        run: |
+          cd landing
+          npm install
+      
+      - name: Build
+        run: |
+          cd landing
+          npm run build
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: landing-page
+          path: landing/dist
+
+  e2e:
+    name: E2E Tests
+    needs: [desktop, registry-ui]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: sentinelstacks_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      
+      - name: Install Playwright
+        run: |
+          npm install -g @playwright/test
+          npx playwright install --with-deps
+      
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+      
+      - name: Run E2E tests
+        run: |
+          npm run test:e2e
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: sentinelstacks_test
+          DB_USER: test
+          DB_PASSWORD: test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379 

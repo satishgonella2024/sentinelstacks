@@ -1,0 +1,173 @@
+name: Backend Services
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'api/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'api/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/backend.yml'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  test:
+    name: Test & Coverage
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        go-version: ['1.21.x']
+        component: ['api', 'registry', 'agent']
+    runs-on: ${{ matrix.os }}
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: sentinelstacks_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache: true
+      
+      - name: Install dependencies
+        run: |
+          go mod download
+          go mod verify
+      
+      - name: Run tests
+        run: |
+          go test -v -race -coverprofile=coverage-${{ matrix.component }}.txt -covermode=atomic ./cmd/${{ matrix.component }}/... ./internal/${{ matrix.component }}/...
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: sentinelstacks_test
+          DB_USER: test
+          DB_PASSWORD: test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage-${{ matrix.component }}.txt
+          flags: ${{ matrix.os }},${{ matrix.component }}
+
+  integration:
+    name: Integration Tests
+    needs: test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: sentinelstacks_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21.x'
+          cache: true
+      
+      - name: Run integration tests
+        run: |
+          go test -v -tags=integration ./test/integration/...
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: sentinelstacks_test
+          DB_USER: test
+          DB_PASSWORD: test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Gosec
+        uses: securego/gosec@master
+        with:
+          args: ./...
+      
+      - name: Run nancy
+        uses: sonatype-nexus-community/nancy-github-action@main
+        with:
+          golist-args: "-deps"
+      
+      - name: Run trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif' 
