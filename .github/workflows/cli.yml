@@ -1,0 +1,67 @@
+name: CLI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'cmd/**'
+      - 'pkg/**'
+      - 'internal/**'
+      - 'go.*'
+      - '.github/workflows/cli.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'cmd/**'
+      - 'pkg/**'
+      - 'internal/**'
+      - 'go.*'
+      - '.github/workflows/cli.yml'
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: true
+      
+      - name: Install dependencies
+        run: go mod download
+      
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.txt
+          flags: unittests
+  
+  build:
+    name: Build
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: true
+      
+      - name: Build CLI
+        run: |
+          go build -v -o sentinel ./cmd/sentinel
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sentinel-cli
+          path: sentinel 

@@ -29,22 +29,10 @@ archives:
       - goos: windows
         format: zip
 
-brews:
-  - name: sentinelstacks
-    tap:
-      owner: satishgonella2024
-      name: homebrew-sentinelstacks
-    commit_author:
-      name: goreleaserbot
-      email: bot@goreleaser.com
-    folder: Formula
-    homepage: "https://sentinelstacks.com"
-    description: "AI-powered infrastructure management platform"
-    license: "MIT"
-    test: |
-      system "#{bin}/sentinel version"
-    install: |
-      bin.install "sentinel"
+release:
+  github:
+    owner: satishgonella2024
+    name: sentinelstacks
 
 checksum:
   name_template: 'checksums.txt'

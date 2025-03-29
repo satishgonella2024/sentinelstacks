@@ -1,0 +1,77 @@
+name: Web
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'landing/**'
+      - 'registry-ui/**'
+      - '.github/workflows/web.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'landing/**'
+      - 'registry-ui/**'
+      - '.github/workflows/web.yml'
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [landing, registry-ui]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.app }}/package-lock.json
+      
+      - name: Install dependencies
+        run: |
+          cd ${{ matrix.app }}
+          npm install
+      
+      - name: Run lint
+        run: |
+          cd ${{ matrix.app }}
+          npm run lint
+      
+      - name: Run tests
+        if: matrix.app == 'registry-ui'
+        run: |
+          cd ${{ matrix.app }}
+          npm test
+  
+  build:
+    name: Build
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [landing, registry-ui]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.app }}/package-lock.json
+      
+      - name: Build
+        run: |
+          cd ${{ matrix.app }}
+          npm install
+          npm run build
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.app }}-dist
+          path: ${{ matrix.app }}/dist 
