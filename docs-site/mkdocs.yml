@@ -16,6 +16,7 @@ theme:
     - navigation.expand
     - search.suggest
     - search.highlight
+    - content.code.copy
   icon:
     repo: fontawesome/brands/github
 
@@ -27,18 +28,27 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tabbed
   - pymdownx.details
+  - pymdownx.emoji
+  - attr_list
+  - def_list
+  - footnotes
 
 # Navigation structure
 nav:
   - Home: index.md
   - Getting Started: 
+    - Quick Start: getting-started/index.md
     - Installation: getting-started/installation.md
-    - First Agent: getting-started/first-agent.md
+    - Configuration: getting-started/configuration.md
+    - First Steps: getting-started/first-steps.md
   - User Guide:
-    - Agentfile Spec: user-guide/agentfile-spec.md
+    - Overview: user-guide/index.md
     - CLI Reference: user-guide/cli-reference.md
     - Model Adapters: user-guide/model-adapters.md
+    - Memory System: user-guide/memory.md
+    - Tools Framework: user-guide/tools.md
   - Developer Guide:
     - Architecture: developer-guide/architecture.md
     - Contributing: developer-guide/contributing.md
-  - Roadmap: roadmap.md
+    - API Reference: developer-guide/api-reference.md
+  - Status & Roadmap: roadmap.md
