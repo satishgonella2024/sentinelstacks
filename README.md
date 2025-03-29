@@ -152,3 +152,53 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Roadmap
 
 See [ROADMAP.md](ROADMAP.md) for planned features and enhancements.
+
+## Git Strategy
+
+We follow a modified GitFlow workflow:
+
+### Branch Structure
+```
+main
+├── develop
+│   ├── feature/*
+│   ├── bugfix/*
+│   └── docs/*
+├── release/*
+└── hotfix/*
+```
+
+### Branch Types
+1. **Main Branches**
+   - `main`: Production-ready code
+   - `develop`: Integration branch for features
+
+2. **Supporting Branches**
+   - `feature/*`: New features
+   - `bugfix/*`: Bug fixes
+   - `docs/*`: Documentation updates
+   - `release/*`: Release preparation
+   - `hotfix/*`: Production fixes
+
+### Branch Naming
+- Features: `feature/[ticket-number]-description`
+- Bugfixes: `bugfix/[ticket-number]-description`
+- Docs: `docs/[topic]-update`
+- Releases: `release/v[major].[minor].[patch]`
+- Hotfixes: `hotfix/[ticket-number]-description`
+
+### Workflow
+1. Create feature branch from `develop`
+2. Develop and test changes
+3. Create PR to merge back to `develop`
+4. After review and approval, merge using `--no-ff`
+5. Delete feature branch after merge
+
+### Commit Messages
+We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+- `feat:` New features
+- `fix:` Bug fixes
+- `docs:` Documentation changes
+- `chore:` Maintenance tasks
+- `test:` Adding/updating tests
+- `refactor:` Code refactoring

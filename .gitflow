@@ -1,0 +1,52 @@
+# SentinelStacks Git Flow Configuration
+
+[branch]
+    # Main branches
+    main = main
+    develop = develop
+
+    # Feature branches
+    feature.prefix = feature/
+    feature.source = develop
+    feature.destination = develop
+
+    # Bugfix branches
+    bugfix.prefix = bugfix/
+    bugfix.source = develop
+    bugfix.destination = develop
+
+    # Documentation branches
+    docs.prefix = docs/
+    docs.source = develop
+    docs.destination = develop
+
+    # Release branches
+    release.prefix = release/v
+    release.source = develop
+    release.destination = main
+
+    # Hotfix branches
+    hotfix.prefix = hotfix/
+    hotfix.source = main
+    hotfix.destination = main
+
+[commit]
+    # Commit message format
+    feature = "feat: "
+    bugfix = "fix: "
+    docs = "docs: "
+    release = "release: "
+    hotfix = "hotfix: "
+
+[merge]
+    # Merge strategies
+    feature = --no-ff
+    bugfix = --no-ff
+    docs = --no-ff
+    release = --no-ff
+    hotfix = --no-ff
+
+[tag]
+    # Tag format for releases
+    release = v[version]
+    hotfix = v[version]-hotfix.[number] 
