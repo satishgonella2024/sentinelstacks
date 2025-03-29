@@ -142,7 +142,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## Documentation
 
 - [Architecture](ARCHITECTURE.md)
+- [Detailed Architecture Diagram](docs/architecture-diagram.svg)
 - [Development Plan](DEVELOPMENT_PLAN.md)
+- [Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md)
+- [Platform Analysis](docs/PLATFORM_ANALYSIS.md)
 - [API Reference](docs/api/README.md)
 
 ## License
