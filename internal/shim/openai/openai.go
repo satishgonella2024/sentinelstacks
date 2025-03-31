@@ -464,10 +464,10 @@ func (p *Provider) GenerateMultimodalResponse(ctx context.Context, input *multim
 	}
 
 	// Add usage information
-	output.UsedTokens = response.Usage.CompletionTokens
 	output.Metadata = map[string]interface{}{
 		"prompt_tokens": response.Usage.PromptTokens,
 		"total_tokens":  response.Usage.TotalTokens,
+		"used_tokens":   response.Usage.CompletionTokens,
 	}
 
 	return output, nil
@@ -706,13 +706,13 @@ func (p *Provider) convertToOpenAIMessage(input *multimodal.Input) (*MultimediaM
 			}
 
 			// If we have a URL, use it
-			if content.URL != "" {
-				imageContent.Image.URL = content.URL
+			if content.URI != "" {
+				imageContent.Image.URL = content.URI
 			} else if content.Data != nil {
 				// Otherwise, use base64 data URL
 				imageContent.Image.URL = content.ToDataURL()
 			} else {
-				return nil, fmt.Errorf("image has no URL or data")
+				return nil, fmt.Errorf("image has no URI or data")
 			}
 
 			message.Content = append(message.Content, imageContent)

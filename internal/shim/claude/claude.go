@@ -455,10 +455,10 @@ func (p *Provider) GenerateMultimodalResponse(ctx context.Context, input *multim
 	}
 
 	// Add usage information
-	output.UsedTokens = response.Usage.OutputTokens
 	output.Metadata = map[string]interface{}{
 		"input_tokens":  response.Usage.InputTokens,
 		"output_tokens": response.Usage.OutputTokens,
+		"used_tokens":   response.Usage.OutputTokens,
 		"stop_reason":   response.StopReason,
 	}
 
