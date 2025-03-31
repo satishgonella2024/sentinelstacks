@@ -1,6 +1,8 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { Agent, Message } from '../context/slices/agentsSlice'
 
+import { API_CONFIG } from '../api-config'
+
 export interface LoginRequest {
   username: string
   password: string
@@ -24,43 +26,91 @@ export interface CreateAgentRequest {
   isMultimodal: boolean
 }
 
-// Mock data for development
+// Mock data for development with enriched sample agents
 const mockAgents: Agent[] = [
   {
     id: '1',
-    name: 'Assistant Bot',
-    description: 'General purpose assistant for everyday tasks',
-    model: 'gpt-4',
-    image: 'openai/gpt-4:latest',
+    name: 'Research Assistant',
+    description: 'Helps with academic research, citation management, and research methodology.',
+    model: 'claude-3-opus-20240229',
+    image: 'anthropic/claude-3-opus:latest',
     status: 'active',
     created: new Date().toISOString(),
     lastActive: new Date().toISOString(),
-    systemPrompt: 'You are a helpful assistant.',
-    isMultimodal: false
+    systemPrompt: 'You are a research assistant specializing in academic research. Help users find relevant papers, cite properly in different formats, and design research methodologies. Provide thoughtful analysis of academic papers and research findings.',
+    isMultimodal: false,
+    capabilities: ['Deep research', 'Citation formatting', 'Literature review', 'Methodology design'],
+    tags: ['academic', 'research', 'papers']
   },
   {
     id: '2',
     name: 'Image Analyzer',
-    description: 'Specialized in analyzing images and providing descriptions',
+    description: 'Specialized in analyzing images and providing detailed visual descriptions',
     model: 'claude-3-opus-20240229',
     image: 'anthropic/claude-3-opus:latest',
     status: 'idle',
     created: new Date(Date.now() - 86400000).toISOString(),
     lastActive: new Date(Date.now() - 3600000).toISOString(),
-    systemPrompt: 'You analyze images and provide detailed descriptions.',
-    isMultimodal: true
+    systemPrompt: 'You analyze images and provide detailed descriptions. Identify objects, people, settings, actions, text content, style elements, and other visual information. Maintain accuracy and avoid hallucinations.',
+    isMultimodal: true,
+    capabilities: ['Object detection', 'Scene description', 'Text recognition', 'Visual analysis'],
+    tags: ['vision', 'images', 'multimodal']
   },
   {
     id: '3',
     name: 'Code Assistant',
     description: 'Specialized in helping with programming and code review',
-    model: 'llama-3-70b-instruct',
-    image: 'meta/llama3:latest',
-    status: 'idle',
+    model: 'gpt-4',
+    image: 'openai/gpt-4:latest',
+    status: 'active',
     created: new Date(Date.now() - 172800000).toISOString(),
     lastActive: new Date(Date.now() - 86400000).toISOString(),
-    systemPrompt: 'You are a code assistant. Help with programming tasks and code review.',
-    isMultimodal: false
+    systemPrompt: 'You are a code assistant. Help with programming tasks and code review. Provide working, well-documented code examples. Explain concepts clearly and help debug issues efficiently.',
+    isMultimodal: false,
+    capabilities: ['Code generation', 'Bug fixing', 'Code review', 'Algorithm design'],
+    tags: ['coding', 'programming', 'development']
+  },
+  {
+    id: '4',
+    name: 'Data Analyst',
+    description: 'Helps with data analysis, visualization, and statistical interpretation',
+    model: 'claude-3-sonnet-20240229',
+    image: 'anthropic/claude-3-sonnet:latest',
+    status: 'idle',
+    created: new Date(Date.now() - 259200000).toISOString(),
+    lastActive: new Date(Date.now() - 172800000).toISOString(),
+    systemPrompt: 'You are a data analysis specialist. Help users interpret data, create visualizations, perform statistical analysis, and generate insights from datasets. Explain statistical concepts clearly and provide actionable recommendations.',
+    isMultimodal: false,
+    capabilities: ['Statistical analysis', 'Data visualization', 'Trend detection', 'Insight generation'],
+    tags: ['data', 'statistics', 'analysis']
+  },
+  {
+    id: '5',
+    name: 'Content Strategist',
+    description: 'Creates and refines marketing content and communication strategies',
+    model: 'gpt-4-turbo',
+    image: 'openai/gpt-4-turbo:latest',
+    status: 'error',
+    created: new Date(Date.now() - 345600000).toISOString(),
+    lastActive: new Date(Date.now() - 259200000).toISOString(),
+    systemPrompt: 'You are a content strategist and copywriter. Help users create compelling marketing copy, social media content, email campaigns, and content strategies. Focus on clarity, engagement, and appropriate tone for the target audience.',
+    isMultimodal: false,
+    capabilities: ['Copywriting', 'Social media content', 'Email campaigns', 'Content planning'],
+    tags: ['marketing', 'content', 'copywriting']
+  },
+  {
+    id: '6',
+    name: 'Legal Assistant',
+    description: 'Provides information on legal concepts and contract analysis',
+    model: 'llama-3-70b-instruct',
+    image: 'meta/llama3:latest',
+    status: 'active',
+    created: new Date(Date.now() - 432000000).toISOString(),
+    lastActive: new Date(Date.now() - 345600000).toISOString(),
+    systemPrompt: 'You are a legal information assistant. Help users understand legal concepts, analyze contracts, and navigate legal documentation. Always clarify you are not providing legal advice and users should consult qualified attorneys for specific situations.',
+    isMultimodal: false,
+    capabilities: ['Contract review', 'Legal research', 'Document analysis', 'Legal education'],
+    tags: ['legal', 'contracts', 'law']
   }
 ];
 
@@ -87,11 +137,34 @@ const mockConversations = [
         agentId: '1'
       }
     ]
+  },
+  {
+    id: '2',
+    agentId: '3',
+    title: 'Debugging React Components',
+    created: new Date(Date.now() - 172800000).toISOString(),
+    updated: new Date(Date.now() - 86400000).toISOString(),
+    messages: [
+      {
+        id: '3',
+        role: 'user' as const,
+        content: 'I have a React component that\'s not rendering correctly',
+        timestamp: new Date(Date.now() - 172800000).toISOString(),
+        agentId: '3'
+      },
+      {
+        id: '4',
+        role: 'assistant' as const,
+        content: 'Let\'s troubleshoot that. Can you share the component code that\'s causing issues?',
+        timestamp: new Date(Date.now() - 172790000).toISOString(),
+        agentId: '3'
+      }
+    ]
   }
 ];
 
 // Flag to control whether to use mock data or real API data
-const USE_REAL_DATA = true;
+const USE_REAL_DATA = API_CONFIG.USE_REAL_DATA;
 
 export const apiSlice = createApi({
   reducerPath: 'api',
@@ -138,7 +211,7 @@ export const apiSlice = createApi({
       }
     }),
 
-    getAgents: builder.query<Agent[], void>({
+    getAgents: builder.query<{ agents: Agent[] }, void>({
       query: () => '/agents',
       transformResponse: (_response, meta) => {
         console.log('Agents API response:', _response, meta);
@@ -149,7 +222,7 @@ export const apiSlice = createApi({
           
           // Always fall back to mock data on server error
           console.log('Falling back to mock data due to server error');
-          return mockAgents;
+          return { agents: mockAgents };
         }
         
         // Process successful response
@@ -159,21 +232,21 @@ export const apiSlice = createApi({
             console.log('Processing successful response:', responseData);
             
             if (responseData.agents && Array.isArray(responseData.agents)) {
-              return responseData.agents as Agent[];
+              return responseData as { agents: Agent[] };
             } else if (Array.isArray(responseData)) {
-              return responseData as Agent[];
+              return { agents: responseData as Agent[] };
             } else {
               console.warn('Unexpected response format:', responseData);
-              return [];
+              return { agents: [] };
             }
           } catch (e) {
             console.error('Error parsing API response:', e);
-            return [];
+            return { agents: [] };
           }
         }
         
         console.log('Unhandled response case - using mock data');
-        return mockAgents;
+        return { agents: mockAgents };
       },
       // Add retry logic for the agents endpoint
       extraOptions: {
@@ -236,7 +309,9 @@ export const apiSlice = createApi({
             created: new Date().toISOString(),
             lastActive: new Date().toISOString(),
             systemPrompt: arg.systemPrompt,
-            isMultimodal: arg.isMultimodal
+            isMultimodal: arg.isMultimodal,
+            capabilities: [],
+            tags: []
           };
         }
         
@@ -366,4 +441,4 @@ export const {
   useSendMessageMutation,
 } = apiSlice
 
-export const api = apiSlice; 
+export const api = apiSlice;

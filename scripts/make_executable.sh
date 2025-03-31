@@ -1,4 +1,4 @@
 #!/bin/bash
-# Make the initialization script executable
-chmod +x init_project.sh
-echo "init_project.sh is now executable"
+chmod +x scripts/fix_dependencies.sh
+chmod +x scripts/run_fixed.sh
+echo "Scripts are now executable!"

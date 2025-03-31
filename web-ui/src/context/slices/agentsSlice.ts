@@ -11,6 +11,8 @@ export interface Agent {
   lastActive: string
   systemPrompt: string
   isMultimodal: boolean
+  capabilities?: string[]
+  tags?: string[]
 }
 
 export interface Message {
@@ -98,4 +100,4 @@ export const {
   createConversation
 } = agentsSlice.actions
 
-export default agentsSlice.reducer 
+export default agentsSlice.reducer

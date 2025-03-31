@@ -15,11 +15,11 @@ const Landing: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="relative z-10 max-w-4xl mx-auto"
         >
-          <h1 className="text-4xl md:text-6xl font-display font-bold text-white leading-tight mb-4">
-            Enterprise AI <span className="text-primary-400">Agent Management</span> Platform
+          <h1 className="text-4xl md:text-6xl font-display font-bold text-primary-900 dark:text-white leading-tight mb-4">
+            Enterprise AI <span className="text-accent-blue">Agent Management</span> Platform
           </h1>
           
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
             Build, deploy, and manage intelligent agents with multimodal capabilities for your enterprise applications.
           </p>
           

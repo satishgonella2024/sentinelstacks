@@ -1,0 +1,32 @@
+body {
+  background-color: #0a1017;
+  color: white;
+}
+
+/* Additional styles for think bubbles */
+.think-bubble {
+  background-color: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 0.5rem;
+  backdrop-filter: blur(8px);
+}
+
+.think-bubble.insight {
+  background-color: rgba(20, 83, 153, 0.2);
+  border-color: rgba(37, 99, 235, 0.4);
+}
+
+.think-bubble.guidance {
+  background-color: rgba(21, 128, 61, 0.2);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.think-bubble.suggestion {
+  background-color: rgba(124, 58, 237, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.think-bubble.achievement {
+  background-color: rgba(180, 83, 9, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
+}

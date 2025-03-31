@@ -14,32 +14,37 @@ const ThinkBubble: React.FC<ThinkBubbleProps> = ({ position }) => {
       case 'dashboard':
         return {
           title: 'Dashboard Insights',
-          text: 'Your agents have processed 125 conversations this week, a 15% increase from last week.',
-          icon: '📊'
+          text: 'Your agents are processing user requests efficiently. Consider adding specialized agents for specific domains to improve response quality.',
+          icon: '📊',
+          type: 'insight'
         }
       case 'chat':
         return {
           title: 'Chat Tips',
-          text: 'Try asking your agent to summarize the previous conversation or explain its reasoning.',
-          icon: '💬'
+          text: 'Try using more specific prompts to get better results. Include details and context in your questions to help the AI understand what you need.',
+          icon: '💬',
+          type: 'guidance'
         }
       case 'builder':
         return {
-          title: 'Agent Builder',
-          text: 'Multimodal agents can process both text and images for more versatile conversations.',
-          icon: '🔧'
+          title: 'Agent Building Tips',
+          text: 'Creating a well-defined system prompt is crucial. Be specific about the agent\'s role, tone, and limitations to get the best performance.',
+          icon: '🔧',
+          type: 'suggestion'
         }
       case 'explorer':
         return {
           title: 'Explorer Guide',
-          text: 'You can filter agents by model type or status using the controls above.',
-          icon: '🔍'
+          text: 'You can filter agents by model type or status. Try different models for different tasks - Claude excels at reasoning while GPT-4 handles general tasks well.',
+          icon: '🔍',
+          type: 'guidance'
         }
       default:
         return {
           title: 'SentinelStacks',
-          text: 'Welcome to your enterprise AI agent management platform.',
-          icon: '✨'
+          text: 'Welcome to your enterprise AI agent management platform. Need help? Check our documentation or contact support.',
+          icon: '✨',
+          type: 'achievement'
         }
     }
   }
@@ -61,7 +66,7 @@ const ThinkBubble: React.FC<ThinkBubbleProps> = ({ position }) => {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed bottom-4 right-4 w-80 glass p-4 rounded-lg shadow-glow-sm"
+        className={`fixed bottom-4 right-4 w-80 think-bubble p-4 ${content.type} shadow-glow-sm`}
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 50, opacity: 0 }}

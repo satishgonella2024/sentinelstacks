@@ -35,5 +35,8 @@ Thumbs.db
 .env
 .env.local
 
+# Node modules
+**/node_modules/
+
 # SentinelStacks specific
 .sentinel/

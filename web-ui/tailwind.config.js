@@ -6,81 +6,41 @@ export default {
   ],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
-        mono: ['"Fira Code"', 'monospace'],
-      },
       colors: {
-        primary: {
-          50: '#eefaff',
-          100: '#dcf4ff',
-          200: '#beeaff',
-          300: '#8edcff',
-          400: '#57c2fd',
-          500: '#36a5f8',
-          600: '#1f82eb',
-          700: '#1b68d9',
-          800: '#1e54b0',
-          900: '#1e488a',
-          950: '#172b51',
+        'background-light': 'rgb(249 251 253)',
+        'background-dark': 'rgb(10 16 23)',
+        'background-glass': 'rgba(20, 30, 40, 0.7)',
+        'background': {
+          700: 'rgb(15, 23, 33)',
+          800: 'rgb(10, 16, 23)',
+          900: 'rgb(5, 10, 15)'
         },
-        secondary: {
-          50: '#f1f7fe',
-          100: '#e4edfd',
-          200: '#cfdefa',
-          300: '#adc5f7',
-          400: '#86a3f1',
-          500: '#647eea',
-          600: '#5061dd',
-          700: '#444bc9',
-          800: '#3b40a5',
-          900: '#343b82',
-          950: '#21214e',
+        'primary': {
+          400: 'rgb(0, 180, 240)',
+          500: 'rgb(0, 140, 220)',
+          600: 'rgb(0, 120, 200)',
+          700: 'rgb(0, 100, 180)',
+          800: 'rgb(10, 37, 64)',
+          900: 'rgb(5, 20, 35)',
         },
-        accent: {
-          50: '#fdf1fa',
-          100: '#fbe5f6',
-          200: '#f9caed',
-          300: '#f6a1de',
-          400: '#f06bc9',
-          500: '#e343b1',
-          600: '#cf2893',
-          700: '#af1c76',
-          800: '#911a60',
-          900: '#791a51',
-          950: '#470829',
+        'secondary': {
+          500: 'rgb(0, 207, 180)'
         },
-        background: {
-          50: '#f6f7f9',
-          100: '#eceef2',
-          200: '#d6dbe3',
-          300: '#b2bdcb',
-          400: '#8798af',
-          500: '#677a94',
-          600: '#52627a',
-          700: '#434f64',
-          800: '#384155',
-          900: '#313a4a',
-          950: '#1a2235',
-        },
+        'accent-blue': 'rgb(0, 112, 243)',
+        'accent-purple': 'rgb(112, 0, 255)',
+        'accent-teal': 'rgb(0, 207, 180)',
+      },
+      backdropBlur: {
+        'glass': '10px',
       },
       boxShadow: {
-        'glow': '0 0 15px rgba(54, 165, 248, 0.5)',
-        'glow-sm': '0 0 10px rgba(54, 165, 248, 0.3)',
-        'glow-accent': '0 0 15px rgba(227, 67, 177, 0.5)',
+        'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
+        'glow': '0 0 15px rgba(0, 120, 255, 0.5)',
       },
-      animation: {
-        'float': 'float 6s ease-in-out infinite',
-        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-      },
-      keyframes: {
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
-        },
+      borderWidth: {
+        '3': '3px',
       },
     },
   },
   plugins: [],
-} 
+}
