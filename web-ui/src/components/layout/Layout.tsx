@@ -1,5 +1,4 @@
-import React from 'react'
-import { Outlet } from 'react-router-dom'
+import React, { ReactNode } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@context/store'
 
@@ -9,7 +8,11 @@ import Header from './Header'
 import ThinkBubble from '../common/ThinkBubble'
 import Notification from '../common/Notification'
 
-const Layout: React.FC = () => {
+interface LayoutProps {
+  children: ReactNode;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { sidebarOpen, notification, thinkBubbles } = useSelector((state: RootState) => state.ui)
   
   return (
@@ -20,7 +23,7 @@ const Layout: React.FC = () => {
         <Header />
         
         <main className="flex-1 overflow-auto p-4">
-          <Outlet />
+          {children}
         </main>
         
         {notification && notification.show && (

@@ -8,12 +8,30 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
+	goruntime "runtime"
 	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/sentinelstacks/sentinel/internal/runtime"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
+
+// @title SentinelStacks API
+// @version 1.0
+// @description API for managing AI agents in SentinelStacks
+
+// @contact.name API Support
+// @contact.url https://github.com/sentinelstacks/sentinel
+// @contact.email support@sentinelstacks.io
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /v1
+// @schemes http https
 
 // Server represents the API server
 type Server struct {
@@ -88,6 +106,25 @@ func (s *Server) setupRoutes() {
 	}
 	s.router.Use(s.recoveryMiddleware)
 
+	// Swagger documentation
+	currentDir, _ := os.Getwd()
+	log.Printf("Current working directory: %s", currentDir)
+
+	// Use absolute path for docs directory
+	docDir := filepath.Join(currentDir, "docs")
+	log.Printf("Serving Swagger docs from: %s", docDir)
+
+	s.router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", http.FileServer(http.Dir(docDir))))
+
+	// Swagger documentation endpoint
+	// Serve static files for the Swagger UI
+	s.router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"), // The URL pointing to the API definition
+		httpSwagger.DeepLinking(true),
+		httpSwagger.DocExpansion("none"),
+		httpSwagger.DomID("swagger-ui"),
+	))
+
 	// API versioning - all routes go under /v1
 	api := s.router.PathPrefix("/v1").Subrouter()
 
@@ -124,7 +161,15 @@ func (s *Server) setupRoutes() {
 
 // Start starts the API server
 func (s *Server) Start() error {
+	var err error
+
+	// Start the Swagger documentation server on port 8081
+	StartSwaggerServer(8081)
+
+	// Start the API server
 	addr := fmt.Sprintf("%s:%d", s.config.Host, s.config.Port)
+
+	// Use the server's router for the main API
 	s.server = &http.Server{
 		Addr:         addr,
 		Handler:      s.router,
@@ -134,7 +179,6 @@ func (s *Server) Start() error {
 
 	s.log.Printf("API server starting on %s", addr)
 
-	var err error
 	if s.config.TLSCertFile != "" && s.config.TLSKeyFile != "" {
 		err = s.server.ListenAndServeTLS(s.config.TLSCertFile, s.config.TLSKeyFile)
 	} else {
@@ -196,11 +240,20 @@ func (s *Server) loggingMiddleware(next http.Handler) http.Handler {
 // Middleware for CORS
 func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Log the origin of the request for debugging
+		origin := r.Header.Get("Origin")
+		if origin != "" {
+			s.log.Printf("Request from origin: %s", origin)
+		}
+
+		// Set CORS headers
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
+		// Handle preflight requests
 		if r.Method == "OPTIONS" {
+			s.log.Printf("Handling OPTIONS preflight request from %s", r.RemoteAddr)
 			w.WriteHeader(http.StatusOK)
 			return
 		}
@@ -214,7 +267,12 @@ func (s *Server) recoveryMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				s.log.Printf("Panic recovered: %v", err)
+				s.log.Printf("Panic recovered in API handler: %v", err)
+				// Log stack trace to help with debugging
+				buf := make([]byte, 4096)
+				n := goruntime.Stack(buf, false)
+				s.log.Printf("Stack trace: %s", buf[:n])
+
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(map[string]string{
 					"error": "Internal server error",
@@ -230,8 +288,24 @@ func (s *Server) sendJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if data != nil {
-		if err := json.NewEncoder(w).Encode(data); err != nil {
-			s.log.Printf("Error encoding JSON response: %v", err)
+		var jsonBytes []byte
+		var err error
+
+		// Try to marshal the data
+		jsonBytes, err = json.Marshal(data)
+		if err != nil {
+			s.log.Printf("Error marshaling JSON response: %v (data: %+v)", err, data)
+			// If we can't marshal the original data, send a simplified error response
+			w.WriteHeader(http.StatusInternalServerError)
+			fallbackJSON := []byte(`{"error":"Internal server error: failed to serialize response"}`)
+			w.Write(fallbackJSON)
+			return
+		}
+
+		// Write the JSON data directly
+		_, err = w.Write(jsonBytes)
+		if err != nil {
+			s.log.Printf("Error writing JSON response: %v", err)
 		}
 	}
 }
@@ -246,74 +320,9 @@ func (s *Server) healthCheck(w http.ResponseWriter, r *http.Request) {
 	s.sendJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
-// Route handlers (to be implemented in separate files)
-func (s *Server) listAgents(w http.ResponseWriter, r *http.Request) {
-	agents, err := s.runtime.GetRunningAgents()
-	if err != nil {
-		s.sendError(w, http.StatusInternalServerError, "Failed to get agents")
-		return
-	}
-	s.sendJSON(w, http.StatusOK, map[string]interface{}{"agents": agents})
-}
-
-func (s *Server) getAgent(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
-	agent, err := s.runtime.GetAgent(id)
-	if err != nil {
-		s.sendError(w, http.StatusNotFound, "Agent not found")
-		return
-	}
-
-	s.sendJSON(w, http.StatusOK, agent)
-}
-
-func (s *Server) createAgent(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement
-	s.sendError(w, http.StatusNotImplemented, "Not implemented yet")
-}
-
-func (s *Server) deleteAgent(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
-	err := s.runtime.DeleteAgent(id)
-	if err != nil {
-		s.sendError(w, http.StatusInternalServerError, fmt.Sprintf("Failed to delete agent: %v", err))
-		return
-	}
-
-	s.sendJSON(w, http.StatusOK, map[string]string{"status": "Agent deleted"})
-}
-
-func (s *Server) getAgentLogs(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement
-	s.sendError(w, http.StatusNotImplemented, "Not implemented yet")
-}
-
-func (s *Server) listImages(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement
-	s.sendError(w, http.StatusNotImplemented, "Not implemented yet")
-}
-
-func (s *Server) getImage(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement
-	s.sendError(w, http.StatusNotImplemented, "Not implemented yet")
-}
-
-// Route handlers for registry operations (to be implemented in detail later)
-func (s *Server) searchRegistry(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement
-	s.sendError(w, http.StatusNotImplemented, "Registry search not implemented yet")
-}
-
-func (s *Server) pushImage(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement
-	s.sendError(w, http.StatusNotImplemented, "Image push not implemented yet")
-}
-
-func (s *Server) pullImage(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement
-	s.sendError(w, http.StatusNotImplemented, "Image pull not implemented yet")
-}
+// These are implemented in their respective files
+// agentsHandler in agents.go
+// imagesHandler in images.go
+// registryHandler in registry.go
+// authHandler in auth.go
+// websocketHandler in websocket.go

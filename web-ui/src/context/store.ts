@@ -1,11 +1,28 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, Middleware } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import { apiSlice } from '@services/api'
+import { apiSlice } from '../services/api'
 
 // Reducers
 import authReducer from './slices/authSlice'
 import uiReducer from './slices/uiSlice'
 import agentsReducer from './slices/agentsSlice'
+
+// API Logger middleware for debugging
+const apiLogger: Middleware = () => (next) => (action: any) => {
+  // Log actions related to API requests
+  if (action.type && typeof action.type === 'string' && action.type.endsWith('/executeQuery')) {
+    console.log('API Request:', action);
+  }
+  
+  // Log actions related to API responses
+  if (action.type && typeof action.type === 'string' && 
+      (action.type.endsWith('/executeQuery/fulfilled') || 
+       action.type.endsWith('/executeQuery/rejected'))) {
+    console.log('API Response:', action);
+  }
+  
+  return next(action);
+};
 
 export const store = configureStore({
   reducer: {
@@ -15,8 +32,8 @@ export const store = configureStore({
     [apiSlice.reducerPath]: apiSlice.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(apiSlice.middleware),
-  devTools: process.env.NODE_ENV !== 'production',
+    getDefaultMiddleware().concat(apiSlice.middleware, apiLogger),
+  devTools: true,
 })
 
 // Enable refetchOnFocus and refetchOnReconnect

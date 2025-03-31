@@ -1,122 +1,127 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
 )
 
-// ImageInfo contains information about a Sentinel Image
+// ImageInfo represents information about an agent image
 type ImageInfo struct {
-	ID         string                 `json:"id"`
-	Name       string                 `json:"name"`
-	Tag        string                 `json:"tag"`
-	CreatedAt  time.Time              `json:"created_at"`
-	Size       int64                  `json:"size"`
-	LLM        string                 `json:"llm"`
-	Parameters map[string]interface{} `json:"parameters,omitempty"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Tag       string    `json:"tag"`
+	CreatedAt time.Time `json:"created_at"`
+	Size      int64     `json:"size"`
+	BaseModel string    `json:"base_model"`
+	Features  []string  `json:"features"`
 }
 
-// listImagesHandler handles GET /images
+// ImageResponse represents the response for image endpoints
+type ImageResponse struct {
+	Images []ImageInfo `json:"images"`
+}
+
+// @Summary List all images
+// @Description Get a list of all available agent images
+// @Tags images
+// @Accept json
+// @Produce json
+// @Success 200 {object} ImageResponse
+// @Failure 500 {object} map[string]string
+// @Router /images [get]
 func (s *Server) listImagesHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement actual image listing from registry
-	// For now, return dummy image data
+	// TODO: Implement real image listing
+	// For now, return mock image data
 	images := []ImageInfo{
 		{
 			ID:        "sha256:abcdef1234567890",
 			Name:      "user/chatbot",
 			Tag:       "latest",
-			CreatedAt: time.Now().Add(-3 * time.Hour),
-			Size:      1024 * 1024 * 5, // 5 MB
-			LLM:       "claude-3-haiku-20240307",
-			Parameters: map[string]interface{}{
-				"temperature": 0.7,
-				"memoryDepth": 10,
-			},
+			CreatedAt: time.Now().Add(-24 * time.Hour),
+			Size:      1024 * 1024 * 5, // 5MB
+			BaseModel: "claude-3-haiku-20240307",
+			Features:  []string{"chat", "reasoning"},
 		},
 		{
 			ID:        "sha256:9876543210abcdef",
 			Name:      "user/research-assistant",
 			Tag:       "v1.0",
-			CreatedAt: time.Now().Add(-1 * 24 * time.Hour),
-			Size:      1024 * 1024 * 8, // 8 MB
-			LLM:       "claude-3-opus-20240229",
-			Parameters: map[string]interface{}{
-				"temperature": 0.5,
-				"memoryDepth": 20,
-			},
+			CreatedAt: time.Now().Add(-48 * time.Hour),
+			Size:      1024 * 1024 * 8, // 8MB
+			BaseModel: "claude-3-opus-20240229",
+			Features:  []string{"research", "summarization", "multimodal"},
+		},
+		{
+			ID:        "sha256:fedcba0987654321",
+			Name:      "user/translator",
+			Tag:       "v2.1",
+			CreatedAt: time.Now().Add(-120 * time.Hour),
+			Size:      1024 * 1024 * 3, // 3MB
+			BaseModel: "claude-3-sonnet-20240229",
+			Features:  []string{"translation", "language-detection"},
 		},
 	}
 
-	s.sendJSON(w, http.StatusOK, map[string]interface{}{
-		"images": images,
+	s.sendJSON(w, http.StatusOK, ImageResponse{
+		Images: images,
 	})
 }
 
-// getImageHandler handles GET /images/{id}
+// @Summary Get image details
+// @Description Get details of a specific image by ID
+// @Tags images
+// @Accept json
+// @Produce json
+// @Param id path string true "Image ID"
+// @Success 200 {object} ImageInfo
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /images/{id} [get]
 func (s *Server) getImageHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	// TODO: Implement actual image lookup from registry
-	// For now, return dummy image data based on the requested ID
-
-	// Return a 404 if ID doesn't match our dummy data
-	if id != "sha256:abcdef1234567890" && id != "sha256:9876543210abcdef" {
-		s.sendError(w, http.StatusNotFound, "Image not found")
-		return
-	}
-
-	var image ImageInfo
+	// TODO: Implement real image retrieval
+	// For now, return mock data based on the requested ID
 	if id == "sha256:abcdef1234567890" {
-		image = ImageInfo{
+		image := ImageInfo{
 			ID:        "sha256:abcdef1234567890",
 			Name:      "user/chatbot",
 			Tag:       "latest",
-			CreatedAt: time.Now().Add(-3 * time.Hour),
-			Size:      1024 * 1024 * 5, // 5 MB
-			LLM:       "claude-3-haiku-20240307",
-			Parameters: map[string]interface{}{
-				"temperature": 0.7,
-				"memoryDepth": 10,
-			},
+			CreatedAt: time.Now().Add(-24 * time.Hour),
+			Size:      1024 * 1024 * 5, // 5MB
+			BaseModel: "claude-3-haiku-20240307",
+			Features:  []string{"chat", "reasoning"},
 		}
-	} else {
-		image = ImageInfo{
+		s.sendJSON(w, http.StatusOK, image)
+		return
+	} else if id == "sha256:9876543210abcdef" {
+		image := ImageInfo{
 			ID:        "sha256:9876543210abcdef",
 			Name:      "user/research-assistant",
 			Tag:       "v1.0",
-			CreatedAt: time.Now().Add(-1 * 24 * time.Hour),
-			Size:      1024 * 1024 * 8, // 8 MB
-			LLM:       "claude-3-opus-20240229",
-			Parameters: map[string]interface{}{
-				"temperature": 0.5,
-				"memoryDepth": 20,
-			},
+			CreatedAt: time.Now().Add(-48 * time.Hour),
+			Size:      1024 * 1024 * 8, // 8MB
+			BaseModel: "claude-3-opus-20240229",
+			Features:  []string{"research", "summarization", "multimodal"},
 		}
+		s.sendJSON(w, http.StatusOK, image)
+		return
+	} else if id == "sha256:fedcba0987654321" {
+		image := ImageInfo{
+			ID:        "sha256:fedcba0987654321",
+			Name:      "user/translator",
+			Tag:       "v2.1",
+			CreatedAt: time.Now().Add(-120 * time.Hour),
+			Size:      1024 * 1024 * 3, // 3MB
+			BaseModel: "claude-3-sonnet-20240229",
+			Features:  []string{"translation", "language-detection"},
+		}
+		s.sendJSON(w, http.StatusOK, image)
+		return
 	}
 
-	// Add additional details for the detailed view
-	details := map[string]interface{}{
-		"id":         image.ID,
-		"name":       image.Name,
-		"tag":        image.Tag,
-		"created_at": image.CreatedAt,
-		"size":       image.Size,
-		"llm":        image.LLM,
-		"parameters": image.Parameters,
-		"capabilities": []string{
-			"web_search",
-			"document_analysis",
-		},
-		"metadata": map[string]string{
-			"description": fmt.Sprintf("An AI assistant based on %s", image.LLM),
-			"author":      "user",
-			"version":     image.Tag,
-		},
-	}
-
-	s.sendJSON(w, http.StatusOK, details)
+	s.sendError(w, http.StatusNotFound, "Image not found")
 }

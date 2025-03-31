@@ -18,7 +18,7 @@ type UserClaims struct {
 	jwt.RegisteredClaims
 }
 
-// contextKey is a custom type for context keys
+// contextKey is used for context values
 type contextKey string
 
 // Context keys
@@ -26,55 +26,87 @@ const (
 	userContextKey contextKey = "user"
 )
 
+// LoginRequest represents a login request
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+// LoginResponse represents a login response
+type LoginResponse struct {
+	Token string `json:"token"`
+	User  User   `json:"user"`
+}
+
+// User represents a user in the system
+type User struct {
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
+}
+
+// Claims represents the JWT claims
+type Claims struct {
+	UserID   string `json:"user_id"`
+	Username string `json:"username"`
+	Role     string `json:"role"`
+	jwt.RegisteredClaims
+}
+
 // authMiddleware is middleware for JWT authentication
 func (s *Server) authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Extract token from Authorization header
+		// Get token from Authorization header
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			s.sendError(w, http.StatusUnauthorized, "Authorization header required")
+			s.sendError(w, http.StatusUnauthorized, "Authorization header is required")
 			return
 		}
 
-		// Check that the header is in the right format
+		// Check that it's a Bearer token
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			s.sendError(w, http.StatusUnauthorized, "Invalid authorization format, expected Bearer token")
+			s.sendError(w, http.StatusUnauthorized, "Invalid authorization format")
 			return
 		}
 
-		// Extract the token string
+		// Extract token
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
-		// Parse and validate the token
-		token, err := jwt.ParseWithClaims(tokenString, &UserClaims{}, func(token *jwt.Token) (interface{}, error) {
-			// Make sure we're using the expected signing method
+		// Parse token
+		claims := &Claims{}
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			// Validate signing method
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			// Return the secret key used for signing
-			return []byte(s.config.TokenAuthSecret), nil
+
+			// Return secret key
+			secret := s.config.TokenAuthSecret
+			if secret == "" {
+				secret = "sentinel-default-secret-key-change-in-production"
+			}
+			return []byte(secret), nil
 		})
 
+		// Handle parsing errors
 		if err != nil {
-			s.sendError(w, http.StatusUnauthorized, fmt.Sprintf("Invalid token: %v", err))
+			s.log.Printf("Token validation error: %v", err)
+			s.sendError(w, http.StatusUnauthorized, "Invalid token")
 			return
 		}
 
-		// Check if the token is valid
+		// Check if token is valid
 		if !token.Valid {
 			s.sendError(w, http.StatusUnauthorized, "Invalid token")
 			return
 		}
 
-		// Extract user claims
-		claims, ok := token.Claims.(*UserClaims)
-		if !ok {
-			s.sendError(w, http.StatusUnauthorized, "Invalid token claims")
-			return
-		}
+		// Store claims in context for use by handlers
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, "user", claims)
 
-		// Store user information in the request context
-		ctx := context.WithValue(r.Context(), userContextKey, claims)
+		// Call next handler with updated context
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -129,36 +161,81 @@ func (s *Server) requireAdmin(next http.Handler) http.Handler {
 	})
 }
 
-// handleLogin handles user login and token generation
+// @Summary User login
+// @Description Authenticate a user and get a JWT token
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body LoginRequest true "Login credentials"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /auth/login [post]
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
-	// This is a simplified login handler
-	// In a real implementation, you'd validate user credentials against a database
-
-	var credentials struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
+	var req LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		s.sendError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	// TODO: Implement proper authentication
-	// For now, accept any credentials for development
-
-	isAdmin := credentials.Username == "admin"
-
-	// Generate token
-	token, err := s.GenerateToken(credentials.Username, isAdmin)
-	if err != nil {
-		s.sendError(w, http.StatusInternalServerError, "Failed to generate token")
+	// For demo purposes, accept any non-empty username/password
+	if req.Username == "" || req.Password == "" {
+		s.sendError(w, http.StatusBadRequest, "Username and password are required")
 		return
 	}
 
-	s.sendJSON(w, http.StatusOK, map[string]string{
-		"token":    token,
-		"username": credentials.Username,
-		"expires":  time.Now().Add(24 * time.Hour).Format(time.RFC3339),
-	})
+	// In a real implementation, validate credentials against a database
+	// For now, mock a successful login for any non-empty credentials
+
+	// Create user data
+	user := User{
+		ID:       "user-1",
+		Username: req.Username,
+		Email:    fmt.Sprintf("%s@example.com", req.Username),
+		Role:     "admin", // For demo purposes, make everyone an admin
+	}
+
+	// Create JWT token
+	token, err := s.createJWTToken(user)
+	if err != nil {
+		s.log.Printf("Error creating JWT token: %v", err)
+		s.sendError(w, http.StatusInternalServerError, "Error creating authentication token")
+		return
+	}
+
+	// Return token and user info
+	resp := LoginResponse{
+		Token: token,
+		User:  user,
+	}
+
+	s.sendJSON(w, http.StatusOK, resp)
+}
+
+// createJWTToken creates a new JWT token for a user
+func (s *Server) createJWTToken(user User) (string, error) {
+	// Use config secret or a default one
+	secret := s.config.TokenAuthSecret
+	if secret == "" {
+		secret = "sentinel-default-secret-key-change-in-production"
+	}
+
+	// Create claims
+	claims := &Claims{
+		UserID:   user.ID,
+		Username: user.Username,
+		Role:     user.Role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    "sentinel-api",
+			Subject:   user.ID,
+		},
+	}
+
+	// Create token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Sign token
+	return token.SignedString([]byte(secret))
 }
