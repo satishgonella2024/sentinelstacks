@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/sentinelstacks/sentinel/internal/multimodal"
 	"github.com/sentinelstacks/sentinel/pkg/agent"
 )
 
@@ -23,6 +24,7 @@ func NewRunCmd() *cobra.Command {
 		llmEndpoint string
 		llmModel    string
 		timeout     time.Duration
+		imageFile   string
 	)
 
 	runCmd := &cobra.Command{
@@ -61,6 +63,30 @@ func NewRunCmd() *cobra.Command {
 				} else {
 					return fmt.Errorf("invalid environment variable format: %s", e)
 				}
+			}
+
+			// Check if input image was provided
+			var mmImage *multimodal.Content
+			if imageFile != "" {
+				// Validate that the image file exists
+				if _, err := os.Stat(imageFile); os.IsNotExist(err) {
+					return fmt.Errorf("image file not found: %s", imageFile)
+				}
+
+				// Load the image file
+				imgData, err := os.ReadFile(imageFile)
+				if err != nil {
+					return fmt.Errorf("failed to read image file: %w", err)
+				}
+
+				// Create multimodal content
+				mmImage = multimodal.NewImageContent(imgData, getContentType(imageFile))
+				mmImage.Text = filepath.Base(imageFile) // Set alt text to filename
+
+				fmt.Printf("Loaded input image: %s (%s, %d bytes)\n",
+					filepath.Base(imageFile),
+					mmImage.MimeType,
+					len(mmImage.Data))
 			}
 
 			// Load the image
@@ -135,6 +161,33 @@ func NewRunCmd() *cobra.Command {
 				}
 			}
 
+			// If input image is provided, check if we need to override the model to support multimodal
+			if mmImage != nil {
+				// Ensure we're using a model that supports multimodal if an image is provided
+				switch llmProvider {
+				case "claude":
+					// Claude 3 models support multimodal
+					if !strings.HasPrefix(llmModel, "claude-3") {
+						fmt.Println("Warning: Switching to claude-3-opus-20240229 for multimodal support")
+						llmModel = "claude-3-opus-20240229"
+					}
+				case "openai":
+					// Only GPT-4 Vision supports multimodal
+					if !strings.Contains(llmModel, "vision") {
+						fmt.Println("Warning: Switching to gpt-4-vision-preview for multimodal support")
+						llmModel = "gpt-4-vision-preview"
+					}
+				case "ollama":
+					// For Ollama, we need a model like llava
+					if !strings.Contains(llmModel, "llava") &&
+						!strings.Contains(llmModel, "bakllava") &&
+						!strings.Contains(llmModel, "moondream") {
+						fmt.Println("Warning: Switching to llava for multimodal support")
+						llmModel = "llava"
+					}
+				}
+			}
+
 			// Get the API key from the config (will be used in future implementation)
 			// apiKey := viper.GetString("llm.api_key")
 
@@ -145,6 +198,9 @@ func NewRunCmd() *cobra.Command {
 			}
 			fmt.Printf("LLM model: %s\n", llmModel)
 			fmt.Printf("Interactive mode: %v\n", interactive)
+			if mmImage != nil {
+				fmt.Println("Mode: Multimodal (image input provided)")
+			}
 			if timeout > 0 {
 				fmt.Printf("Timeout: %s\n", timeout.String())
 			} else {
@@ -177,13 +233,17 @@ func NewRunCmd() *cobra.Command {
 			// Generate a fake agent ID
 			agentID := "agent_" + fmt.Sprintf("%x", time.Now().UnixNano())
 
-			// TODO: Implement actual agent runtime
+			// TODO: Implement actual agent runtime with multimodal support
 			// This would include creating an LLM shim and initializing the agent
+			// If mmImage is not nil, we would use multimodal APIs
 
 			if interactive {
 				fmt.Println("\n=== Interactive Session Started ===")
 				fmt.Println("Type 'exit' to end the session")
 				fmt.Println("Agent> Hello! I'm ready to assist you.")
+				if mmImage != nil {
+					fmt.Println("Agent> I can see the image you provided.")
+				}
 				fmt.Println("User> (Type your message here)")
 				fmt.Println("\nSimulating interactive session...")
 				fmt.Println("=== Interactive Session Ended ===")
@@ -205,6 +265,7 @@ func NewRunCmd() *cobra.Command {
 	runCmd.Flags().StringVar(&llmEndpoint, "llm-endpoint", "", "LLM provider endpoint URL")
 	runCmd.Flags().StringVar(&llmModel, "llm-model", "", "Override the LLM model specified in the image")
 	runCmd.Flags().DurationVar(&timeout, "timeout", 0, "Timeout for the agent run (e.g. 1h, 30m)")
+	runCmd.Flags().StringVar(&imageFile, "image", "", "Path to an image file to include as multimodal input")
 
 	return runCmd
 }
@@ -256,4 +317,23 @@ func parseFloat(s string) (float64, error) {
 	var f float64
 	_, err := fmt.Sscanf(s, "%f", &f)
 	return f, err
+}
+
+// getContentType returns the MIME type based on file extension
+func getContentType(filename string) string {
+	ext := strings.ToLower(filepath.Ext(filename))
+	switch ext {
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".png":
+		return "image/png"
+	case ".gif":
+		return "image/gif"
+	case ".webp":
+		return "image/webp"
+	case ".svg":
+		return "image/svg+xml"
+	default:
+		return "application/octet-stream"
+	}
 }

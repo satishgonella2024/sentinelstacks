@@ -84,28 +84,40 @@ parameters:
 
 ## Multimodal Support
 
-SentinelStacks now supports multimodal capabilities, allowing agents to process and generate visual content:
+SentinelStacks now includes full multimodal support for working with images:
 
-```yaml
-name: VisualAnalysisAgent
-description: An agent that analyzes images
-baseModel: claude-3-opus-20240229
-multimodal:
-  enabled: true
-  supportedMediaTypes:
-    - image/jpeg
-    - image/png
-  imageAnalysisFeatures:
-    - objectDetection
-    - textRecognition
-```
+### Analyzing Images
 
-Run a multimodal agent with an image:
+Use the dedicated multimodal command to analyze images:
 
 ```bash
-# Run a visual analysis agent with an image
-sentinel run visual-agent --image path/to/image.jpg --prompt "What's in this image?"
+# Using Claude provider
+sentinel multimodal analyze-image --image /path/to/image.jpg --provider claude
+
+# Using OpenAI Vision
+sentinel multimodal analyze-image --image /path/to/image.jpg --provider openai
+
+# Using Ollama with a local LLaVA model
+sentinel multimodal analyze-image --image /path/to/image.jpg --provider ollama --model llava
 ```
+
+### Running Agents with Images
+
+You can also run any agent with an image input:
+
+```bash
+sentinel run my-agent --image /path/to/image.jpg
+```
+
+The system will automatically select an appropriate multimodal model based on your configured provider.
+
+### Supported Providers
+
+Multimodal support is available with the following providers:
+
+- **Claude**: Using Claude 3 models
+- **OpenAI**: Using GPT-4 Vision models
+- **Ollama**: Using LLaVA, BakLLaVA, and other multimodal models
 
 ## Documentation
 
