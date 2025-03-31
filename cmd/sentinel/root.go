@@ -5,8 +5,13 @@ import (
 
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/build"
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/config"
+	"github.com/sentinelstacks/sentinel/cmd/sentinel/images"
 	initCmd "github.com/sentinelstacks/sentinel/cmd/sentinel/init"
+	"github.com/sentinelstacks/sentinel/cmd/sentinel/logs"
+	"github.com/sentinelstacks/sentinel/cmd/sentinel/ps"
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/run"
+	"github.com/sentinelstacks/sentinel/cmd/sentinel/stop"
+	"github.com/sentinelstacks/sentinel/cmd/sentinel/version"
 )
 
 var rootCmd = &cobra.Command{
@@ -32,15 +37,17 @@ func init() {
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Enable verbose output")
 
 	// Add commands
-	rootCmd.AddCommand(initCmd.NewInitCmd())  // Init command
-	rootCmd.AddCommand(build.NewBuildCmd())   // Build command
-	rootCmd.AddCommand(run.NewRunCmd())       // Run command
-	rootCmd.AddCommand(config.NewConfigCmd()) // Config command
+	rootCmd.AddCommand(initCmd.NewInitCmd())    // Init command
+	rootCmd.AddCommand(build.NewBuildCmd())     // Build command
+	rootCmd.AddCommand(run.NewRunCmd())         // Run command
+	rootCmd.AddCommand(ps.NewPsCmd())           // PS command
+	rootCmd.AddCommand(stop.NewStopCmd())       // Stop command
+	rootCmd.AddCommand(logs.NewLogsCmd())       // Logs command
+	rootCmd.AddCommand(images.NewImagesCmd())   // Images command
+	rootCmd.AddCommand(config.NewConfigCmd())   // Config command
+	rootCmd.AddCommand(version.NewVersionCmd()) // Version command
 
 	// TODO: Add more commands as they are implemented
 	// rootCmd.AddCommand(NewPushCmd())
 	// rootCmd.AddCommand(NewPullCmd())
-	// rootCmd.AddCommand(NewPsCmd())
-	// rootCmd.AddCommand(NewStopCmd())
-	// rootCmd.AddCommand(NewLogsCmd())
 }

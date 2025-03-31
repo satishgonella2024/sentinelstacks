@@ -126,16 +126,88 @@ SentinelStacks includes several example agents to help you get started:
 - **codehelper**: Programming assistance agent
 - **visualanalysis**: Image analysis agent (multimodal)
 
+## CLI Implementation
+
+SentinelStacks provides a powerful command-line interface inspired by Docker's workflow. The CLI allows you to manage agents through their entire lifecycle.
+
+### Available Commands
+
+```
+Usage:
+  sentinel [command]
+
+Available Commands:
+  build       Build a Sentinel Image from a Sentinelfile
+  config      Manage SentinelStacks configuration
+  images      List Sentinel Images
+  init        Initialize a new Sentinelfile
+  logs        View logs from an agent
+  ps          List running agents
+  run         Run a Sentinel Agent from an image
+  stop        Stop a running agent
+  version     Print version information
+```
+
+### Examples
+
+#### Initialize a new Sentinelfile
+```bash
+sentinel init --template chatbot
+```
+
+#### Build an agent from a Sentinelfile
+```bash
+sentinel build -t myuser/chatbot:latest
+```
+
+#### List available agent images
+```bash
+sentinel images
+```
+
+#### Run an agent
+```bash
+sentinel run myuser/chatbot:latest
+```
+
+#### List running agents
+```bash
+sentinel ps
+```
+
+#### Stop a running agent
+```bash
+sentinel stop <agent_id>
+```
+
+#### View agent logs
+```bash
+sentinel logs <agent_id>
+```
+
+## Key Features
+
+- **Natural Language Agent Definitions**: Define agents using simple, human-readable YAML files called Sentinelfiles.
+- **Docker-like Workflow**: Build, run, share, and manage agents with a familiar command structure.
+- **Extensible Provider System**: Support for multiple LLM providers through a unified interface.
+- **Multimodal Support**: Process and generate text, images, and other media types depending on model capabilities.
+- **Agent Registry**: Share and discover agents through a central registry.
+- **Local Development**: Develop and test agents locally before sharing.
+- **CLI & API Access**: Choose between command-line and programmatic interfaces.
+
+## Documentation
+
+Comprehensive documentation is available in the [docs](./docs) directory, including:
+
+- [User Guides](./docs/user-guides)
+- [Development Guides](./docs/development)
+- [Architecture](./docs/architecture)
+- [API Reference](./docs/architecture/api.md)
+
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
