@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600">
+  <!-- Background -->
+  <rect width="900" height="600" fill="#f8f9fa"/>
+  
+  <!-- Title -->
+  <text x="450" y="40" font-family="Arial" font-size="24" font-weight="bold" text-anchor="middle" fill="#212121">SentinelStacks: User Perspective</text>
+  
+  <!-- User -->
+  <circle cx="450" cy="120" r="35" fill="#e1f5fe" stroke="#0277bd" stroke-width="2"/>
+  <path d="M 450 100 
+           C 440 100, 435 90, 435 85
+           C 435 75, 442 70, 450 70
+           C 458 70, 465 75, 465 85
+           C 465 90, 460 100, 450 100" 
+        fill="#0277bd"/>
+  <circle cx="450" cy="130" r="15" fill="#0277bd"/>
+  <text x="450" y="180" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle" fill="#0277bd">User</text>
+  
+  <!-- Main Flow Circles -->
+  <circle cx="200" cy="320" r="80" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="200" y="310" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#2e7d32">Define</text>
+  <text x="200" y="330" font-family="Arial" font-size="14" text-anchor="middle" fill="#2e7d32">Sentinelfile</text>
+  
+  <circle cx="450" cy="320" r="80" fill="#fff3e0" stroke="#e65100" stroke-width="2"/>
+  <text x="450" y="310" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#e65100">Build</text>
+  <text x="450" y="330" font-family="Arial" font-size="14" text-anchor="middle" fill="#e65100">Sentinel Image</text>
+  
+  <circle cx="700" cy="320" r="80" fill="#e1f5fe" stroke="#0277bd" stroke-width="2"/>
+  <text x="700" y="310" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#0277bd">Run</text>
+  <text x="700" y="330" font-family="Arial" font-size="14" text-anchor="middle" fill="#0277bd">Sentinel Agent</text>
+  
+  <circle cx="325" cy="500" r="80" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2"/>
+  <text x="325" y="490" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#7b1fa2">Share</text>
+  <text x="325" y="510" font-family="Arial" font-size="14" text-anchor="middle" fill="#7b1fa2">Sentinel Registry</text>
+  
+  <circle cx="575" cy="500" r="80" fill="#ffebee" stroke="#c62828" stroke-width="2"/>
+  <text x="575" y="490" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#c62828">Manage</text>
+  <text x="575" y="510" font-family="Arial" font-size="14" text-anchor="middle" fill="#c62828">Sentinel Desktop</text>
+  
+  <!-- Connector Arrows -->
+  <path d="M 450 155 L 250 250" stroke="#616161" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 450 155 L 450 220" stroke="#616161" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 450 155 L 650 250" stroke="#616161" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 450 155 L 360 430" stroke="#616161" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 450 155 L 540 430" stroke="#616161" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  
+  <path d="M 280 320 L 370 320" stroke="#616161" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 530 320 L 620 320" stroke="#616161" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 250 380 L 295 430" stroke="#616161" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 650 380 L 605 430" stroke="#616161" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 405 500 L 495 500" stroke="#616161" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  
+  <!-- Arrow Marker Definition -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5"
+        markerWidth="6" markerHeight="6"
+        orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#616161"/>
+    </marker>
+  </defs>
+  
+  <!-- Action Labels -->
+  <text x="290" y="220" font-family="Arial" font-size="14" text-anchor="middle" fill="#616161" transform="rotate(-30,290,220)">Write NLP Definition</text>
+  <text x="450" y="200" font-family="Arial" font-size="14" text-anchor="middle" fill="#616161">Structure & Build</text>
+  <text x="610" y="220" font-family="Arial" font-size="14" text-anchor="middle" fill="#616161" transform="rotate(30,610,220)">Deploy & Execute</text>
+  <text x="325" y="320" font-family="Arial" font-size="14" text-anchor="middle" fill="#616161">Parse</text>
+  <text x="575" y="320" font-family="Arial" font-size="14" text-anchor="middle" fill="#616161">Deploy</text>
+  <text x="450" y="500" font-family="Arial" font-size="14" text-anchor="middle" fill="#616161">Monitor</text>
+  
+  <!-- Feature Highlights -->
+  <rect x="90" y="380" width="100" height="25" rx="12" fill="#c8e6c9" stroke="none"/>
+  <text x="140" y="398" font-family="Arial" font-size="12" text-anchor="middle" fill="#212121">Natural Language</text>
+  
+  <rect x="210" y="380" width="90" height="25" rx="12" fill="#c8e6c9" stroke="none"/>
+  <text x="255" y="398" font-family="Arial" font-size="12" text-anchor="middle" fill="#212121">No Coding</text>
+  
+  <rect x="370" y="380" width="80" height="25" rx="12" fill="#ffe0b2" stroke="none"/>
+  <text x="410" y="398" font-family="Arial" font-size="12" text-anchor="middle" fill="#212121">Versioning</text>
+  
+  <rect x="460" y="380" width="75" height="25" rx="12" fill="#ffe0b2" stroke="none"/>
+  <text x="498" y="398" font-family="Arial" font-size="12" text-anchor="middle" fill="#212121">Portable</text>
+  
+  <rect x="650" y="380" width="100" height="25" rx="12" fill="#b3e5fc" stroke="none"/>
+  <text x="700" y="398" font-family="Arial" font-size="12" text-anchor="middle" fill="#212121">Multi-LLM Support</text>
+  
+  <rect x="650" y="410" width="100" height="25" rx="12" fill="#b3e5fc" stroke="none"/>
+  <text x="700" y="428" font-family="Arial" font-size="12" text-anchor="middle" fill="#212121">State Management</text>
+  
+  <rect x="230" y="570" width="100" height="25" rx="12" fill="#e1bee7" stroke="none"/>
+  <text x="280" y="588" font-family="Arial" font-size="12" text-anchor="middle" fill="#212121">Discoverability</text>
+  
+  <rect x="335" y="570" width="80" height="25" rx="12" fill="#e1bee7" stroke="none"/>
+  <text x="375" y="588" font-family="Arial" font-size="12" text-anchor="middle" fill="#212121">Sharing</text>
+  
+  <rect x="525" y="570" width="100" height="25" rx="12" fill="#ffcdd2" stroke="none"/>
+  <text x="575" y="588" font-family="Arial" font-size="12" text-anchor="middle" fill="#212121">Visualization</text>
+  
+  <rect x="630" y="570" width="80" height="25" rx="12" fill="#ffcdd2" stroke="none"/>
+  <text x="670" y="588" font-family="Arial" font-size="12" text-anchor="middle" fill="#212121">Logging</text>
+</svg>

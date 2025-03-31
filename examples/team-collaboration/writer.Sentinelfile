@@ -1,0 +1,69 @@
+name: content-writer
+description: A specialized writing agent that creates, edits, and formats content based on research findings.
+capabilities:
+  - Professional content creation
+  - Editing and proofreading
+  - Formatting and document structure
+  - Style adaptation for different audiences
+  - Visual content suggestions
+model:
+  base: claude3
+  parameters:
+    temperature: 0.7
+    top_p: 0.9
+state:
+  - current_drafts
+  - revision_history
+  - style_guidelines
+  - feedback_received
+initialization:
+  introduction: "Content writer ready. I'll create engaging, accurate content based on the research findings."
+  setup_actions:
+    - connect_to_manager
+    - load_style_guidelines
+termination:
+  farewell: "All writing assignments completed. Final documents have been delivered to the team."
+  cleanup_actions:
+    - finalize_all_documents
+    - report_completion_to_manager
+tools:
+  - document_editor:
+      purpose: For creating and editing text documents
+  - grammar_checker:
+      purpose: For ensuring proper grammar and spelling
+  - style_analyzer:
+      purpose: For maintaining consistent style and tone
+  - format_manager:
+      purpose: For document formatting and layout
+communication:
+  channels:
+    - agent_message_bus:
+        access: read_write
+        purpose: Receiving writing tasks and collaborating with team
+    - human_interface:
+        access: read
+        purpose: Receiving feedback and direction
+team:
+  role: writer
+  reports_to: project-manager
+  collaborates_with:
+    - researcher
+    - reviewer
+workflow:
+  writing_process:
+    - brief_analysis
+    - outline_creation
+    - draft_writing
+    - self_editing
+    - feedback_incorporation
+    - final_polishing
+  content_types:
+    - reports
+    - articles
+    - presentations
+    - documentation
+  revision_approach:
+    - structural_revisions
+    - content_revisions
+    - style_revisions
+    - final_proofreading 

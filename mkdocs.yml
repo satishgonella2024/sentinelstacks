@@ -1,0 +1,53 @@
+site_name: SentinelStacks Documentation
+site_description: Documentation for the SentinelStacks AI Agent Management System
+site_author: SentinelStacks Team
+repo_url: https://github.com/sentinelstacks/sentinel
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: blue
+  features:
+    - navigation.tabs
+    - navigation.instant
+    - navigation.tracking
+    - content.code.copy
+    - content.tabs.link
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Architecture:
+    - Overview: architecture/README.md
+    - System Design: architecture/system_design.md
+    - API Reference: architecture/api.md
+    - Sentinelfile Specification: architecture/sentinelfile_spec.md
+  - User Guides:
+    - Getting Started: user-guides/README.md
+    - Quick Start: user-guides/quick_start.md
+    - LLM Providers: user-guides/llm_providers.md
+    - Advanced Agents: user-guides/advanced_agents.md
+  - Examples:
+    - Basic Chatbot: examples/chatbot.md
+    - Research Assistant: examples/research-assistant.md
+    - Team Collaboration: examples/team-collaboration.md
+    - Financial Advisor: examples/finance-advisor.md
+    - NLP Generator: examples/nlp-generator.md
+  - Development:
+    - Git Strategy: development/git_strategy.md
+  - Planning:
+    - Roadmap: planning/roadmap.md
+    - Progress Tracker: planning/progress_tracker.md
+    - CLI Implementation: planning/cli_implementation.md
+    - Shim Implementation: planning/shim_implementation.md 

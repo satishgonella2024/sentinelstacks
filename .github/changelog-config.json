@@ -1,0 +1,48 @@
+{
+  "categories": [
+    {
+      "title": "## 🚀 Features",
+      "labels": ["feature", "enhancement", "feat"]
+    },
+    {
+      "title": "## 🐛 Fixes",
+      "labels": ["fix", "bugfix", "bug"]
+    },
+    {
+      "title": "## 🧰 Maintenance",
+      "labels": ["chore", "refactor", "docs", "style", "test", "maintenance"]
+    }
+  ],
+  "ignore_labels": [
+    "duplicate",
+    "invalid",
+    "wontfix"
+  ],
+  "sort": "ASC",
+  "pr_template": "- ${{TITLE}} (#${{NUMBER}})",
+  "template": "${{CHANGELOG}}\n\n## 📦 Other\n\n${{UNCATEGORIZED}}",
+  "empty_template": "No changes",
+  "label_extractor": [
+    {
+      "pattern": "(feat|feature|enhancement)(\\([\\w\\s]+\\))?:",
+      "target": "feat"
+    },
+    {
+      "pattern": "(fix|bugfix|bug)(\\([\\w\\s]+\\))?:",
+      "target": "fix"
+    },
+    {
+      "pattern": "(chore|refactor|docs|style|test|ci|build)(\\([\\w\\s]+\\))?:",
+      "target": "$1"
+    }
+  ],
+  "transformers": [
+    {
+      "pattern": "(\\w+)\\([\\w\\s]+\\):\\s*(.*)",
+      "target": "$1: $2"
+    }
+  ],
+  "max_tags_to_fetch": 200,
+  "max_pull_requests": 200,
+  "max_back_track_time_days": 365
+} 
