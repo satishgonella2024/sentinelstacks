@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: 10 37 64; /* Deep navy */
+    --color-secondary: 0 207 180; /* Teal */
+    --color-accent-blue: 0 112 243; /* Electric blue */
+    --color-accent-purple: 112 0 255; /* Vibrant purple */
+    --color-background-dark: 10 16 23; /* Dark background */
+    --color-background-light: 249 251 253; /* Light background */
+  }
+
+  html, body {
+    @apply antialiased text-gray-800 dark:text-gray-200 bg-background-light dark:bg-background-dark min-h-screen;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Glassmorphic panel styles */
+  .glass-panel {
+    @apply bg-white/80 dark:bg-background-glass backdrop-blur-glass 
+           border border-gray-200 dark:border-gray-800
+           shadow-glass rounded-lg;
+  }
+
+  .glass-panel-dark {
+    @apply bg-primary-900/80 backdrop-blur-glass 
+           border border-primary-800/50
+           shadow-glass rounded-lg;
+  }
+
+  /* Enterprise card styles */
+  .enterprise-card {
+    @apply bg-gradient-to-br from-primary-800/80 to-primary-900/90
+           border-l-3 border-accent-blue
+           rounded-lg shadow-md
+           transition-all duration-300 ease-in-out;
+  }
+
+  .enterprise-card:hover {
+    @apply transform -translate-y-1 shadow-lg border-l-3 border-accent-teal;
+  }
+
+  /* Think bubble styles */
+  .think-bubble {
+    @apply relative max-w-xs p-3 rounded-lg
+           bg-white/90 dark:bg-primary-900/90
+           backdrop-blur-glass
+           border border-gray-200 dark:border-gray-800
+           shadow-md
+           transition-all duration-300;
+  }
+
+  .think-bubble.insight {
+    @apply bg-blue-50/90 dark:bg-blue-900/50 border-blue-300 dark:border-blue-700;
+  }
+
+  .think-bubble.guidance {
+    @apply bg-green-50/90 dark:bg-green-900/50 border-green-300 dark:border-green-700;
+  }
+
+  .think-bubble.suggestion {
+    @apply bg-purple-50/90 dark:bg-purple-900/50 border-purple-300 dark:border-purple-700;
+  }
+
+  .think-bubble.achievement {
+    @apply bg-amber-50/90 dark:bg-amber-900/50 border-amber-300 dark:border-amber-700;
+  }
+
+  .think-bubble:before {
+    @apply content-[''] absolute w-3 h-3 transform rotate-45
+           border border-inherit bg-inherit;
+  }
+
+  .think-bubble.left-bubble:before {
+    @apply -left-1.5 top-4 border-r-0 border-t-0;
+  }
+
+  .think-bubble.right-bubble:before {
+    @apply -right-1.5 top-4 border-l-0 border-b-0;
+  }
+
+  /* Futuristic button styles */
+  .btn-primary {
+    @apply relative overflow-hidden
+           bg-accent-blue text-white font-medium
+           px-5 py-2.5 rounded-md
+           transition-all duration-300
+           shadow-md hover:shadow-glow
+           focus:outline-none focus:ring-2 focus:ring-accent-blue/50;
+  }
+
+  .btn-secondary {
+    @apply relative overflow-hidden
+           bg-transparent text-accent-blue font-medium
+           border border-accent-blue
+           px-5 py-2.5 rounded-md
+           transition-all duration-300
+           hover:bg-accent-blue/10
+           focus:outline-none focus:ring-2 focus:ring-accent-blue/50;
+  }
+
+  .btn-glass {
+    @apply relative overflow-hidden
+           bg-white/20 backdrop-blur-glass
+           text-white font-medium
+           border border-white/30
+           px-5 py-2.5 rounded-md
+           transition-all duration-300
+           hover:bg-white/30
+           focus:outline-none focus:ring-2 focus:ring-white/50;
+  }
+
+  /* Neon border effect */
+  .neon-border {
+    @apply relative;
+  }
+
+  .neon-border:after {
+    @apply content-[''] absolute inset-0 
+           rounded-lg -z-10 opacity-50
+           bg-gradient-to-r from-accent-blue via-accent-purple to-accent-teal
+           animate-pulse;
+  }
+}
+
+/* Keyframe animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+.animate-soft-pulse {
+  animation: pulse 3s ease infinite;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-600;
+} 
