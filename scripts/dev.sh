@@ -33,7 +33,7 @@ if go build -o bin/sentinel cmd/sentinel/main/main.go; then
   # Start the backend API server
   echo "Starting the backend API server..."
   cd "$REPO_ROOT"
-  bin/sentinel api -p 8080 -e true &
+  bin/sentinel api -p 8080 --cors &
   BACKEND_PID=$!
 
   # Check if backend started successfully
@@ -51,18 +51,25 @@ else
   USE_MOCK=true
 fi
 
-# If we need to use mock mode, ensure the API service has mock data
+# If we need to use mock mode, set up the mock environment variable
 if [ "$USE_MOCK" = true ]; then
   echo "Setting up mock data mode..."
   
-  # Check if the mock data is already in place
-  cd "$REPO_ROOT/web-ui/src/services"
-  if ! grep -q "mockAgents" api.ts; then
-    echo "Adding mock data to api.ts..."
+  # Create .env.local file to enable mock mode
+  cd "$REPO_ROOT/web-ui"
+  echo "VITE_USE_MOCK_API=true" > .env.local
+  echo "✅ Created .env.local with mock mode enabled"
+  
+  # Check if we need to create the mock API handler file
+  if [ ! -f "src/mocks/handlers.ts" ]; then
+    echo "Creating mock API handlers..."
     
-    cat > api.ts.new << 'EOF'
-// API service for SentinelStacks
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+    # Create mocks directory if it doesn't exist
+    mkdir -p src/mocks
+    
+    # Create handlers.ts file
+    cat > src/mocks/handlers.ts << 'EOF'
+import { http, HttpResponse } from 'msw'
 
 // Types
 export interface Agent {
@@ -91,27 +98,6 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
-}
-
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  token: string;
-  user: {
-    id: string;
-    username: string;
-    email: string;
-  };
-}
-
-export interface CreateAgentRequest {
-  name: string;
-  model: string;
-  description?: string;
-  system_prompt?: string;
 }
 
 // Mock data
@@ -201,147 +187,148 @@ const mockConversations: Record<string, Conversation[]> = {
   ],
 };
 
-// API definition
-export const api = createApi({
-  reducerPath: 'api',
-  baseQuery: fetchBaseQuery({ 
-    baseUrl: '/api',
-    prepareHeaders: (headers, { getState }) => {
-      // Get token from state
-      const token = (getState() as any).auth?.token;
-      
-      // Add auth header if token exists
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      
-      return headers;
-    },
+// API handlers
+export const handlers = [
+  // Authentication
+  http.post('/api/auth/login', () => {
+    return HttpResponse.json({
+      token: 'mock-jwt-token',
+      user: {
+        id: '1',
+        username: 'demo_user',
+        email: 'demo@example.com',
+      },
+    })
   }),
-  tagTypes: ['Agent', 'Conversation'],
-  endpoints: (builder) => ({
-    login: builder.mutation<LoginResponse, LoginRequest>({
-      query: (credentials) => ({
-        url: '/auth/login',
-        method: 'POST',
-        body: credentials,
-      }),
-      transformResponse: (response: LoginResponse) => {
-        // In mock mode, return fake data
-        return {
-          token: 'mock-jwt-token',
-          user: {
-            id: '1',
-            username: 'demo_user',
-            email: 'demo@example.com',
-          },
-        };
-      },
-    }),
-    
-    getAgents: builder.query<Agent[], void>({
-      query: () => '/agents',
-      transformResponse: (response: Agent[]) => {
-        // In mock mode, return fake data
-        return mockAgents;
-      },
-      providesTags: ['Agent'],
-    }),
-    
-    getAgent: builder.query<Agent, string>({
-      query: (id) => `/agents/${id}`,
-      transformResponse: (response: Agent, _meta, arg) => {
-        // In mock mode, return fake data
-        return mockAgents.find(a => a.id === arg) || mockAgents[0];
-      },
-      providesTags: (_result, _error, id) => [{ type: 'Agent', id }],
-    }),
-    
-    createAgent: builder.mutation<Agent, CreateAgentRequest>({
-      query: (agent) => ({
-        url: '/agents',
-        method: 'POST',
-        body: agent,
-      }),
-      transformResponse: (response: Agent, _meta, arg) => {
-        // In mock mode, create a new agent
-        return {
-          id: Math.random().toString(36).substring(2, 9),
-          name: arg.name,
-          model: arg.model,
-          status: 'running',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          description: arg.description,
-        };
-      },
-      invalidatesTags: ['Agent'],
-    }),
-    
-    getConversations: builder.query<Conversation[], string>({
-      query: (agentId) => `/agents/${agentId}/conversations`,
-      transformResponse: (response: Conversation[], _meta, arg) => {
-        // In mock mode, return fake data
-        return mockConversations[arg] || [];
-      },
-      providesTags: (_result, _error, id) => [{ type: 'Conversation', id }],
-    }),
-    
-    getConversation: builder.query<Conversation, { agentId: string, conversationId: string }>({
-      query: ({ agentId, conversationId }) => `/agents/${agentId}/conversations/${conversationId}`,
-      transformResponse: (response: Conversation, _meta, arg) => {
-        // In mock mode, return fake data
-        const conversations = mockConversations[arg.agentId] || [];
-        return conversations.find(c => c.id === arg.conversationId) || conversations[0];
-      },
-      providesTags: (_result, _error, arg) => [{ type: 'Conversation', id: arg.conversationId }],
-    }),
-    
-    sendMessage: builder.mutation<Message, { agentId: string, conversationId: string, content: string }>({
-      query: ({ agentId, conversationId, content }) => ({
-        url: `/agents/${agentId}/conversations/${conversationId}/messages`,
-        method: 'POST',
-        body: { content },
-      }),
-      transformResponse: (response: Message, _meta, arg) => {
-        // In mock mode, create a fake message response
-        const userMsg: Message = {
-          id: Math.random().toString(36).substring(2, 9),
-          conversation_id: arg.conversationId,
-          role: 'user',
-          content: arg.content,
-          created_at: new Date().toISOString(),
-        };
-        
-        // Mock assistant response after a delay
-        setTimeout(() => {
-          // This would add the assistant message to the state in a real app
-          console.log('Assistant would respond here in a real app');
-        }, 1000);
-        
-        return userMsg;
-      },
-      invalidatesTags: (_result, _error, arg) => [{ type: 'Conversation', id: arg.conversationId }],
-    }),
-  }),
-});
 
-// Export hooks
-export const {
-  useLoginMutation,
-  useGetAgentsQuery,
-  useGetAgentQuery,
-  useCreateAgentMutation,
-  useGetConversationsQuery,
-  useGetConversationQuery,
-  useSendMessageMutation,
-} = api;
+  // Agents
+  http.get('/api/agents', () => {
+    return HttpResponse.json(mockAgents)
+  }),
+
+  http.get('/api/agents/:id', ({ params }) => {
+    const { id } = params
+    const agent = mockAgents.find(a => a.id === id) || mockAgents[0]
+    return HttpResponse.json(agent)
+  }),
+
+  http.post('/api/agents', async ({ request }) => {
+    const data = await request.json()
+    const newAgent: Agent = {
+      id: Math.random().toString(36).substring(2, 9),
+      name: data.name,
+      model: data.model,
+      status: 'running',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      description: data.description || '',
+    }
+    mockAgents.push(newAgent)
+    return HttpResponse.json(newAgent)
+  }),
+
+  // Conversations
+  http.get('/api/agents/:agentId/conversations', ({ params }) => {
+    const { agentId } = params
+    return HttpResponse.json(mockConversations[agentId as string] || [])
+  }),
+
+  http.get('/api/agents/:agentId/conversations/:conversationId', ({ params }) => {
+    const { agentId, conversationId } = params
+    const conversations = mockConversations[agentId as string] || []
+    const conversation = conversations.find(c => c.id === conversationId) || conversations[0]
+    return HttpResponse.json(conversation)
+  }),
+
+  http.post('/api/agents/:agentId/conversations/:conversationId/messages', async ({ request, params }) => {
+    const data = await request.json()
+    const { agentId, conversationId } = params
+    
+    // Create user message
+    const userMsg: Message = {
+      id: Math.random().toString(36).substring(2, 9),
+      conversation_id: conversationId as string,
+      role: 'user',
+      content: data.content,
+      created_at: new Date().toISOString(),
+    }
+    
+    // Create assistant response
+    const assistantMsg: Message = {
+      id: Math.random().toString(36).substring(2, 9),
+      conversation_id: conversationId as string,
+      role: 'assistant',
+      content: 'This is a mock response from the assistant. In a real app, this would be generated by the AI model.',
+      created_at: new Date(Date.now() + 1000).toISOString(),
+    }
+    
+    // Add messages to conversation
+    const conversations = mockConversations[agentId as string] || []
+    const conversation = conversations.find(c => c.id === conversationId)
+    
+    if (conversation) {
+      conversation.messages.push(userMsg)
+      conversation.messages.push(assistantMsg)
+    }
+    
+    return HttpResponse.json(userMsg)
+  }),
+]
 EOF
 
-    mv api.ts.new api.ts
-    echo "✅ Mock data added to API service"
+    # Create browser.ts file
+    cat > src/mocks/browser.ts << 'EOF'
+import { setupWorker } from 'msw/browser'
+import { handlers } from './handlers'
+
+export const worker = setupWorker(...handlers)
+EOF
+
+    # Create node.ts file for testing environments
+    cat > src/mocks/node.ts << 'EOF'
+import { setupServer } from 'msw/node'
+import { handlers } from './handlers'
+
+export const server = setupServer(...handlers)
+EOF
+
+    # Update main.tsx to include MSW in development
+    if [ -f "src/main.tsx" ]; then
+      cat > src/main.tsx.new << 'EOF'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
+
+async function bootstrap() {
+  // Setup mock server in development
+  if (import.meta.env.VITE_USE_MOCK_API === 'true') {
+    console.log('🔶 Using mock API in development mode')
+    const { worker } = await import('./mocks/browser')
+    await worker.start({ 
+      onUnhandledRequest: 'bypass' 
+    })
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  )
+}
+
+bootstrap()
+EOF
+      mv src/main.tsx.new src/main.tsx
+    fi
+
+    # Add MSW dependencies
+    echo "Installing MSW (Mock Service Worker) for API mocking..."
+    npm install msw --save-dev
+    
+    echo "✅ Mock API setup complete"
   else
-    echo "✅ Mock data already present in API service"
+    echo "✅ Mock API handlers already exist"
   fi
 fi
 
