@@ -17,12 +17,13 @@ import (
 
 // Server represents the API server
 type Server struct {
-	router  *mux.Router
-	server  *http.Server
-	runtime *runtime.Runtime
-	config  *Config
-	log     *log.Logger
-	once    sync.Once
+	router    *mux.Router
+	server    *http.Server
+	runtime   *runtime.Runtime
+	config    *Config
+	log       *log.Logger
+	once      sync.Once
+	wsManager *WebSocketManager
 }
 
 // Config contains API server configuration
@@ -63,11 +64,14 @@ func NewServer(config *Config) (*Server, error) {
 		return nil, fmt.Errorf("failed to get runtime: %w", err)
 	}
 
+	logger := log.New(os.Stdout, "[API] ", log.LstdFlags)
+
 	s := &Server{
-		router:  mux.NewRouter(),
-		runtime: r,
-		config:  config,
-		log:     log.New(os.Stdout, "[API] ", log.LstdFlags),
+		router:    mux.NewRouter(),
+		runtime:   r,
+		config:    config,
+		log:       logger,
+		wsManager: NewWebSocketManager(logger),
 	}
 
 	s.setupRoutes()
@@ -97,6 +101,10 @@ func (s *Server) setupRoutes() {
 	agents.HandleFunc("/{id}", s.getAgentHandler).Methods("GET")
 	agents.HandleFunc("/{id}", s.deleteAgentHandler).Methods("DELETE")
 	agents.HandleFunc("/{id}/logs", s.getAgentLogsHandler).Methods("GET")
+
+	// WebSocket routes
+	agents.HandleFunc("/{id}/chat", s.HandleAgentChat).Methods("GET")
+	agents.HandleFunc("/{id}/events", s.HandleAgentEvents).Methods("GET")
 
 	// Image routes
 	images := api.PathPrefix("/images").Subrouter()

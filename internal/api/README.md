@@ -45,6 +45,80 @@ The API server follows a standard HTTP server architecture with middleware for c
 - `POST /v1/registry/push` - Push an image to the registry
 - `POST /v1/registry/pull` - Pull an image from the registry
 
+## WebSocket Support
+
+The API server includes WebSocket support for real-time communication with agents:
+
+### Chat WebSocket (`/v1/agents/{id}/chat`)
+
+Enables real-time chat with an agent. The connection follows this protocol:
+
+1. Client connects to the WebSocket endpoint
+2. Server sends a welcome message
+3. Client sends messages to the agent
+4. Server streams responses back to the client
+
+#### Message Types (Client to Server)
+
+- `message`: Regular message to the agent
+  ```json
+  {
+    "type": "message",
+    "content": "Hello, how can you help me?",
+    "message_id": "optional-client-generated-id"
+  }
+  ```
+
+- `tool_request`: Request to use a tool
+  ```json
+  {
+    "type": "tool_request",
+    "tool": "web_search",
+    "parameters": {
+      "query": "latest AI developments"
+    },
+    "request_id": "optional-client-generated-id"
+  }
+  ```
+
+#### Message Types (Server to Client)
+
+- `response`: Complete response from the agent
+- `stream_start`: Indicates the start of a streaming response
+- `stream_chunk`: A chunk of a streaming response
+- `stream_end`: Indicates the end of a streaming response
+- `event`: Notification of an event (thinking, processing, etc.)
+- `tool_result`: Result from a tool execution
+- `error`: Error message
+
+### Events WebSocket (`/v1/agents/{id}/events`)
+
+Provides a stream of events related to an agent:
+
+- Agent status changes
+- Message processing events
+- Tool usage events
+- Error events
+
+Example event:
+```json
+{
+  "type": "event",
+  "event_type": "agent_status",
+  "timestamp": "2024-04-10T12:34:56Z",
+  "content": "Agent demo-agent is running",
+  "data": {
+    "agent_id": "agent123",
+    "status": "running",
+    "memory": "256MB",
+    "api_usage": {
+      "requests": 10,
+      "tokens": 1500
+    }
+  }
+}
+```
+
 ## Running the API Server
 
 The API server can be started using the CLI command:
@@ -113,8 +187,8 @@ HTTP status codes are used appropriately to indicate the type of error.
 
 ## Future Enhancements
 
-- WebSocket support for real-time agent interaction
+- Enhanced WebSocket authentication
 - Rate limiting and quota management
-- Enhanced authentication with OAuth2
+- OAuth2 authentication
 - API versioning strategy
 - Swagger/OpenAPI documentation 
