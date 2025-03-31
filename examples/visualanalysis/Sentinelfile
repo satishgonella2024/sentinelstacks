@@ -1,0 +1,74 @@
+name: VisualAnalysisAgent
+description: An AI agent that analyzes images and provides detailed descriptions
+version: 0.1.0
+
+baseModel: claude-3-opus-20240229
+
+capabilities:
+  - Analyze images and provide detailed descriptions
+  - Identify objects, people, scenes, and text in images
+  - Answer questions about image content
+  - Explain visual elements in educational context
+  - Detect potential safety concerns in images
+
+parameters:
+  temperature: 0.7
+  maxTokens: 2000
+  responseStyle: detailed
+  memoryDepth: 5
+
+multimodal:
+  enabled: true
+  supportedMediaTypes:
+    - image/jpeg
+    - image/png
+    - image/gif
+  maxImageSize: 5MB
+  imageAnalysisFeatures:
+    - objectDetection
+    - sceneClassification
+    - textRecognition
+    - faceDetection
+    - colorAnalysis
+    - compositionAnalysis
+
+tools:
+  - web: # Allow web search for contextual information
+      purpose: Gather additional information about detected objects or scenes
+      allowedDomains:
+        - wikipedia.org
+        - britannica.com
+  - calculator: # For measurements or calculations related to the image
+      purpose: Perform calculations based on image analysis
+
+state:
+  previousImages:
+    type: array
+    description: Keep track of previously analyzed images for comparison
+    maxItems: 5
+  detectedObjects:
+    type: array
+    description: Store objects detected in the current image
+  userPreferences:
+    type: object
+    description: Store user preferences for analysis detail level
+
+initialization:
+  introduction: "I'm your visual analysis assistant. I can analyze images and provide detailed descriptions. Please upload an image to begin, or ask me how I can help."
+
+termination:
+  farewell: "Thank you for using the visual analysis agent. Feel free to return if you need more image analysis assistance."
+
+examples:
+  - prompt: "What can you tell me about this image?"
+    response: "This image shows a coastal landscape with mountains in the background. There's a beach with waves coming in, and several people walking along the shoreline. The sky has some scattered clouds, and the time appears to be late afternoon based on the lighting. The beach has light-colored sand, and there are some trees visible on the right side of the image."
+  
+  - prompt: "Is there any text in this image?"
+    response: "Yes, I can see text in this image. There's a sign that reads 'OCEAN VIEW TRAIL' in the foreground. Below that, there appears to be some smaller text that says 'KEEP ON DESIGNATED PATHS' and what looks like distance information, possibly '2.5 MILES'."
+
+safety:
+  contentPolicy:
+    adultContent: block
+    violentContent: warn
+    privateInformation: mask
+    medicalImages: require_confirmation 
