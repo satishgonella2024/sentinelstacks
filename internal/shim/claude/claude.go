@@ -2,6 +2,7 @@ package claude
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -38,6 +39,19 @@ type ChatResponse struct {
 		Type string `json:"type"`
 		Text string `json:"text"`
 	} `json:"content"`
+}
+
+// Provider is the Claude provider implementation
+type Provider struct {
+	client *Client
+	// Add any provider-specific fields here
+}
+
+// Client is a simplified client for the Claude API
+type Client struct {
+	apiKey   string
+	endpoint string
+	// Add any client-specific fields here
 }
 
 // NewClaudeShim creates a new ClaudeShim
@@ -166,4 +180,95 @@ func extractJSON(s string) string {
 	}
 
 	return s // Return original if no JSON structure found
+}
+
+// NewProvider creates a new Claude provider
+func NewProvider() interface{} {
+	return &Provider{
+		client: &Client{},
+	}
+}
+
+// Initialize initializes the provider with the given configuration
+func (p *Provider) Initialize(config map[string]interface{}) error {
+	if apiKey, ok := config["APIKey"].(string); ok {
+		p.client.apiKey = apiKey
+	}
+	if endpoint, ok := config["Endpoint"].(string); ok {
+		p.client.endpoint = endpoint
+	}
+	// Additional initialization can be done here
+	return nil
+}
+
+// Name returns the name of the provider
+func (p *Provider) Name() string {
+	return "claude"
+}
+
+// AvailableModels returns the available models for this provider
+func (p *Provider) AvailableModels() []string {
+	return []string{
+		"claude-3-opus-20240229",
+		"claude-3-sonnet-20240229",
+		"claude-3-haiku-20240307",
+		"claude-3-5-sonnet-20240627",
+	}
+}
+
+// GenerateResponse generates a response from Claude
+func (p *Provider) GenerateResponse(ctx context.Context, prompt string, params map[string]interface{}) (string, error) {
+	// Simple implementation for now
+	return fmt.Sprintf("Claude response to: %s", prompt), nil
+}
+
+// StreamResponse streams a response from Claude
+func (p *Provider) StreamResponse(ctx context.Context, prompt string, params map[string]interface{}) (<-chan string, error) {
+	// Simple implementation for now
+	ch := make(chan string)
+	go func() {
+		defer close(ch)
+		ch <- fmt.Sprintf("Claude response (streaming) to: %s", prompt)
+	}()
+	return ch, nil
+}
+
+// GetEmbeddings gets embeddings for the given texts
+func (p *Provider) GetEmbeddings(ctx context.Context, texts []string) ([][]float32, error) {
+	// Simple implementation for now
+	embeddings := make([][]float32, len(texts))
+	for i := range texts {
+		embeddings[i] = []float32{0.1, 0.2, 0.3} // Dummy embeddings
+	}
+	return embeddings, nil
+}
+
+// SupportsMultimodal checks if the provider supports multimodal inputs and outputs
+func (p *Provider) SupportsMultimodal() bool {
+	// Claude 3 supports multimodal inputs
+	return true
+}
+
+// GenerateMultimodalResponse generates a multimodal response from Claude
+func (p *Provider) GenerateMultimodalResponse(ctx context.Context, input interface{}) (interface{}, error) {
+	// This is a stub implementation that will be completed once we have
+	// a proper interface for multimodal types without circular imports
+	return map[string]interface{}{
+		"text": "Claude multimodal response (stub implementation)",
+	}, nil
+}
+
+// StreamMultimodalResponse streams a multimodal response from Claude
+func (p *Provider) StreamMultimodalResponse(ctx context.Context, input interface{}) (<-chan interface{}, error) {
+	// This is a stub implementation that will be completed once we have
+	// a proper interface for multimodal types without circular imports
+	ch := make(chan interface{})
+	go func() {
+		defer close(ch)
+		ch <- map[string]interface{}{
+			"text":     "Claude multimodal response (streaming stub)",
+			"is_final": true,
+		}
+	}()
+	return ch, nil
 }
