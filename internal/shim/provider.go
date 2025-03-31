@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/sentinelstacks/sentinel/internal/shim/claude"
+	"github.com/sentinelstacks/sentinel/internal/shim/ollama"
 	"github.com/sentinelstacks/sentinel/internal/shim/openai"
 )
 
@@ -233,5 +234,8 @@ func init() {
 		provider := openai.NewProvider()
 		return provider.(Provider)
 	})
-	// RegisterProviderFactory("ollama", ollama.NewProvider)
+	RegisterProviderFactory("ollama", func() Provider {
+		provider := ollama.NewProvider()
+		return provider.(Provider)
+	})
 }

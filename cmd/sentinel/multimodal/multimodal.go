@@ -51,12 +51,13 @@ func newAnalyzeImageCmd() *cobra.Command {
 		Use:   "analyze-image",
 		Short: "Analyze an image using a multimodal model",
 		Long: `Analyze an image using a multimodal language model.
-The command sends the image to the specified provider (Claude, OpenAI, etc.) 
+The command sends the image to the specified provider (Claude, OpenAI, Ollama, etc.) 
 along with a prompt to analyze the image content.
 
 Examples:
   sentinel multimodal analyze-image --image /path/to/image.jpg --prompt "Describe this image in detail"
-  sentinel multimodal analyze-image --image /path/to/image.jpg --provider openai --model gpt-4-vision-preview`,
+  sentinel multimodal analyze-image --image /path/to/image.jpg --provider openai --model gpt-4-vision-preview
+  sentinel multimodal analyze-image --image /path/to/image.jpg --provider ollama --model llava`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Validate required parameters
 			if imagePath == "" {
@@ -73,6 +74,9 @@ Examples:
 				provider = "claude" // Default to Claude
 			}
 
+			// Create a map to hold additional parameters
+			params := make(map[string]interface{})
+
 			// Handle API key from environment if not provided
 			if apiKey == "" {
 				switch strings.ToLower(provider) {
@@ -86,6 +90,14 @@ Examples:
 					if apiKey == "" {
 						return fmt.Errorf("API key not provided and OPENAI_API_KEY environment variable not set")
 					}
+				case "ollama":
+					// Ollama typically runs locally without an API key, so we allow empty API key
+					// Check if endpoint is provided in the environment
+					endpoint := os.Getenv("OLLAMA_ENDPOINT")
+					if endpoint != "" {
+						// Set endpoint in the parameters
+						params["endpoint"] = endpoint
+					}
 				default:
 					return fmt.Errorf("unknown provider: %s", provider)
 				}
@@ -98,6 +110,8 @@ Examples:
 					model = "claude-3-opus-20240229"
 				case "openai":
 					model = "gpt-4-vision-preview"
+				case "ollama":
+					model = "llava"
 				}
 			}
 
@@ -118,6 +132,11 @@ Examples:
 					"temperature": temperature,
 					"max_tokens":  maxTokens,
 				},
+			}
+
+			// Set endpoint if provided
+			if endpoint, ok := params["endpoint"].(string); ok && endpoint != "" {
+				config.Endpoint = endpoint
 			}
 
 			// Create the shim
@@ -210,7 +229,7 @@ Examples:
 	cmd.Flags().StringVarP(&imagePath, "image", "i", "", "Path to the image file to analyze (required)")
 	cmd.Flags().StringVarP(&prompt, "prompt", "p", "", "Prompt to use for image analysis (default: \"Describe this image in detail.\")")
 	cmd.Flags().StringVarP(&apiKey, "api-key", "k", "", "API key for the provider (defaults to environment variable based on provider)")
-	cmd.Flags().StringVarP(&provider, "provider", "r", "", "Provider to use (claude, openai) (default: claude)")
+	cmd.Flags().StringVarP(&provider, "provider", "r", "", "Provider to use (claude, openai, ollama) (default: claude)")
 	cmd.Flags().StringVarP(&model, "model", "m", "", "Model to use (defaults based on provider)")
 	cmd.Flags().Float64VarP(&temperature, "temperature", "t", 0, "Temperature for generation (default: 0.7)")
 	cmd.Flags().IntVarP(&maxTokens, "max-tokens", "x", 0, "Maximum tokens for generation (default: 4096)")
