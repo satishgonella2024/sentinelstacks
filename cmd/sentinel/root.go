@@ -3,6 +3,7 @@ package sentinel
 import (
 	"github.com/spf13/cobra"
 
+	apiCmd "github.com/sentinelstacks/sentinel/cmd/sentinel/api"
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/build"
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/config"
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/images"
@@ -46,6 +47,7 @@ func init() {
 	rootCmd.AddCommand(images.NewImagesCmd())   // Images command
 	rootCmd.AddCommand(config.NewConfigCmd())   // Config command
 	rootCmd.AddCommand(version.NewVersionCmd()) // Version command
+	rootCmd.AddCommand(apiCmd.NewAPICmd())      // API command
 
 	// TODO: Add more commands as they are implemented
 	// rootCmd.AddCommand(NewPushCmd())
