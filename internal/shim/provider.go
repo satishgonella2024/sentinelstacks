@@ -5,6 +5,9 @@ import (
 	"context"
 	"fmt"
 	"sync"
+
+	"github.com/sentinelstacks/sentinel/internal/shim/claude"
+	"github.com/sentinelstacks/sentinel/internal/shim/openai"
 )
 
 // ProviderRegistry manages the available LLM providers
@@ -222,7 +225,13 @@ func SupportsModel(providerName, modelName string) (bool, error) {
 // Initialize registry with default providers
 func init() {
 	// Import and register providers when they're available
-	// RegisterProviderFactory("claude", claude.NewProvider)
-	// RegisterProviderFactory("openai", openai.NewProvider)
+	RegisterProviderFactory("claude", func() Provider {
+		provider := claude.NewProvider()
+		return provider.(Provider)
+	})
+	RegisterProviderFactory("openai", func() Provider {
+		provider := openai.NewProvider()
+		return provider.(Provider)
+	})
 	// RegisterProviderFactory("ollama", ollama.NewProvider)
 }
