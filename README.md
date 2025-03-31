@@ -2,39 +2,31 @@
 
 ![SentinelStacks Logo](docs/visualizations/sentinelstacks_logo.svg)
 
-SentinelStacks is an open-source AI agent management system that makes it easy to create, deploy, and share sophisticated LLM-powered agents.
+SentinelStacks is an open-source AI agent management system that simplifies the creation, deployment, and management of AI agents across multiple LLM backends.
 
 [![Go Tests](https://github.com/sentinelstacks/sentinel/actions/workflows/go-test.yml/badge.svg)](https://github.com/sentinelstacks/sentinel/actions/workflows/go-test.yml)
-[![Deploy Documentation](https://github.com/sentinelstacks/sentinel/actions/workflows/docs-deploy.yml/badge.svg)](https://github.com/sentinelstacks/sentinel/actions/workflows/docs-deploy.yml)
-[![Docker Build](https://github.com/sentinelstacks/sentinel/actions/workflows/docker-build.yml/badge.svg)](https://github.com/sentinelstacks/sentinel/actions/workflows/docker-build.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Documentation Deployment](https://github.com/sentinelstacks/sentinel/actions/workflows/docs.yml/badge.svg)](https://sentinelstacks.github.io/sentinel/)
+[![Docker Build](https://github.com/sentinelstacks/sentinel/actions/workflows/docker.yml/badge.svg)](https://github.com/sentinelstacks/sentinel/actions/workflows/docker.yml)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## 🚀 Features
+## Features
 
-- **Natural Language Agent Definition**: Define agents using natural language or structured YAML
-- **Multi-LLM Support**: Run agents across different LLM backends including Claude, Ollama, and soon OpenAI
-- **Agent Management**: Build, run, and manage agents with a simple CLI interface
-- **State Management**: Maintain agent state between runs and across sessions
-- **Tool Integration**: Provide agents with access to tools like web search and calculators
-- **Multi-Agent Orchestration**: Create systems of agents that work together
-- **Registry System**: Share and discover agents through a central registry
-- **NLP-to-Agent Generation**: Create agents on-the-fly from natural language descriptions
+- **Natural Language Agent Definition**: Define agents using simple YAML or natural language
+- **Multi-LLM Support**: Run the same agent across different LLM backends (Claude, OpenAI, Ollama)
+- **Agent Management**: Build, run, and manage agents with a simple CLI
+- **State Management**: Define and maintain agent state between runs
+- **Tool Integration**: Connect agents to external tools and APIs
+- **Multi-agent Orchestration**: Create complex workflows with multiple agents
+- **Registry System**: Store and share agents with your team
+- **Multimodal Support**: Create agents that process and generate images alongside text
 
-## 📋 Prerequisites
-
-- Go 1.21 or later
-- Access to at least one supported LLM provider
-
-## 🔧 Installation
+## Installation
 
 ### Binary Installation
 
 ```bash
-# Install with Go
-go install github.com/sentinelstacks/sentinel@latest
-
-# Verify installation
-sentinel version
+# Download and install the latest release (coming soon)
+curl -L https://install.sentinelstacks.dev | bash
 ```
 
 ### From Source
@@ -44,90 +36,106 @@ sentinel version
 git clone https://github.com/sentinelstacks/sentinel.git
 cd sentinel
 
-# Build the project
-go build -o bin/sentinel cmd/sentinel/main.go
-
-# Run the compiled binary
-./bin/sentinel version
+# Build and install
+go build -o sentinel ./cmd/sentinel
+sudo mv sentinel /usr/local/bin/
 ```
 
-### Docker
+### Via Docker
 
 ```bash
-# Pull the Docker image
-docker pull ghcr.io/sentinelstacks/sentinel:latest
+# Pull the latest image
+docker pull sentinelstacks/sentinel:latest
 
-# Run in Docker
-docker run --rm ghcr.io/sentinelstacks/sentinel:latest version
+# Run the container
+docker run -it sentinelstacks/sentinel:latest
 ```
 
-## 🏁 Quick Start
-
-### Create Your First Agent
+## Quick Start
 
 ```bash
-# Initialize a new agent
-sentinel init --name mychatbot
+# Create a new agent
+sentinel create my-agent
 
 # Edit the Sentinelfile
-nano mychatbot/Sentinelfile
+nano my-agent/Sentinelfile 
 
 # Build the agent
-sentinel build -t myusername/mychatbot:v1 -f mychatbot/Sentinelfile
+sentinel build my-agent
 
 # Run the agent
-sentinel run myusername/mychatbot:v1
+sentinel run my-agent
 ```
 
-### Example Sentinelfile
+## Example Sentinelfile
 
 ```yaml
-name: basicchatbot
-description: Create a friendly chatbot with a helpful personality.
+name: SimpleAgent
+description: A simple assistant that helps answer questions
+baseModel: claude-3-haiku-20240307
 capabilities:
-  - Engage in casual conversation
   - Answer general knowledge questions
-  - Maintain a consistent personality
-model: 
-  base: claude3
-state:
-  - conversation_history
-initialization:
-  introduction: "Hello! I'm ready to assist you."
-tools:
-  - web_search:
-      purpose: For looking up factual information
-personality:
-  tone: friendly
-  response_length: medium
+  - Maintain a friendly, helpful tone
+  - Remember context from the conversation
+parameters:
+  temperature: 0.7
+  responseLength: medium
 ```
 
-## 📖 Documentation
+## Multimodal Support
 
-For comprehensive documentation, visit our [Documentation Site](https://sentinelstacks.github.io/sentinel/).
+SentinelStacks now supports multimodal capabilities, allowing agents to process and generate visual content:
 
-- [Architecture Overview](https://sentinelstacks.github.io/sentinel/architecture/README/)
-- [User Guides](https://sentinelstacks.github.io/sentinel/user-guides/README/)
-- [Example Agents](https://sentinelstacks.github.io/sentinel/examples/chatbot/)
-- [Advanced Agent Design](https://sentinelstacks.github.io/sentinel/user-guides/advanced_agents/)
+```yaml
+name: VisualAnalysisAgent
+description: An agent that analyzes images
+baseModel: claude-3-opus-20240229
+multimodal:
+  enabled: true
+  supportedMediaTypes:
+    - image/jpeg
+    - image/png
+  imageAnalysisFeatures:
+    - objectDetection
+    - textRecognition
+```
 
-## 💡 Example Agents
+Run a multimodal agent with an image:
 
-SentinelStacks comes with several example agents that demonstrate different capabilities:
+```bash
+# Run a visual analysis agent with an image
+sentinel run visual-agent --image path/to/image.jpg --prompt "What's in this image?"
+```
 
-- **Basic Chatbot**: Simple conversational agent
-- **Research Assistant**: Advanced information gathering and synthesis
-- **Team Collaboration**: Multi-agent system with specialized roles
-- **Financial Advisor**: Domain-specific agent with compliance controls
+## Documentation
 
-## 🛣️ Roadmap
+For comprehensive documentation, visit [SentinelStacks Documentation](https://sentinelstacks.github.io/sentinel/).
 
-See our [Development Roadmap](https://sentinelstacks.github.io/sentinel/planning/roadmap/) for planned features and enhancements.
+- [Architecture Overview](https://sentinelstacks.github.io/sentinel/architecture/)
+- [User Guides](https://sentinelstacks.github.io/sentinel/user-guides/)
+- [Example Agents](https://sentinelstacks.github.io/sentinel/examples/)
+- [Development Roadmap](https://sentinelstacks.github.io/sentinel/planning/roadmap/)
+- [Multimodal Support](https://sentinelstacks.github.io/sentinel/features/multimodal/)
 
-## 🤝 Contributing
+## Example Agents
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+SentinelStacks includes several example agents to help you get started:
 
-## 📄 License
+- **chatbot**: Basic conversational agent
+- **translator**: Language translation agent
+- **codehelper**: Programming assistance agent
+- **visualanalysis**: Image analysis agent (multimodal)
 
-SentinelStacks is released under the MIT License. See [LICENSE](LICENSE) for details.
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
