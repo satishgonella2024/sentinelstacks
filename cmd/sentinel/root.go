@@ -5,6 +5,7 @@ import (
 
 	apiCmd "github.com/sentinelstacks/sentinel/cmd/sentinel/api"
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/build"
+	"github.com/sentinelstacks/sentinel/cmd/sentinel/chat"
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/config"
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/images"
 	initCmd "github.com/sentinelstacks/sentinel/cmd/sentinel/init"
@@ -50,6 +51,7 @@ func init() {
 	rootCmd.AddCommand(version.NewVersionCmd())          // Version command
 	rootCmd.AddCommand(apiCmd.NewAPICmd())               // API command
 	rootCmd.AddCommand(multimodalCmd.NewMultimodalCmd()) // Multimodal command
+	rootCmd.AddCommand(chat.NewChatCmd())                // Chat command
 
 	// TODO: Add more commands as they are implemented
 	// rootCmd.AddCommand(NewPushCmd())
