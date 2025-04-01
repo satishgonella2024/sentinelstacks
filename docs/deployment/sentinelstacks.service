@@ -1,0 +1,18 @@
+[Unit]
+Description=SentinelStacks AI Agent Management System
+After=network.target
+
+[Service]
+Type=simple
+User=serveradmin
+WorkingDirectory=/home/serveradmin
+ExecStart=/usr/local/bin/sentinel api serve
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sentinelstacks
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
