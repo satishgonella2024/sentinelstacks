@@ -1,0 +1,96 @@
+name: Deploy to Proxmox Ubuntu VM
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build backend
+        run: |
+          go build -o sentinel ./cmd/sentinel
+          chmod +x sentinel
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Build web UI
+        working-directory: ./web-ui
+        run: |
+          npm ci
+          npm run build
+          
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinelstacks-build
+          path: |
+            sentinel
+            web-ui/dist/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: sentinelstacks-build
+          
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          
+      - name: Add SSH known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan ${{ secrets.HOST_IP }} >> ~/.ssh/known_hosts
+          
+      - name: Deploy to Proxmox VM
+        env:
+          HOST_IP: ${{ secrets.HOST_IP }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          # Create directory structure on remote server if it doesn't exist
+          ssh $SSH_USER@$HOST_IP "mkdir -p ~/sentinelstacks/app ~/sentinelstacks/web-ui"
+          
+          # Copy backend binary
+          scp sentinel $SSH_USER@$HOST_IP:~/sentinelstacks/app/
+          
+          # Copy web UI files
+          scp -r dist/* $SSH_USER@$HOST_IP:~/sentinelstacks/web-ui/
+          
+          # Execute deployment script on server
+          ssh $SSH_USER@$HOST_IP << 'ENDSSH'
+            # Make binary executable
+            chmod +x ~/sentinelstacks/app/sentinel
+            
+            # Move binary to /usr/local/bin
+            sudo mv ~/sentinelstacks/app/sentinel /usr/local/bin/
+            
+            # Copy web UI files to web server directory
+            sudo mkdir -p /var/www/sentinelstacks
+            sudo cp -r ~/sentinelstacks/web-ui/* /var/www/sentinelstacks/
+            
+            # Restart the service if it exists
+            if systemctl list-units --type=service | grep -q sentinelstacks; then
+              sudo systemctl restart sentinelstacks
+              sudo systemctl status sentinelstacks --no-pager
+            else
+              echo "Service not found. Please create the sentinelstacks service manually."
+            fi
+          ENDSSH
