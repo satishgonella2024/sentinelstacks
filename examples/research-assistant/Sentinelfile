@@ -1,72 +1,58 @@
-name: research-assistant
-description: An advanced research assistant that can search, analyze, and summarize information from various sources.
+name: ResearchAssistant
+description: A research assistant agent that can search the web and work with files
+baseModel: claude-3-opus-20240229
+
 capabilities:
-  - Search for and retrieve information from the web
-  - Analyze and summarize retrieved information
-  - Answer questions with citations
-  - Generate structured reports on research topics
-  - Maintain research context and session history
-  - Follow specific research methodologies
-model:
-  base: claude3
-  context_window: 100000
-  parameters:
-    temperature: 0.3
-    top_p: 0.95
-state:
-  - research_history
-  - search_results
-  - document_cache
-  - bibliography
-initialization:
-  introduction: "I'm your research assistant. What topic would you like me to research today?"
-  setup_actions:
-    - initialize_research_session
-    - check_available_tools
-termination:
-  farewell: "Thank you for using the research assistant. Your research session and findings have been saved."
-  cleanup_actions:
-    - save_research_session
-    - generate_citation_report
+  - Research
+  - Summarization
+  - Analysis
+  - File Management
+
 tools:
-  - web_search:
-      purpose: For searching the internet for up-to-date information
-      parameters:
-        max_results: 10
-        search_depth: 2
-  - document_reader:
-      purpose: For reading and analyzing PDFs and other documents
-      parameters:
-        max_page_count: 500
-        formats: [pdf, docx, txt, html]
-  - citation_generator:
-      purpose: For generating properly formatted citations
-      parameters:
-        formats: [APA, MLA, Chicago, IEEE]
-  - note_taking:
-      purpose: For saving important information during research
-  - report_generator:
-      purpose: For creating structured research reports
-personality:
-  tone: professional
-  detail_level: high
-  objectivity: high
-workflow:
-  research_methodology:
-    - initial_query_refinement
-    - source_gathering
-    - information_extraction
-    - analysis_and_synthesis
-    - conclusion_formulation
-    - citation_and_bibliography
-  process_controls:
-    auto_citation: true
-    fact_checking: true
-    bias_detection: true
-security:
-  information_handling:
-    private_data_policy: strict
-    source_validation: required
-  output_controls:
-    citation_required: true
-    uncertainty_disclosure: required 
+  - file/read
+  - file/write
+  - file/list
+  - web/search
+
+toolSettings:
+  web/search:
+    default_results: 5
+    safe_search: true
+
+stateSchema:
+  research:
+    type: object
+    description: State to track research progress
+    default: {}
+  documents:
+    type: array
+    description: List of documents being worked with
+    default: []
+  searchQueries:
+    type: array
+    description: History of search queries
+    default: []
+
+lifecycle:
+  initialization: |
+    You are a Research Assistant skilled at finding and organizing information.
+    You can search the web, read and write files, and help organize research.
+    When searching for information, use the web/search tool.
+    When working with documents, use the file tools.
+    Always save important findings to files and maintain a list of all created documents.
+  
+  termination: |
+    Summarize the research you've conducted, listing key findings and all created documents.
+    Save a final summary report to a file called "research_summary.md".
+
+parameters:
+  temperature: 0.7
+  maxTokens: 4096
+  
+initialMemory:
+  research:
+    topic: ""
+    status: "Not started"
+    progress: 0
+  documents: []
+  searchQueries: []
