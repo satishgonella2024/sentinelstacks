@@ -2,14 +2,16 @@ package agent
 
 // Definition represents a structured agent definition parsed from a Sentinelfile
 type Definition struct {
-	Name         string                 `json:"name"`
-	Description  string                 `json:"description"`
-	BaseModel    string                 `json:"baseModel"`
-	Capabilities []string               `json:"capabilities,omitempty"`
-	Tools        []string               `json:"tools,omitempty"`
-	StateSchema  map[string]StateField  `json:"stateSchema,omitempty"`
-	Parameters   map[string]interface{} `json:"parameters,omitempty"`
-	Lifecycle    Lifecycle              `json:"lifecycle,omitempty"`
+	Name          string                 `json:"name"`
+	Description   string                 `json:"description"`
+	BaseModel     string                 `json:"baseModel"`
+	Capabilities  []string               `json:"capabilities,omitempty"`
+	Tools         []string               `json:"tools,omitempty"`
+	ToolSettings  map[string]interface{} `json:"toolSettings,omitempty"`
+	StateSchema   map[string]StateField  `json:"stateSchema,omitempty"`
+	Parameters    map[string]interface{} `json:"parameters,omitempty"`
+	Lifecycle     Lifecycle              `json:"lifecycle,omitempty"`
+	InitialMemory map[string]interface{} `json:"initialMemory,omitempty"`
 }
 
 // StateField represents a field in the agent's state schema
