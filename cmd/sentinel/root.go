@@ -14,6 +14,7 @@ import (
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/ps"
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/run"
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/stop"
+	toolsCmd "github.com/sentinelstacks/sentinel/cmd/sentinel/tools"
 	"github.com/sentinelstacks/sentinel/cmd/sentinel/version"
 )
 
@@ -52,6 +53,7 @@ func init() {
 	rootCmd.AddCommand(apiCmd.NewAPICmd())               // API command
 	rootCmd.AddCommand(multimodalCmd.NewMultimodalCmd()) // Multimodal command
 	rootCmd.AddCommand(chat.NewChatCmd())                // Chat command
+	rootCmd.AddCommand(toolsCmd.NewToolsCmd())           // Tools command
 
 	// TODO: Add more commands as they are implemented
 	// rootCmd.AddCommand(NewPushCmd())
