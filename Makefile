@@ -1,46 +1,71 @@
-.PHONY: build test lint clean
+# Makefile for SentinelStacks
 
 # Variables
 BINARY_NAME=sentinel
-GO_FILES=$(shell find . -name "*.go" -type f)
-VERSION=$(shell git describe --tags --always --dirty || echo "dev")
-LDFLAGS=-ldflags "-X github.com/sentinelstacks/sentinel/internal/config.Version=$(VERSION)"
+GO_FILES=$(shell find . -name '*.go' -type f -not -path "./vendor/*")
+VERSION=$(shell git describe --tags --always --dirty)
+BUILD_TIME=$(shell date -u '+%Y-%m-%d_%H:%M:%S')
+LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME)"
 
-# Main commands
+.PHONY: all build clean test lint vet fmt deps install uninstall run stack-test
+
+all: clean test build
+
+# Build the binary
 build:
 	@echo "Building $(BINARY_NAME)..."
-	@go build $(LDFLAGS) -o bin/$(BINARY_NAME) .
+	@go build $(LDFLAGS) -o $(BINARY_NAME) ./cmd/sentinel
 
-install: build
-	@echo "Installing $(BINARY_NAME)..."
-	@cp bin/$(BINARY_NAME) $(GOPATH)/bin/$(BINARY_NAME)
-
-test:
-	@echo "Running tests..."
-	@go test ./... -v
-
-lint:
-	@echo "Running linters..."
-	@golangci-lint run
-
+# Clean build artifacts
 clean:
 	@echo "Cleaning..."
-	@rm -rf bin/
+	@rm -f $(BINARY_NAME)
+	@rm -rf dist/
 	@go clean
 
-# Development helpers
+# Run tests
+test:
+	@echo "Running tests..."
+	@go test -v ./...
+
+# Run linter
+lint:
+	@echo "Running linter..."
+	@golint ./...
+
+# Run go vet
+vet:
+	@echo "Running go vet..."
+	@go vet ./...
+
+# Format code
+fmt:
+	@echo "Formatting code..."
+	@gofmt -s -w $(GO_FILES)
+
+# Install dependencies
+deps:
+	@echo "Installing dependencies..."
+	@go mod tidy
+	@go mod download
+
+# Install binary
+install: build
+	@echo "Installing binary..."
+	@cp $(BINARY_NAME) $(GOPATH)/bin/
+
+# Uninstall binary
+uninstall:
+	@echo "Uninstalling binary..."
+	@rm -f $(GOPATH)/bin/$(BINARY_NAME)
+
+# Run the application
 run: build
-	@./bin/$(BINARY_NAME)
+	@echo "Running $(BINARY_NAME)..."
+	@./$(BINARY_NAME)
 
-dev-deps:
-	@echo "Installing development dependencies..."
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-
-# Docker
-docker-build:
-	@echo "Building Docker image..."
-	@docker build -t sentinelstacks/sentinel:$(VERSION) .
-
-docker-run:
-	@echo "Running Docker container..."
-	@docker run -it --rm sentinelstacks/sentinel:$(VERSION)
+# Test stack functionality
+stack-test: build
+	@echo "Running stack tests..."
+	@chmod +x ./scripts/test-stack.sh
+	@./scripts/test-stack.sh

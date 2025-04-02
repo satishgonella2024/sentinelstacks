@@ -1,0 +1,82 @@
+name: research-assistant
+description: An AI research assistant stack that searches, analyzes, and summarizes information
+version: 1.0.0
+
+agents:
+  - id: query-parser
+    uses: nlp-processor:latest
+    params:
+      task: "intent_extraction"
+      output_format: "json"
+
+  - id: web-searcher
+    uses: web-search-agent:latest
+    inputFrom:
+      - query-parser
+    params:
+      search_depth: 5
+      result_count: 10
+      filter_domains:
+        - ".edu"
+        - ".gov"
+        - ".org"
+      exclude_domains:
+        - "pinterest.com"
+        - "quora.com"
+      max_age_days: 365
+
+  - id: document-retriever
+    uses: document-retriever:latest
+    inputFrom:
+      - query-parser
+    params:
+      sources:
+        - "arxiv"
+        - "pubmed"
+        - "google_scholar"
+      result_count: 5
+      max_age_days: 730
+
+  - id: content-analyzer
+    uses: text-analyzer:latest
+    inputFrom:
+      - web-searcher
+      - document-retriever
+    params:
+      analysis_type: "comprehensive"
+      extract_entities: true
+      fact_check: true
+      bias_detection: true
+
+  - id: summarizer
+    uses: text-summarizer:latest
+    inputFrom:
+      - content-analyzer
+    params:
+      format: "outline"
+      max_length: 2000
+      include_sections:
+        - "key_points"
+        - "evidence"
+        - "counterpoints"
+        - "consensus_view"
+
+  - id: citation-formatter
+    uses: citation-generator:latest
+    inputFrom:
+      - web-searcher
+      - document-retriever
+    params:
+      format: "apa"
+      include_doi: true
+      include_access_date: true
+
+  - id: report-assembler
+    uses: document-assembler:latest
+    inputFrom:
+      - summarizer
+      - citation-formatter
+    params:
+      format: "markdown"
+      template: "academic_report"
+      include_toc: true

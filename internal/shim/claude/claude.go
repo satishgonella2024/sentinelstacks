@@ -4,67 +4,57 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/sentinelstacks/sentinel/internal/multimodal"
+	"github.com/sentinelstacks/sentinel/internal/shim"
 )
 
-// ClaudeShim implements the LLM provider interface for Claude
+// Constants for Claude API
+const (
+	DefaultEndpoint    = "https://api.anthropic.com/v1/messages"
+	DefaultModel       = "claude-3-5-sonnet-20240627"
+	DefaultMaxTokens   = 4096
+	DefaultTemperature = 0.7
+	AnthropicVersion   = "2023-06-01"
+)
+
+// ClaudeShim implements the LLMShim interface for Claude
 type ClaudeShim struct {
-	APIKey   string
-	Model    string
-	Client   *http.Client
-	Endpoint string
+	APIKey       string
+	Model        string
+	Client       *http.Client
+	Endpoint     string
+	SystemPrompt string
+	MaxRetries   int
 }
 
-// ChatMessage represents a message in the chat history
-type ChatMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
-// ChatRequest represents a request to the Claude chat API
-type ChatRequest struct {
-	Model       string        `json:"model"`
-	Messages    []ChatMessage `json:"messages"`
-	Temperature float64       `json:"temperature,omitempty"`
-	MaxTokens   int           `json:"max_tokens,omitempty"`
-}
-
-// ChatResponse represents a response from the Claude chat API
-type ChatResponse struct {
-	ID      string `json:"id"`
-	Type    string `json:"type"`
-	Content []struct {
-		Type string `json:"type"`
-		Text string `json:"text"`
-	} `json:"content"`
-}
-
-// AnthropicMessage represents a message in the Anthropic API format
+// AnthropicMessage represents a message in the Claude API format
 type AnthropicMessage struct {
 	Role    string                 `json:"role"`
 	Content []AnthropicMessagePart `json:"content"`
 }
 
-// AnthropicMessagePart represents a part of a message in the Anthropic API
+// AnthropicMessagePart represents a part of a message in the Claude API
 type AnthropicMessagePart struct {
 	Type  string `json:"type"`
 	Text  string `json:"text,omitempty"`
 	Image *struct {
-		Source *struct {
+		Source struct {
 			Type      string `json:"type"`
 			MediaType string `json:"media_type"`
-			Data      string `json:"data,omitempty"`
-		} `json:"source,omitempty"`
+			Data      string `json:"data"`
+		} `json:"source"`
 	} `json:"image,omitempty"`
 }
 
-// AnthropicRequest represents a request to the Anthropic API
+// AnthropicRequest represents a request to the Claude API
 type AnthropicRequest struct {
 	Model       string             `json:"model"`
 	Messages    []AnthropicMessage `json:"messages"`
@@ -74,7 +64,7 @@ type AnthropicRequest struct {
 	System      string             `json:"system,omitempty"`
 }
 
-// AnthropicResponse represents a response from the Anthropic API
+// AnthropicResponse represents a response from the Claude API
 type AnthropicResponse struct {
 	ID           string                 `json:"id"`
 	Type         string                 `json:"type"`
@@ -91,7 +81,6 @@ type AnthropicResponse struct {
 // AnthropicStreamingChunk represents a chunk in a streaming response
 type AnthropicStreamingChunk struct {
 	Type         string `json:"type"`
-	Message      string `json:"message,omitempty"`
 	Index        int    `json:"index,omitempty"`
 	ContentBlock struct {
 		Type string `json:"type"`
@@ -110,79 +99,334 @@ type AnthropicStreamingChunk struct {
 	} `json:"error,omitempty"`
 }
 
-// Provider is the Claude provider implementation
-type Provider struct {
-	client   *http.Client
-	apiKey   string
-	endpoint string
-	model    string
-}
+// NewClaudeShim creates a new ClaudeShim with config
+func NewClaudeShim(config shim.Config) *ClaudeShim {
+	// Set defaults if not provided
+	endpoint := config.Endpoint
+	if endpoint == "" {
+		endpoint = DefaultEndpoint
+	}
 
-// NewClaudeShim creates a new ClaudeShim
-func NewClaudeShim(apiKey, model string) *ClaudeShim {
+	model := config.Model
 	if model == "" {
-		model = "claude-3-5-sonnet-20240627"
+		model = DefaultModel
+	}
+
+	timeout := config.Timeout
+	if timeout == 0 {
+		timeout = 60 * time.Second
 	}
 
 	return &ClaudeShim{
-		APIKey:   apiKey,
-		Model:    model,
-		Client:   &http.Client{},
-		Endpoint: "https://api.anthropic.com/v1/messages",
+		APIKey:     config.APIKey,
+		Model:      model,
+		Client:     &http.Client{Timeout: timeout},
+		Endpoint:   endpoint,
+		MaxRetries: 2, // Default retry count
 	}
 }
 
-// CompleteChatPrompt sends a chat completion request to Claude
-func (s *ClaudeShim) CompleteChatPrompt(messages []ChatMessage) (string, error) {
-	chatReq := ChatRequest{
+// Completion sends a text prompt to Claude and returns the response
+func (s *ClaudeShim) Completion(prompt string, maxTokens int, temperature float64, timeout time.Duration) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	return s.CompletionWithContext(ctx, prompt, maxTokens, temperature)
+}
+
+// CompletionWithContext sends a text prompt to Claude with context and returns the response
+func (s *ClaudeShim) CompletionWithContext(ctx context.Context, prompt string, maxTokens int, temperature float64) (string, error) {
+	// Set defaults if not provided
+	if maxTokens <= 0 {
+		maxTokens = DefaultMaxTokens
+	}
+
+	if temperature <= 0 {
+		temperature = DefaultTemperature
+	}
+
+	// Create message content for the request
+	content := []AnthropicMessagePart{
+		{
+			Type: "text",
+			Text: prompt,
+		},
+	}
+
+	// Create a single user message
+	messages := []AnthropicMessage{
+		{
+			Role:    "user",
+			Content: content,
+		},
+	}
+
+	// Create request
+	request := AnthropicRequest{
 		Model:       s.Model,
 		Messages:    messages,
-		Temperature: 0.7,
-		MaxTokens:   4096,
+		MaxTokens:   maxTokens,
+		Temperature: temperature,
 	}
 
-	reqBody, err := json.Marshal(chatReq)
+	// Add system prompt if set
+	if s.SystemPrompt != "" {
+		request.System = s.SystemPrompt
+	}
+
+	// Make request with retries
+	var response *AnthropicResponse
+	var err error
+	for attempt := 0; attempt <= s.MaxRetries; attempt++ {
+		// Make the request
+		response, err = s.makeRequest(ctx, request)
+		
+		// If successful or not a retryable error, break
+		if err == nil || !isRetryableError(err) {
+			break
+		}
+		
+		// Calculate backoff delay (exponential backoff)
+		delay := time.Duration(attempt+1) * 500 * time.Millisecond
+		
+		// Create a timer for the delay
+		timer := time.NewTimer(delay)
+		
+		// Wait for the timer or context cancellation
+		select {
+		case <-ctx.Done():
+			// Context canceled, abort retries
+			timer.Stop()
+			return "", ctx.Err()
+		case <-timer.C:
+			// Timer expired, continue to next attempt
+		}
+	}
+	
+	// If we still have an error after retries, return it
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal chat request: %w", err)
+		return "", fmt.Errorf("Claude API request failed after retries: %w", err)
 	}
+	
+	// Extract the text from the response
+	if len(response.Content) == 0 {
+		return "", fmt.Errorf("empty response from Claude API")
+	}
+	
+	var responseText string
+	for _, content := range response.Content {
+		if content.Type == "text" {
+			responseText += content.Text
+		}
+	}
+	
+	return responseText, nil
+}
 
-	req, err := http.NewRequest("POST", s.Endpoint, bytes.NewBuffer(reqBody))
+// MultimodalCompletion sends a multimodal input to Claude and returns the output
+func (s *ClaudeShim) MultimodalCompletion(input *multimodal.Input, timeout time.Duration) (*multimodal.Output, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	
+	return s.MultimodalCompletionWithContext(ctx, input)
+}
+
+// MultimodalCompletionWithContext sends a multimodal input to Claude with context and returns the output
+func (s *ClaudeShim) MultimodalCompletionWithContext(ctx context.Context, input *multimodal.Input) (*multimodal.Output, error) {
+	// Check if model supports multimodal
+	if !s.SupportsMultimodal() {
+		return nil, fmt.Errorf("model %s does not support multimodal inputs", s.Model)
+	}
+	
+	// Create Anthropic-format messages from multimodal input
+	message, err := s.createAnthropicMessage(input)
 	if err != nil {
-		return "", fmt.Errorf("failed to create HTTP request: %w", err)
+		return nil, fmt.Errorf("failed to create message from input: %w", err)
 	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-api-key", s.APIKey)
-	req.Header.Set("anthropic-version", "2023-06-01")
-
-	resp, err := s.Client.Do(req)
+	
+	// Create request
+	request := AnthropicRequest{
+		Model:    s.Model,
+		Messages: []AnthropicMessage{message},
+	}
+	
+	// Set parameters
+	if input.MaxTokens > 0 {
+		request.MaxTokens = input.MaxTokens
+	} else {
+		request.MaxTokens = DefaultMaxTokens
+	}
+	
+	if input.Temperature > 0 {
+		request.Temperature = input.Temperature
+	} else {
+		request.Temperature = DefaultTemperature
+	}
+	
+	// Add system prompt if set
+	if s.SystemPrompt != "" {
+		request.System = s.SystemPrompt
+	} else if systemPrompt, ok := input.Metadata["system"].(string); ok {
+		request.System = systemPrompt
+	}
+	
+	// Make request with retries
+	var response *AnthropicResponse
+	for attempt := 0; attempt <= s.MaxRetries; attempt++ {
+		// Make the request
+		response, err = s.makeRequest(ctx, request)
+		
+		// If successful or not a retryable error, break
+		if err == nil || !isRetryableError(err) {
+			break
+		}
+		
+		// Calculate backoff delay (exponential backoff)
+		delay := time.Duration(attempt+1) * 500 * time.Millisecond
+		
+		// Wait for the delay or context cancellation
+		timer := time.NewTimer(delay)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return nil, ctx.Err()
+		case <-timer.C:
+			// Timer expired, continue to next attempt
+		}
+	}
+	
+	// If we still have an error after retries, return it
 	if err != nil {
-		return "", fmt.Errorf("failed to send request to Claude: %w", err)
+		return nil, fmt.Errorf("Claude API request failed after retries: %w", err)
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("Claude API returned non-200 status code %d: %s", resp.StatusCode, string(body))
+	
+	// Create multimodal output from response
+	output := multimodal.NewOutput()
+	
+	// Extract content from response
+	for _, content := range response.Content {
+		if content.Type == "text" {
+			output.AddText(content.Text)
+		}
+		// Handle other content types if needed
 	}
-
-	var chatResp ChatResponse
-	if err := json.NewDecoder(resp.Body).Decode(&chatResp); err != nil {
-		return "", fmt.Errorf("failed to decode response: %w", err)
+	
+	// Add metadata
+	output.Metadata = map[string]interface{}{
+		"model":         s.Model,
+		"input_tokens":  response.Usage.InputTokens,
+		"output_tokens": response.Usage.OutputTokens,
+		"stop_reason":   response.StopReason,
 	}
+	
+	return output, nil
+}
 
-	// Extract the response text from the content array
-	if len(chatResp.Content) > 0 {
-		return chatResp.Content[0].Text, nil
+// StreamCompletion streams a text completion from Claude
+func (s *ClaudeShim) StreamCompletion(ctx context.Context, prompt string, maxTokens int, temperature float64) (<-chan string, error) {
+	// Set defaults if not provided
+	if maxTokens <= 0 {
+		maxTokens = DefaultMaxTokens
 	}
+	
+	if temperature <= 0 {
+		temperature = DefaultTemperature
+	}
+	
+	// Create message content for the request
+	content := []AnthropicMessagePart{
+		{
+			Type: "text",
+			Text: prompt,
+		},
+	}
+	
+	// Create a single user message
+	messages := []AnthropicMessage{
+		{
+			Role:    "user",
+			Content: content,
+		},
+	}
+	
+	// Create request
+	request := AnthropicRequest{
+		Model:       s.Model,
+		Messages:    messages,
+		MaxTokens:   maxTokens,
+		Temperature: temperature,
+		Stream:      true,
+	}
+	
+	// Add system prompt if set
+	if s.SystemPrompt != "" {
+		request.System = s.SystemPrompt
+	}
+	
+	// Make streaming request
+	return s.streamRequest(ctx, request)
+}
 
-	return "", fmt.Errorf("no content in Claude response")
+// StreamMultimodalCompletion streams a multimodal completion from Claude
+func (s *ClaudeShim) StreamMultimodalCompletion(ctx context.Context, input *multimodal.Input) (<-chan *multimodal.Chunk, error) {
+	// Check if model supports multimodal
+	if !s.SupportsMultimodal() {
+		return nil, fmt.Errorf("model %s does not support multimodal inputs", s.Model)
+	}
+	
+	// Create Anthropic-format messages from multimodal input
+	message, err := s.createAnthropicMessage(input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create message from input: %w", err)
+	}
+	
+	// Create request
+	request := AnthropicRequest{
+		Model:    s.Model,
+		Messages: []AnthropicMessage{message},
+		Stream:   true,
+	}
+	
+	// Set parameters
+	if input.MaxTokens > 0 {
+		request.MaxTokens = input.MaxTokens
+	} else {
+		request.MaxTokens = DefaultMaxTokens
+	}
+	
+	if input.Temperature > 0 {
+		request.Temperature = input.Temperature
+	} else {
+		request.Temperature = DefaultTemperature
+	}
+	
+	// Add system prompt if set
+	if s.SystemPrompt != "" {
+		request.System = s.SystemPrompt
+	} else if systemPrompt, ok := input.Metadata["system"].(string); ok {
+		request.System = systemPrompt
+	}
+	
+	// Make streaming request
+	textStream, err := s.streamRequest(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Convert text stream to multimodal chunks
+	return s.convertTextStreamToMultimodal(ctx, textStream), nil
+}
+
+// SetSystemPrompt sets the system prompt for the model
+func (s *ClaudeShim) SetSystemPrompt(prompt string) {
+	s.SystemPrompt = prompt
 }
 
 // ParseSentinelfile uses Claude to parse a Sentinelfile into a structured format
 func (s *ClaudeShim) ParseSentinelfile(content string) (map[string]interface{}, error) {
 	// Create a system prompt that instructs the model how to parse the Sentinelfile
-	systemPrompt := `You are a specialized AI that parses natural language Sentinelfiles into structured JSON. 
+	origPrompt := s.SystemPrompt
+	s.SystemPrompt = `You are a specialized AI that parses natural language Sentinelfiles into structured JSON. 
 A Sentinelfile defines an AI agent's capabilities, behavior, and requirements. 
 Your task is to extract information from the Sentinelfile and output a valid JSON structure with the following fields:
 - name: The name of the agent (string, required)
@@ -192,18 +436,21 @@ Your task is to extract information from the Sentinelfile and output a valid JSO
 - tools: List of tools the agent should have access to (array of strings, optional)
 - stateSchema: Description of the state the agent should maintain (object, optional)
 - parameters: Configuration parameters for the agent (object, optional)
-- lifecycle: Object containing initialization and termination behaviors (object, optional)
 
 Output ONLY the JSON object, no additional text or explanation.`
 
-	// Create the message array
-	messages := []ChatMessage{
-		{Role: "system", Content: systemPrompt},
-		{Role: "user", Content: content},
-	}
+	defer func() {
+		s.SystemPrompt = origPrompt
+	}()
 
-	// Get the completion from the model
-	completion, err := s.CompleteChatPrompt(messages)
+	// Create the prompt for the model
+	prompt := fmt.Sprintf("Parse the following Sentinelfile into JSON:\n\n%s", content)
+
+	// Send the completion request
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	completion, err := s.CompletionWithContext(ctx, prompt, DefaultMaxTokens, 0.2)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get completion: %w", err)
 	}
@@ -217,397 +464,55 @@ Output ONLY the JSON object, no additional text or explanation.`
 		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
 	}
 
+	// Validate required fields
+	required := []string{"name", "description", "baseModel"}
+	for _, field := range required {
+		if _, ok := result[field]; !ok {
+			return nil, fmt.Errorf("missing required field '%s' in Sentinelfile", field)
+		}
+	}
+
 	return result, nil
 }
 
-// extractJSON tries to extract a JSON object from a string
-func extractJSON(s string) string {
-	// Look for opening and closing braces
-	start := 0
-	for i, c := range s {
-		if c == '{' {
-			start = i
-			break
-		}
+// SupportsMultimodal returns whether this shim supports multimodal inputs
+func (s *ClaudeShim) SupportsMultimodal() bool {
+	// Check if model is in the list of multimodal-capable models
+	multimodalModels := map[string]bool{
+		"claude-3-opus-20240229":   true,
+		"claude-3-sonnet-20240229": true,
+		"claude-3-haiku-20240307":  true,
+		"claude-3-5-sonnet-20240627": true,
+		"claude-3-5-sonnet": true,
+		"claude-3-opus": true,
+		"claude-3-sonnet": true,
+		"claude-3-haiku": true,
 	}
 
-	end := len(s) - 1
-	for i := len(s) - 1; i >= 0; i-- {
-		if s[i] == '}' {
-			end = i
-			break
-		}
-	}
-
-	if start < end {
-		return s[start : end+1]
-	}
-
-	return s // Return original if no JSON structure found
+	return multimodalModels[s.Model]
 }
 
-// NewProvider creates a new Claude provider
-func NewProvider() interface{} {
-	return &Provider{
-		client:   &http.Client{Timeout: 60 * time.Second},
-		endpoint: "https://api.anthropic.com/v1/messages",
-		model:    "claude-3-5-sonnet-20240627",
-	}
-}
-
-// Initialize initializes the provider with the given configuration
-func (p *Provider) Initialize(config map[string]interface{}) error {
-	if apiKey, ok := config["APIKey"].(string); ok {
-		p.apiKey = apiKey
-	} else {
-		return fmt.Errorf("API key is required for Claude provider")
-	}
-
-	if endpoint, ok := config["Endpoint"].(string); ok && endpoint != "" {
-		p.endpoint = endpoint
-	}
-
-	if model, ok := config["Model"].(string); ok && model != "" {
-		p.model = model
-	}
-
+// Close cleans up any resources used by the shim
+func (s *ClaudeShim) Close() error {
+	// No special cleanup needed
 	return nil
-}
-
-// Name returns the name of the provider
-func (p *Provider) Name() string {
-	return "claude"
-}
-
-// AvailableModels returns the available models for this provider
-func (p *Provider) AvailableModels() []string {
-	return []string{
-		"claude-3-opus-20240229",
-		"claude-3-sonnet-20240229",
-		"claude-3-haiku-20240307",
-		"claude-3-5-sonnet-20240627",
-	}
-}
-
-// GenerateResponse generates a response from Claude
-func (p *Provider) GenerateResponse(ctx context.Context, prompt string, params map[string]interface{}) (string, error) {
-	messages := []AnthropicMessage{
-		{
-			Role: "user",
-			Content: []AnthropicMessagePart{
-				{
-					Type: "text",
-					Text: prompt,
-				},
-			},
-		},
-	}
-
-	// Create request
-	request := AnthropicRequest{
-		Model:    p.model,
-		Messages: messages,
-	}
-
-	// Add parameters
-	if maxTokens, ok := params["max_tokens"].(int); ok {
-		request.MaxTokens = maxTokens
-	} else {
-		request.MaxTokens = 4096 // Default
-	}
-
-	if temperature, ok := params["temperature"].(float64); ok {
-		request.Temperature = temperature
-	} else {
-		request.Temperature = 0.7 // Default
-	}
-
-	if systemPrompt, ok := params["system"].(string); ok {
-		request.System = systemPrompt
-	}
-
-	// Make API request
-	response, err := p.makeAnthropicRequest(ctx, request)
-	if err != nil {
-		return "", err
-	}
-
-	// Extract text from response
-	var result string
-	for _, part := range response.Content {
-		if part.Type == "text" {
-			result += part.Text
-		}
-	}
-
-	return result, nil
-}
-
-// StreamResponse streams a response from Claude
-func (p *Provider) StreamResponse(ctx context.Context, prompt string, params map[string]interface{}) (<-chan string, error) {
-	messages := []AnthropicMessage{
-		{
-			Role: "user",
-			Content: []AnthropicMessagePart{
-				{
-					Type: "text",
-					Text: prompt,
-				},
-			},
-		},
-	}
-
-	// Create request
-	request := AnthropicRequest{
-		Model:    p.model,
-		Messages: messages,
-		Stream:   true,
-	}
-
-	// Add parameters
-	if maxTokens, ok := params["max_tokens"].(int); ok {
-		request.MaxTokens = maxTokens
-	} else {
-		request.MaxTokens = 4096 // Default
-	}
-
-	if temperature, ok := params["temperature"].(float64); ok {
-		request.Temperature = temperature
-	} else {
-		request.Temperature = 0.7 // Default
-	}
-
-	if systemPrompt, ok := params["system"].(string); ok {
-		request.System = systemPrompt
-	}
-
-	return p.streamAnthropicRequest(ctx, request)
-}
-
-// GetEmbeddings gets embeddings for the given texts
-func (p *Provider) GetEmbeddings(ctx context.Context, texts []string) ([][]float32, error) {
-	// Simple implementation for now
-	embeddings := make([][]float32, len(texts))
-	for i := range texts {
-		embeddings[i] = []float32{0.1, 0.2, 0.3} // Dummy embeddings
-	}
-	return embeddings, nil
-}
-
-// SupportsMultimodal checks if the provider supports multimodal inputs and outputs
-func (p *Provider) SupportsMultimodal() bool {
-	// Claude 3 supports multimodal inputs
-	return true
-}
-
-// GenerateMultimodalResponse generates a multimodal response from Claude
-func (p *Provider) GenerateMultimodalResponse(ctx context.Context, input *multimodal.Input, params map[string]interface{}) (*multimodal.Output, error) {
-	// Convert multimodal input to Anthropic format
-	anthropicMessages, err := p.convertToAnthropicMessages(input)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert input to Anthropic format: %w", err)
-	}
-
-	// Create request
-	request := AnthropicRequest{
-		Model:    p.model,
-		Messages: anthropicMessages,
-	}
-
-	// Add parameters
-	if maxTokens, ok := params["max_tokens"].(int); ok {
-		request.MaxTokens = maxTokens
-	} else if input.MaxTokens > 0 {
-		request.MaxTokens = input.MaxTokens
-	} else {
-		request.MaxTokens = 4096 // Default
-	}
-
-	if temperature, ok := params["temperature"].(float64); ok {
-		request.Temperature = temperature
-	} else if input.Temperature > 0 {
-		request.Temperature = input.Temperature
-	} else {
-		request.Temperature = 0.7 // Default
-	}
-
-	if systemPrompt, ok := params["system"].(string); ok {
-		request.System = systemPrompt
-	} else if sysPrompt, ok := input.Metadata["system"].(string); ok {
-		request.System = sysPrompt
-	}
-
-	// Make API request
-	response, err := p.makeAnthropicRequest(ctx, request)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert Anthropic response to multimodal output
-	output := multimodal.NewOutput()
-
-	// Add content from response
-	for _, part := range response.Content {
-		if part.Type == "text" {
-			output.AddText(part.Text)
-		}
-		// Handle other content types if needed
-	}
-
-	// Add usage information
-	output.Metadata = map[string]interface{}{
-		"input_tokens":  response.Usage.InputTokens,
-		"output_tokens": response.Usage.OutputTokens,
-		"used_tokens":   response.Usage.OutputTokens,
-		"stop_reason":   response.StopReason,
-	}
-
-	return output, nil
-}
-
-// StreamMultimodalResponse streams a multimodal response from Claude
-func (p *Provider) StreamMultimodalResponse(ctx context.Context, input *multimodal.Input, params map[string]interface{}) (<-chan *multimodal.Chunk, error) {
-	// Convert multimodal input to Anthropic format
-	anthropicMessages, err := p.convertToAnthropicMessages(input)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert input to Anthropic format: %w", err)
-	}
-
-	// Create request
-	request := AnthropicRequest{
-		Model:    p.model,
-		Messages: anthropicMessages,
-		Stream:   true,
-	}
-
-	// Add parameters
-	if maxTokens, ok := params["max_tokens"].(int); ok {
-		request.MaxTokens = maxTokens
-	} else if input.MaxTokens > 0 {
-		request.MaxTokens = input.MaxTokens
-	} else {
-		request.MaxTokens = 4096 // Default
-	}
-
-	if temperature, ok := params["temperature"].(float64); ok {
-		request.Temperature = temperature
-	} else if input.Temperature > 0 {
-		request.Temperature = input.Temperature
-	} else {
-		request.Temperature = 0.7 // Default
-	}
-
-	if systemPrompt, ok := params["system"].(string); ok {
-		request.System = systemPrompt
-	} else if sysPrompt, ok := input.Metadata["system"].(string); ok {
-		request.System = sysPrompt
-	}
-
-	// Set up streaming channel for Anthropic
-	textChunks, err := p.streamAnthropicRequest(ctx, request)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create output channel
-	resultCh := make(chan *multimodal.Chunk)
-
-	// Start goroutine to read from Anthropic and write to output
-	go func() {
-		defer close(resultCh)
-
-		for text := range textChunks {
-			// Create multimodal chunk with text content
-			chunk := &multimodal.Chunk{
-				Content: multimodal.NewTextContent(text),
-				IsFinal: false,
-			}
-			select {
-			case <-ctx.Done():
-				return
-			case resultCh <- chunk:
-				// Successfully sent chunk
-			}
-		}
-
-		// Send final empty chunk to indicate completion
-		finalChunk := &multimodal.Chunk{
-			Content: multimodal.NewTextContent(""),
-			IsFinal: true,
-		}
-
-		select {
-		case <-ctx.Done():
-			return
-		case resultCh <- finalChunk:
-			// Successfully sent final chunk
-		}
-	}()
-
-	return resultCh, nil
 }
 
 // Helper methods
 
-// convertToAnthropicMessages converts a multimodal input to Anthropic format
-func (p *Provider) convertToAnthropicMessages(input *multimodal.Input) ([]AnthropicMessage, error) {
-	if len(input.Contents) == 0 {
-		return nil, fmt.Errorf("input contains no content")
-	}
-
-	// Claude API expects a single user message
-	anthropicMessage := AnthropicMessage{
-		Role:    "user",
-		Content: []AnthropicMessagePart{},
-	}
-
-	// Convert each content item
-	for _, content := range input.Contents {
-		switch content.Type {
-		case multimodal.MediaTypeText:
-			// Add text part
-			anthropicMessage.Content = append(anthropicMessage.Content, AnthropicMessagePart{
-				Type: "text",
-				Text: content.Text,
-			})
-
-		case multimodal.MediaTypeImage:
-			// Add image part
-			part := AnthropicMessagePart{
-				Type: "image",
-				Image: &struct {
-					Source *struct {
-						Type      string `json:"type"`
-						MediaType string `json:"media_type"`
-						Data      string `json:"data,omitempty"`
-					} `json:"source,omitempty"`
-				}{
-					Source: &struct {
-						Type      string `json:"type"`
-						MediaType string `json:"media_type"`
-						Data      string `json:"data,omitempty"`
-					}{
-						Type:      "base64",
-						MediaType: content.MimeType,
-						Data:      content.ToBase64(),
-					},
-				},
-			}
-			anthropicMessage.Content = append(anthropicMessage.Content, part)
-
-		default:
-			return nil, fmt.Errorf("unsupported content type: %s", content.Type)
-		}
-	}
-
-	// Create messages array with the single user message
-	messages := []AnthropicMessage{anthropicMessage}
-
-	return messages, nil
+// isRetryableError determines if an error is retryable
+func isRetryableError(err error) bool {
+	// Rate limit errors, network errors, and 5xx server errors are retryable
+	errStr := err.Error()
+	return strings.Contains(errStr, "rate limit") || 
+		strings.Contains(errStr, "timeout") || 
+		strings.Contains(errStr, "connection") || 
+		strings.Contains(errStr, "status code 429") || 
+		strings.Contains(errStr, "status code 5")
 }
 
-// makeAnthropicRequest makes a request to the Anthropic API
-func (p *Provider) makeAnthropicRequest(ctx context.Context, request AnthropicRequest) (*AnthropicResponse, error) {
+// makeRequest makes a request to the Claude API
+func (s *ClaudeShim) makeRequest(ctx context.Context, request AnthropicRequest) (*AnthropicResponse, error) {
 	// Marshal request to JSON
 	reqBody, err := json.Marshal(request)
 	if err != nil {
@@ -615,40 +520,45 @@ func (p *Provider) makeAnthropicRequest(ctx context.Context, request AnthropicRe
 	}
 
 	// Create HTTP request
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, p.endpoint, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.Endpoint, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
 	}
 
-	// Set headers
+	// Add headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-API-Key", p.apiKey)
-	req.Header.Set("Anthropic-Version", "2023-06-01")
+	req.Header.Set("X-API-Key", s.APIKey)
+	req.Header.Set("Anthropic-Version", AnthropicVersion)
 
-	// Send request
-	resp, err := p.client.Do(req)
+	// Send the request
+	resp, err := s.Client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to send request to Claude: %w", err)
+		return nil, fmt.Errorf("HTTP request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// Check for errors
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// Check for error status codes
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("Claude API returned status code %d: %s", resp.StatusCode, string(body))
 	}
 
-	// Decode response
+	// Parse the response
 	var response AnthropicResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
 	return &response, nil
 }
 
-// streamAnthropicRequest streams a request to the Anthropic API
-func (p *Provider) streamAnthropicRequest(ctx context.Context, request AnthropicRequest) (<-chan string, error) {
+// streamRequest streams a request to the Claude API
+func (s *ClaudeShim) streamRequest(ctx context.Context, request AnthropicRequest) (<-chan string, error) {
 	// Ensure streaming is enabled
 	request.Stream = true
 
@@ -659,15 +569,15 @@ func (p *Provider) streamAnthropicRequest(ctx context.Context, request Anthropic
 	}
 
 	// Create HTTP request
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, p.endpoint, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.Endpoint, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
 	}
 
-	// Set headers
+	// Add headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-API-Key", p.apiKey)
-	req.Header.Set("Anthropic-Version", "2023-06-01")
+	req.Header.Set("X-API-Key", s.APIKey)
+	req.Header.Set("Anthropic-Version", AnthropicVersion)
 	req.Header.Set("Accept", "application/json")
 
 	// Create output channel
@@ -678,7 +588,7 @@ func (p *Provider) streamAnthropicRequest(ctx context.Context, request Anthropic
 		defer close(ch)
 
 		// Send request
-		resp, err := p.client.Do(req)
+		resp, err := s.Client.Do(req)
 		if err != nil {
 			select {
 			case <-ctx.Done():
@@ -786,4 +696,143 @@ func (p *Provider) streamAnthropicRequest(ctx context.Context, request Anthropic
 	return ch, nil
 }
 
-// Helper functions needed for streaming
+// createAnthropicMessage creates an AnthropicMessage from a multimodal input
+func (s *ClaudeShim) createAnthropicMessage(input *multimodal.Input) (AnthropicMessage, error) {
+	// Create the message
+	message := AnthropicMessage{
+		Role:    "user",
+		Content: []AnthropicMessagePart{},
+	}
+
+	// Process each content item
+	for _, content := range input.Contents {
+		switch content.Type {
+		case multimodal.MediaTypeText:
+			// Add text content
+			message.Content = append(message.Content, AnthropicMessagePart{
+				Type: "text",
+				Text: content.Text,
+			})
+
+		case multimodal.MediaTypeImage:
+			// Skip if no data and no URI
+			if len(content.Data) == 0 && content.URI == "" {
+				continue
+			}
+
+			// Create image part
+			imagePart := AnthropicMessagePart{
+				Type:  "image",
+				Image: &struct{
+					Source struct {
+						Type      string `json:"type"`
+						MediaType string `json:"media_type"`
+						Data      string `json:"data"`
+					} `json:"source"`
+				}{},
+			}
+
+			// If we have data, use base64 encoding
+			if len(content.Data) > 0 {
+				base64Data := base64.StdEncoding.EncodeToString(content.Data)
+				imagePart.Image.Source.Type = "base64"
+				imagePart.Image.Source.MediaType = content.MimeType
+				imagePart.Image.Source.Data = base64Data
+			} else if content.URI != "" {
+				// If we have a URI, use it - only for publicly accessible URLs
+				// Note: This won't work for most cases as Claude API doesn't support URL references
+				// Future: might need to download and convert to base64
+				imagePart.Image.Source.Type = "url"
+				imagePart.Image.Source.MediaType = content.MimeType
+				imagePart.Image.Source.Data = content.URI
+			}
+
+			// Add the image part
+			message.Content = append(message.Content, imagePart)
+
+		default:
+			return message, fmt.Errorf("unsupported content type: %s", content.Type)
+		}
+	}
+
+	// If no content was added, return an error
+	if len(message.Content) == 0 {
+		return message, fmt.Errorf("no valid content to send to Claude")
+	}
+
+	return message, nil
+}
+
+// convertTextStreamToMultimodal converts a text stream to a multimodal chunk stream
+func (s *ClaudeShim) convertTextStreamToMultimodal(ctx context.Context, textStream <-chan string) <-chan *multimodal.Chunk {
+	chunkStream := make(chan *multimodal.Chunk)
+
+	go func() {
+		defer close(chunkStream)
+
+		var isError bool
+		for text := range textStream {
+			// Check if this is an error message
+			if strings.HasPrefix(text, "Error:") {
+				chunk := multimodal.NewChunk(multimodal.NewTextContent(text), true)
+				chunk.Error = fmt.Errorf(text)
+				
+				select {
+				case <-ctx.Done():
+					return
+				case chunkStream <- chunk:
+					isError = true
+				}
+				break
+			}
+
+			// Create a normal chunk
+			chunk := multimodal.NewChunk(multimodal.NewTextContent(text), false)
+			
+			select {
+			case <-ctx.Done():
+				return
+			case chunkStream <- chunk:
+				// Successfully sent chunk
+			}
+		}
+
+		// If we didn't encounter an error, send a final chunk
+		if !isError {
+			finalChunk := multimodal.NewChunk(multimodal.NewTextContent(""), true)
+			
+			select {
+			case <-ctx.Done():
+				return
+			case chunkStream <- finalChunk:
+				// Successfully sent final chunk
+			}
+		}
+	}()
+
+	return chunkStream
+}
+
+// extractJSON extracts a JSON object from a string
+func extractJSON(s string) string {
+	start := strings.Index(s, "{")
+	if start == -1 {
+		return s
+	}
+
+	// Find matching closing brace
+	depth := 0
+	for i := start; i < len(s); i++ {
+		if s[i] == '{' {
+			depth++
+		} else if s[i] == '}' {
+			depth--
+			if depth == 0 {
+				return s[start : i+1]
+			}
+		}
+	}
+
+	// If no matching closing brace found, return from start to end
+	return s[start:]
+}

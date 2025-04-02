@@ -4,6 +4,7 @@ package conversation
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -35,55 +36,77 @@ type Message struct {
 // History represents a conversation history
 type History struct {
 	ID       string     `json:"id"`
-	AgentID  string     `json:"agent_id"`
+	AgentID  string     `json:"agent_id,omitempty"`
 	Messages []*Message `json:"messages"`
 }
 
 // NewHistory creates a new conversation history
-func NewHistory(agentID, sessionID string) *History {
+func NewHistory() *History {
 	return &History{
-		ID:       sessionID,
-		AgentID:  agentID,
+		ID:       fmt.Sprintf("history_%s", uuid.New().String()),
 		Messages: []*Message{},
 	}
 }
 
-// AddUserMessage adds a user message to the history
-func (h *History) AddUserMessage(content string) {
+// SetID sets the ID of the history
+func (h *History) SetID(id string) {
+	h.ID = id
+}
+
+// GetID returns the ID of the history
+func (h *History) GetID() string {
+	return h.ID
+}
+
+// SetAgentID sets the agent ID of the history
+func (h *History) SetAgentID(agentID string) {
+	h.AgentID = agentID
+}
+
+// AddMessage adds a message to the history
+func (h *History) AddMessage(role string, content string) {
+	// Convert role string to MessageType
+	var messageType MessageType
+	switch role {
+	case "user":
+		messageType = MessageTypeUser
+	case "assistant":
+		messageType = MessageTypeAssistant
+	case "system":
+		messageType = MessageTypeSystem
+	default:
+		// Default to user if unknown
+		messageType = MessageTypeUser
+	}
+
 	h.Messages = append(h.Messages, &Message{
 		ID:        uuid.New().String(),
-		Role:      MessageTypeUser,
+		Role:      messageType,
 		Content:   content,
 		Timestamp: time.Now(),
 	})
 }
 
-// AddUserMultimodalMessage adds a multimodal user message to the history
-func (h *History) AddUserMultimodalMessage(contents []*multimodal.Content) {
+// AddMultimodalMessage adds a multimodal message to the history
+func (h *History) AddMultimodalMessage(role string, contents []*multimodal.Content) {
+	// Convert role string to MessageType
+	var messageType MessageType
+	switch role {
+	case "user":
+		messageType = MessageTypeUser
+	case "assistant":
+		messageType = MessageTypeAssistant
+	case "system":
+		messageType = MessageTypeSystem
+	default:
+		// Default to user if unknown
+		messageType = MessageTypeUser
+	}
+
 	h.Messages = append(h.Messages, &Message{
 		ID:        uuid.New().String(),
-		Role:      MessageTypeUser,
+		Role:      messageType,
 		Contents:  contents,
-		Timestamp: time.Now(),
-	})
-}
-
-// AddAssistantMessage adds an assistant message to the history
-func (h *History) AddAssistantMessage(content string) {
-	h.Messages = append(h.Messages, &Message{
-		ID:        uuid.New().String(),
-		Role:      MessageTypeAssistant,
-		Content:   content,
-		Timestamp: time.Now(),
-	})
-}
-
-// AddSystemMessage adds a system message to the history
-func (h *History) AddSystemMessage(content string) {
-	h.Messages = append(h.Messages, &Message{
-		ID:        uuid.New().String(),
-		Role:      MessageTypeSystem,
-		Content:   content,
 		Timestamp: time.Now(),
 	})
 }
@@ -96,6 +119,11 @@ func (h *History) GetLastMessages(n int) []*Message {
 	return h.Messages[len(h.Messages)-n:]
 }
 
+// MessageCount returns the number of messages in the history
+func (h *History) MessageCount() int {
+	return len(h.Messages)
+}
+
 // ToMultimodalInput converts the conversation history to a multimodal input
 func (h *History) ToMultimodalInput(messageLimit int) (*multimodal.Input, error) {
 	// Get the last N messages
@@ -104,72 +132,82 @@ func (h *History) ToMultimodalInput(messageLimit int) (*multimodal.Input, error)
 	// Create input
 	input := multimodal.NewInput()
 
-	// Group contents by role
-	var systemContents []*multimodal.Content
-	var userContents []*multimodal.Content
-	var assistantContents []*multimodal.Content
-
-	// Convert messages to contents
+	// Find system message first
+	var systemPrompt string
 	for _, msg := range messages {
-		if msg.Contents != nil && len(msg.Contents) > 0 {
-			// Message has multimodal contents
+		if msg.Role == MessageTypeSystem && msg.Content != "" {
+			systemPrompt += msg.Content + "\n"
+		}
+	}
+	
+	// Add system prompt to metadata if present
+	if systemPrompt != "" {
+		input.SetMetadata("system", systemPrompt)
+	}
+
+	// Add conversation as text context
+	var conversationText string
+	for _, msg := range messages {
+		// Skip system messages in the conversation text
+		if msg.Role == MessageTypeSystem {
+			continue
+		}
+		
+		// Get the role as string
+		roleStr := "User"
+		if msg.Role == MessageTypeAssistant {
+			roleStr = "Assistant"
+		}
+		
+		// Add message to conversation text
+		if msg.Content != "" {
+			conversationText += fmt.Sprintf("%s: %s\n\n", roleStr, msg.Content)
+		} else if msg.Contents != nil && len(msg.Contents) > 0 {
+			// For multimodal contents, just add text parts
+			textContent := ""
 			for _, content := range msg.Contents {
-				// Add to appropriate role group
-				switch msg.Role {
-				case MessageTypeUser:
-					userContents = append(userContents, content)
-				case MessageTypeAssistant:
-					assistantContents = append(assistantContents, content)
-				case MessageTypeSystem:
-					systemContents = append(systemContents, content)
+				if content.Type == multimodal.MediaTypeText {
+					textContent += content.Text + " "
 				}
 			}
-		} else if msg.Content != "" {
-			// Message has text content
-			content := multimodal.NewTextContent(msg.Content)
-
-			// Add to appropriate role group
-			switch msg.Role {
-			case MessageTypeUser:
-				userContents = append(userContents, content)
-			case MessageTypeAssistant:
-				assistantContents = append(assistantContents, content)
-			case MessageTypeSystem:
-				systemContents = append(systemContents, content)
+			if textContent != "" {
+				conversationText += fmt.Sprintf("%s: %s\n\n", roleStr, textContent)
 			}
 		}
 	}
+	
+	// Add the conversation context
+	if conversationText != "" {
+		input.AddText("Conversation history:\n" + conversationText)
+	}
 
-	// Add system role information in metadata if present
-	if len(systemContents) > 0 {
-		// Combine all system messages into one prompt
-		systemPrompt := ""
-		for _, content := range systemContents {
-			if content.Type == multimodal.MediaTypeText {
-				systemPrompt += content.Text + "\n"
+	// If the last message is from user and has multimodal content,
+	// add those contents directly to the input
+	if len(messages) > 0 && messages[len(messages)-1].Role == MessageTypeUser {
+		lastMsg := messages[len(messages)-1]
+		if lastMsg.Contents != nil && len(lastMsg.Contents) > 0 {
+			for _, content := range lastMsg.Contents {
+				// Only add non-text contents directly (images, etc.)
+				if content.Type != multimodal.MediaTypeText {
+					input.AddContent(content)
+				}
 			}
 		}
-		if systemPrompt != "" {
-			input.SetMetadata("system_prompt", systemPrompt)
-		}
-	}
-
-	// Add content with appropriate metadata for roles
-	// First add all user contents
-	for _, content := range userContents {
-		content.Type = multimodal.MediaTypeText
-		input.AddContent(content)
-		input.SetMetadata("role", "user")
-	}
-
-	// Then all assistant contents
-	for _, content := range assistantContents {
-		content.Type = multimodal.MediaTypeText
-		input.AddContent(content)
-		input.SetMetadata("role", "assistant")
 	}
 
 	return input, nil
+}
+
+// Save saves the conversation history to a writer
+func (h *History) Save(writer io.Writer) error {
+	// Marshal to JSON
+	encoder := json.NewEncoder(writer)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(h); err != nil {
+		return fmt.Errorf("could not encode history: %w", err)
+	}
+
+	return nil
 }
 
 // SaveToFile saves the conversation history to a file
@@ -181,14 +219,20 @@ func (h *History) SaveToFile(filename string) error {
 	}
 	defer file.Close()
 
-	// Marshal to JSON
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ")
-	if err := encoder.Encode(h); err != nil {
-		return fmt.Errorf("could not encode history: %w", err)
+	// Save to the file
+	return h.Save(file)
+}
+
+// Load loads a conversation history from a reader
+func Load(reader io.Reader) (*History, error) {
+	// Unmarshal from JSON
+	var history History
+	decoder := json.NewDecoder(reader)
+	if err := decoder.Decode(&history); err != nil {
+		return nil, fmt.Errorf("could not decode history: %w", err)
 	}
 
-	return nil
+	return &history, nil
 }
 
 // LoadFromFile loads a conversation history from a file
@@ -200,12 +244,6 @@ func LoadFromFile(filename string) (*History, error) {
 	}
 	defer file.Close()
 
-	// Unmarshal from JSON
-	var history History
-	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&history); err != nil {
-		return nil, fmt.Errorf("could not decode history: %w", err)
-	}
-
-	return &history, nil
+	// Load from the file
+	return Load(file)
 }

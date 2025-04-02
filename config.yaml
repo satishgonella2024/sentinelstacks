@@ -1,0 +1,31 @@
+# SentinelStacks Configuration
+verbose: false
+default_agent: chatbot
+
+# LLM configuration
+llm:
+  provider: ollama
+  model: llama3
+  api_key: ""
+
+# Provider-specific configuration
+claude:
+  api_key: ""
+  endpoint: "https://api.anthropic.com/v1/messages"
+
+openai:
+  api_key: ""
+  endpoint: "https://api.openai.com/v1/chat/completions"
+
+ollama:
+  endpoint: "http://model.gonella.co.uk/api/generate"
+  models:
+    - llama3
+    - llava
+    - mistral
+
+# Registry configuration
+registry:
+  local_path: "~/.sentinel/images"
+  remote_url: ""
+  enable_cache: true

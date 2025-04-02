@@ -128,10 +128,7 @@ Examples:
 				Provider: provider,
 				Model:    model,
 				APIKey:   apiKey,
-				Parameters: map[string]interface{}{
-					"temperature": temperature,
-					"max_tokens":  maxTokens,
-				},
+				Timeout:  60 * time.Second,
 			}
 
 			// Set endpoint if provided
@@ -140,7 +137,7 @@ Examples:
 			}
 
 			// Create the shim
-			shimProvider, err := shim.CreateShim(provider, model, config)
+			shimProvider, err := shim.ShimFactory(provider, config.Endpoint, config.APIKey, config.Model)
 			if err != nil {
 				return fmt.Errorf("failed to create shim: %w", err)
 			}
@@ -183,7 +180,7 @@ Examples:
 			// Handle streaming or non-streaming
 			if noStreaming {
 				// Non-streaming mode
-				result, err := shimProvider.GenerateMultimodal(context.Background(), input)
+				result, err := shimProvider.MultimodalCompletion(input, 120*time.Second)
 				if err != nil {
 					return fmt.Errorf("failed to generate response: %w", err)
 				}
@@ -196,7 +193,7 @@ Examples:
 				}
 			} else {
 				// Streaming mode
-				resultCh, err := shimProvider.StreamMultimodal(context.Background(), input)
+				resultCh, err := shimProvider.StreamMultimodalCompletion(context.Background(), input)
 				if err != nil {
 					return fmt.Errorf("failed to start streaming: %w", err)
 				}

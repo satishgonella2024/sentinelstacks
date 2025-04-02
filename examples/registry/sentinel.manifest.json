@@ -1,0 +1,85 @@
+{
+  "name": "text-analyzer",
+  "version": "1.0.0",
+  "type": "stack",
+  "description": "A complete text analysis pipeline for processing, analyzing, and summarizing text content",
+  "author": "SentinelStacks Team <team@sentinelstacks.io>",
+  "created": "2025-04-01T14:30:00Z",
+  "files": [
+    {
+      "path": "text-analyzer.stack.yaml",
+      "size": 1245,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "isMain": true,
+      "type": "manifest"
+    },
+    {
+      "path": "README.md",
+      "size": 567,
+      "sha256": "f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
+      "isMain": false,
+      "type": "doc"
+    },
+    {
+      "path": "examples/simple-input.txt",
+      "size": 324,
+      "sha256": "6b23c0d5f35d1b11f9b683f0b0a617355deb11277d91ae091d399c655b87940d",
+      "isMain": false,
+      "type": "data"
+    },
+    {
+      "path": "examples/analysis-output.md",
+      "size": 892,
+      "sha256": "3ba8d9cbd9b9b75076d9803f393d5f6c12fa9a123fb89f68814f37cc25e79d2e",
+      "isMain": false,
+      "type": "doc"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "text-processor",
+      "version": "latest",
+      "type": "agent",
+      "required": true
+    },
+    {
+      "name": "sentiment-analyzer",
+      "version": "latest",
+      "type": "agent",
+      "required": true
+    },
+    {
+      "name": "entity-analyzer",
+      "version": "latest",
+      "type": "agent",
+      "required": true
+    },
+    {
+      "name": "text-summarizer",
+      "version": "latest",
+      "type": "agent",
+      "required": true
+    },
+    {
+      "name": "report-generator",
+      "version": "latest",
+      "type": "agent",
+      "required": true
+    }
+  ],
+  "signatures": [
+    {
+      "keyId": "sentinelstacks-team",
+      "signer": "SentinelStacks Team <team@sentinelstacks.io>",
+      "algorithm": "RSA-PKCS1-SHA256",
+      "signature": "d0e7828293355a07c2dccaaa733243b8009c8181a1eb3dc1c1e113e06b59a18009ca465e36a13e11a7aec44c54c92b14a1227c38ab06701af6c0960b5d246fcb",
+      "timestamp": "2025-04-01T14:31:05Z"
+    }
+  ],
+  "schemaVersion": "1.0.0",
+  "labels": {
+    "category": "nlp",
+    "difficulty": "intermediate",
+    "use-case": "text-analysis"
+  }
+}

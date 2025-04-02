@@ -99,18 +99,22 @@ Examples:
 			// Check if initial images were provided
 			if len(imagePaths) > 0 {
 				// Process initial images
-				contents, err := processImages(imagePaths)
+				imagesContents, err := processImages(imagePaths)
 				if err != nil {
-					fmt.Printf("Error processing images: %v\n", err)
-					os.Exit(1)
+				fmt.Printf("Error processing images: %v\n", err)
+				os.Exit(1)
 				}
 
-				contents = append([]*multimodal.Content{multimodal.NewTextContent("What's in these images?")}, contents...)
+				input := multimodal.NewInput()
+			input.AddText("What's in these images?")
+			for _, imgContent := range imagesContents {
+				input.Contents = append(input.Contents, imgContent)
+			}
 
 				fmt.Println(userColor("You") + ": [Uploaded images with question: What's in these images?]")
 
 				// Get response from agent
-				output, err := agent.ProcessMultimodalInput(cmd.Context(), contents)
+				output, err := agent.ProcessMultimodalInput(cmd.Context(), input)
 				if err != nil {
 					fmt.Printf("Error from agent: %v\n", err)
 					return
@@ -169,17 +173,21 @@ Examples:
 					}
 
 					// Process images
-					contents, err := processImages(imgPaths)
+					imagesContents, err := processImages(imgPaths)
 					if err != nil {
 						fmt.Printf("Error processing images: %v\n", err)
 						continue
 					}
 
-					// Add question to contents
-					contents = append([]*multimodal.Content{multimodal.NewTextContent(question)}, contents...)
+					// Create input with question and images
+					input := multimodal.NewInput()
+					input.AddText(question)
+					for _, imgContent := range imagesContents {
+						input.Contents = append(input.Contents, imgContent)
+					}
 
 					// Get response from agent
-					output, err := agent.ProcessMultimodalInput(cmd.Context(), contents)
+					output, err := agent.ProcessMultimodalInput(cmd.Context(), input)
 					if err != nil {
 						fmt.Printf("Error from agent: %v\n", err)
 						continue

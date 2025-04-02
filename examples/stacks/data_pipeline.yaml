@@ -1,0 +1,66 @@
+name: data-pipeline
+description: A complete data processing pipeline with extraction, transformation, analysis, and visualization
+version: 1.0.0
+
+agents:
+  - id: extractor
+    uses: data-extractor:latest
+    params:
+      source: "database"
+      format: "json"
+      query: "SELECT * FROM customer_data WHERE created_at > CURRENT_DATE - INTERVAL '30' DAY"
+
+  - id: transformer
+    uses: data-transformer:latest
+    inputFrom:
+      - extractor
+    params:
+      operations:
+        - name: "filter"
+          condition: "age >= 18"
+        - name: "normalize"
+          fields: ["email", "phone"]
+        - name: "enrich"
+          source: "location_data"
+          key: "zip_code"
+
+  - id: analyzer
+    uses: data-analyzer:latest
+    inputFrom:
+      - transformer
+    params:
+      analysis_type: "segmentation"
+      dimensions: ["age_group", "location", "purchase_history"]
+      metrics: ["ltv", "engagement_score", "churn_risk"]
+
+  - id: visualizer
+    uses: chart-generator:latest
+    inputFrom:
+      - analyzer
+    params:
+      chart_type: "dashboard"
+      include_charts:
+        - name: "Customer Segments"
+          type: "pie"
+          data_key: "segments"
+        - name: "Churn Risk by Age Group"
+          type: "bar"
+          x_axis: "age_group"
+          y_axis: "churn_risk"
+        - name: "Geographic Distribution"
+          type: "map"
+          data_key: "location_data"
+
+  - id: reporter
+    uses: report-generator:latest
+    inputFrom:
+      - analyzer
+      - visualizer
+    params:
+      format: "pdf"
+      template: "executive_summary"
+      sections:
+        - "overview"
+        - "key_findings"
+        - "segment_analysis"
+        - "recommendations"

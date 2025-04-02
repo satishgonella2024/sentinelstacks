@@ -1,0 +1,53 @@
+flowchart TB
+    subgraph UI["User Interfaces"]
+        CLI["Command Line Interface"]
+        WebUI["Web Interface"]
+        API["REST/gRPC API"]
+    end
+    
+    subgraph Core["Core Components"]
+        direction TB
+        Parser["NLP Parser"]
+        Builder["Agent Builder"]
+        StackEngine["Stack Engine"]
+        RuntimeExec["Runtime Executor"]
+        AgentRegistry["Agent Registry"]
+        
+        subgraph Memory["Memory System"]
+            MemoryPlugin["Memory Plugin Interface"]
+            InMemory["In-Memory Store"]
+            SQLite["SQLite Store"]
+            Chroma["Vector Store (Chroma)"]
+        end
+    end
+    
+    subgraph LLM["LLM Providers"]
+        Claude["Claude"]
+        OpenAI["OpenAI"]
+        Ollama["Ollama"]
+        LocalLLM["Local LLMs"]
+    end
+    
+    subgraph External["External Systems"]
+        Tools["External Tools"]
+        ExternalAPIs["Third-party APIs"]
+        WebHooks["Webhooks"]
+    end
+    
+    CLI --> Core
+    WebUI --> API
+    API --> Core
+    
+    Parser --> Builder
+    Builder --> AgentRegistry
+    Builder --> StackEngine
+    StackEngine --> RuntimeExec
+    RuntimeExec --> Memory
+    RuntimeExec --> LLM
+    RuntimeExec --> External
+    
+    AgentRegistry ---> Memory
+    
+    %% New components highlighted
+    classDef new fill:#f96,stroke:#333,stroke-width:2px
+    class StackEngine,MemoryPlugin,Chroma,InMemory,SQLite new

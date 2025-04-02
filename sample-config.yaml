@@ -1,0 +1,49 @@
+# SentinelStacks Configuration
+# Place this file at ~/.sentinel/config.yaml
+
+# General configuration
+verbose: false
+default_agent: chatbot
+
+# LLM configuration
+llm:
+  provider: claude  # Default provider (claude, openai, or ollama)
+  model: claude-3.7-sonnet  # Default model
+  api_key: "YOUR_CLAUDE_API_KEY"  # Replace with your actual API key
+
+# Provider-specific configuration
+claude:
+  api_key: "YOUR_CLAUDE_API_KEY"  # Replace with your actual Claude API key
+  endpoint: "https://api.anthropic.com/v1/messages"
+
+openai:
+  api_key: "YOUR_OPENAI_API_KEY"  # Replace with your actual OpenAI API key
+  endpoint: "https://api.openai.com/v1/chat/completions"
+
+ollama:
+  endpoint: "http://localhost:11434/api/generate"
+  models:
+    - llama3
+    - llava
+    - mistral
+
+# Registry configuration
+registry:
+  local_path: "~/.sentinel/images"
+  remote_url: ""  # For future use with a remote registry
+  enable_cache: true
+
+# Agent defaults
+agent_defaults:
+  max_tokens: 4096
+  temperature: 0.7
+  interactive: true
+
+# Multimodal configuration
+multimodal:
+  max_image_size: 10485760  # 10MB
+  supported_formats:
+    - image/jpeg
+    - image/png
+    - image/gif
+    - image/webp

@@ -17,15 +17,15 @@ import (
 type MultimodalAgent struct {
 	*Agent
 	History         *conversation.History
-	Shim            shim.Shim
-	ShimConfig      shim.Config
+	LLM             shim.LLMShim
 	MaxTokens       int
 	Temperature     float64
 	ConversationDir string
+	metadata        map[string]interface{}
 }
 
 // NewMultimodalAgent creates a new multimodal agent
-func NewMultimodalAgent(agent *Agent, shimConfig shim.Config) (*MultimodalAgent, error) {
+func NewMultimodalAgent(agent *Agent, config shim.Config) (*MultimodalAgent, error) {
 	// Create conversation directory
 	conversationDir := filepath.Join(agent.StateDir, "conversations")
 	if err := os.MkdirAll(conversationDir, 0755); err != nil {
@@ -33,182 +33,251 @@ func NewMultimodalAgent(agent *Agent, shimConfig shim.Config) (*MultimodalAgent,
 	}
 
 	// Create a new conversation history
-	history := conversation.NewHistory(agent.ID, fmt.Sprintf("session_%d", time.Now().UnixNano()))
+	history := conversation.NewHistory()
+	history.SetID(fmt.Sprintf("session_%d", time.Now().UnixNano()))
 
-	// Create the shim
-	shimInstance, err := shim.CreateShim(shimConfig.Provider, shimConfig.Model, shimConfig)
+	// Create the LLM shim
+	llmShim, err := shim.ShimFactory(
+		config.Provider,
+		config.Endpoint,
+		config.APIKey,
+		config.Model,
+	)
 	if err != nil {
-		return nil, fmt.Errorf("could not create shim: %w", err)
+		return nil, fmt.Errorf("could not create LLM shim: %w", err)
 	}
 
+	// Set the system prompt based on the agent definition
+	systemPrompt := generateSystemPrompt(agent)
+	llmShim.SetSystemPrompt(systemPrompt)
+
 	// Check if the shim supports multimodal if needed
-	if !shimInstance.SupportsMultimodal() {
-		return nil, fmt.Errorf("provider %s with model %s does not support multimodal", shimConfig.Provider, shimConfig.Model)
+	if !llmShim.SupportsMultimodal() {
+		// If the model doesn't support multimodal, it's not an error,
+		// but we should log a warning
+		fmt.Printf("Warning: Provider %s with model %s does not support multimodal inputs\n",
+			config.Provider, config.Model)
 	}
 
 	// Create the multimodal agent
 	return &MultimodalAgent{
 		Agent:           agent,
 		History:         history,
-		Shim:            shimInstance,
-		ShimConfig:      shimConfig,
+		LLM:             llmShim,
 		MaxTokens:       4096, // Default
 		Temperature:     0.7,  // Default
 		ConversationDir: conversationDir,
+		metadata:        make(map[string]interface{}),
 	}, nil
 }
 
 // ProcessTextInput processes text input from the user
 func (ma *MultimodalAgent) ProcessTextInput(ctx context.Context, text string) (string, error) {
 	// Add the user message to the history
-	ma.History.AddUserMessage(text)
+	ma.History.AddMessage("user", text)
 
-	// Convert the conversation to a multimodal input
-	input, err := ma.History.ToMultimodalInput(10) // Use last 10 messages
-	if err != nil {
-		return "", fmt.Errorf("failed to convert history to input: %w", err)
-	}
-
-	// Set generation parameters
-	input.MaxTokens = ma.MaxTokens
-	input.Temperature = ma.Temperature
-
-	// Generate a response
-	output, err := ma.Shim.GenerateMultimodal(ctx, input)
-	if err != nil {
-		return "", fmt.Errorf("failed to generate response: %w", err)
-	}
-
-	// Extract text from the output
+	// Check if the LLM supports multimodal
 	var responseText string
-	for _, content := range output.Contents {
-		if content.Type == multimodal.MediaTypeText {
-			responseText = content.Text
-			break
+	var err error
+	
+	if ma.LLM.SupportsMultimodal() {
+		// Use multimodal API for models that support it
+		input := multimodal.NewInput()
+		input.AddText(text)
+		
+		// Set generation parameters
+		input.MaxTokens = ma.MaxTokens
+		input.Temperature = ma.Temperature
+
+		// Generate a response
+		output, err := ma.LLM.MultimodalCompletionWithContext(ctx, input)
+		if err != nil {
+			return "", fmt.Errorf("failed to generate response: %w", err)
+		}
+
+		// Extract text from the output
+		for _, content := range output.Contents {
+			if content.Type == multimodal.MediaTypeText {
+				responseText += content.Text
+			}
+		}
+	} else {
+		// Use text-only API for models that don't support multimodal
+		responseText, err = ma.LLM.CompletionWithContext(ctx, text, ma.MaxTokens, ma.Temperature)
+		if err != nil {
+			return "", fmt.Errorf("failed to generate response: %w", err)
 		}
 	}
 
 	// Add the assistant's response to the history
-	ma.History.AddAssistantMessage(responseText)
+	ma.History.AddMessage("assistant", responseText)
 
 	// Save the conversation
-	conversationFile := filepath.Join(ma.ConversationDir, ma.History.ID+".json")
-	if err := ma.History.SaveToFile(conversationFile); err != nil {
-		return responseText, fmt.Errorf("failed to save conversation: %w", err)
+	if err := ma.saveConversation(); err != nil {
+		// Just log the error, don't fail the response
+		fmt.Printf("Warning: Failed to save conversation: %v\n", err)
 	}
 
 	return responseText, nil
 }
 
 // ProcessMultimodalInput processes multimodal input from the user (text + images)
-func (ma *MultimodalAgent) ProcessMultimodalInput(ctx context.Context, contents []*multimodal.Content) (*multimodal.Output, error) {
-	// Add the user message to the history
-	ma.History.AddUserMultimodalMessage(contents)
-
-	// Convert the conversation to a multimodal input
-	input, err := ma.History.ToMultimodalInput(10) // Use last 10 messages
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert history to input: %w", err)
+func (ma *MultimodalAgent) ProcessMultimodalInput(ctx context.Context, userInput *multimodal.Input) (*multimodal.Output, error) {
+	// Check if the LLM supports multimodal
+	if !ma.LLM.SupportsMultimodal() {
+		return nil, fmt.Errorf("the LLM does not support multimodal input")
 	}
 
-	// Set generation parameters
-	input.MaxTokens = ma.MaxTokens
-	input.Temperature = ma.Temperature
+	// Add the multimodal message to history
+	// For now, we just add the text part to history, but in a real implementation
+	// we'd want to store the full multimodal content
+	textContent := extractTextFromInput(userInput)
+	ma.History.AddMessage("user", textContent)
+	
+	// Set generation parameters if not already set
+	if userInput.MaxTokens <= 0 {
+		userInput.MaxTokens = ma.MaxTokens
+	}
+	
+	if userInput.Temperature <= 0 {
+		userInput.Temperature = ma.Temperature
+	}
 
 	// Generate a response
-	output, err := ma.Shim.GenerateMultimodal(ctx, input)
+	output, err := ma.LLM.MultimodalCompletionWithContext(ctx, userInput)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate response: %w", err)
+		return nil, fmt.Errorf("failed to generate multimodal response: %w", err)
 	}
 
-	// Extract text from the output
-	var responseText string
-	for _, content := range output.Contents {
-		if content.Type == multimodal.MediaTypeText {
-			responseText = content.Text
-			break
-		}
-	}
-
+	// Extract text from the output for history
+	responseText := extractTextFromOutput(output)
+	
 	// Add the assistant's response to the history
-	ma.History.AddAssistantMessage(responseText)
+	ma.History.AddMessage("assistant", responseText)
 
 	// Save the conversation
-	conversationFile := filepath.Join(ma.ConversationDir, ma.History.ID+".json")
-	if err := ma.History.SaveToFile(conversationFile); err != nil {
-		return output, fmt.Errorf("failed to save conversation: %w", err)
+	if err := ma.saveConversation(); err != nil {
+		// Just log the error, don't fail the response
+		fmt.Printf("Warning: Failed to save conversation: %v\n", err)
 	}
 
 	return output, nil
 }
 
-// StreamMultimodalInput processes multimodal input and streams the response
-func (ma *MultimodalAgent) StreamMultimodalInput(ctx context.Context, contents []*multimodal.Content) (<-chan *multimodal.Chunk, error) {
+// StreamResponse streams a response to a text input
+func (ma *MultimodalAgent) StreamResponse(ctx context.Context, text string) (<-chan string, error) {
 	// Add the user message to the history
-	ma.History.AddUserMultimodalMessage(contents)
-
-	// Convert the conversation to a multimodal input
-	input, err := ma.History.ToMultimodalInput(10) // Use last 10 messages
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert history to input: %w", err)
-	}
-
-	// Set generation parameters
-	input.MaxTokens = ma.MaxTokens
-	input.Temperature = ma.Temperature
-	input.Stream = true
+	ma.History.AddMessage("user", text)
 
 	// Stream the response
-	chunks, err := ma.Shim.StreamMultimodal(ctx, input)
+	// Note: we don't check SupportsMultimodal() here because StreamCompletion is text-only
+	responseStream, err := ma.LLM.StreamCompletion(ctx, text, ma.MaxTokens, ma.Temperature)
 	if err != nil {
 		return nil, fmt.Errorf("failed to stream response: %w", err)
 	}
 
-	// Create a channel for processed chunks
-	processedChunks := make(chan *multimodal.Chunk)
-
-	// Process chunks in a goroutine
+	// Create a channel for the processed response
+	processedStream := make(chan string)
+	
+	// Process the response in a goroutine
 	go func() {
-		defer close(processedChunks)
-
+		defer close(processedStream)
+		
 		var fullResponse string
-
-		// Process each chunk
-		for chunk := range chunks {
-			// Forward the chunk to the caller
+		
+		// Read from the response stream and forward to the processed stream
+		for chunk := range responseStream {
+			// Forward the chunk
 			select {
 			case <-ctx.Done():
 				return
-			case processedChunks <- chunk:
-				// Accumulate the text response
-				if chunk.Content.Type == multimodal.MediaTypeText {
+			case processedStream <- chunk:
+				// Accumulate the full response
+				fullResponse += chunk
+			}
+		}
+		
+		// Add the full response to the history
+		ma.History.AddMessage("assistant", fullResponse)
+		
+		// Save the conversation
+		if err := ma.saveConversation(); err != nil {
+			// Just log the error
+			fmt.Printf("Warning: Failed to save conversation: %v\n", err)
+		}
+	}()
+	
+	return processedStream, nil
+}
+
+// StreamMultimodalResponse streams a response to a multimodal input
+func (ma *MultimodalAgent) StreamMultimodalResponse(ctx context.Context, input *multimodal.Input) (<-chan *multimodal.Chunk, error) {
+	// Check if the LLM supports multimodal
+	if !ma.LLM.SupportsMultimodal() {
+		return nil, fmt.Errorf("the LLM does not support multimodal input")
+	}
+
+	// Add the user message to the history (text part only for now)
+	textContent := extractTextFromInput(input)
+	ma.History.AddMessage("user", textContent)
+
+	// Set parameters if not already set
+	if input.MaxTokens <= 0 {
+		input.MaxTokens = ma.MaxTokens
+	}
+	
+	if input.Temperature <= 0 {
+		input.Temperature = ma.Temperature
+	}
+
+	// Stream the response
+	responseStream, err := ma.LLM.StreamMultimodalCompletion(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to stream multimodal response: %w", err)
+	}
+
+	// Create a channel for the processed response
+	processedStream := make(chan *multimodal.Chunk)
+	
+	// Process the response in a goroutine
+	go func() {
+		defer close(processedStream)
+		
+		var fullResponse string
+		
+		// Read from the response stream and forward to the processed stream
+		for chunk := range responseStream {
+			// Forward the chunk
+			select {
+			case <-ctx.Done():
+				return
+			case processedStream <- chunk:
+				// Accumulate the full response if it's text
+				if chunk.Content != nil && chunk.Content.Type == multimodal.MediaTypeText {
 					fullResponse += chunk.Content.Text
 				}
-
-				// If this is the final chunk, add the response to history
+				
+				// If this is the final chunk, add the full response to history
 				if chunk.IsFinal {
-					// Add the assistant's response to the history
-					ma.History.AddAssistantMessage(fullResponse)
-
+					ma.History.AddMessage("assistant", fullResponse)
+					
 					// Save the conversation
-					conversationFile := filepath.Join(ma.ConversationDir, ma.History.ID+".json")
-					_ = ma.History.SaveToFile(conversationFile) // Ignore error
+					if err := ma.saveConversation(); err != nil {
+						// Just log the error
+						fmt.Printf("Warning: Failed to save conversation: %v\n", err)
+					}
 				}
 			}
 		}
 	}()
-
-	return processedChunks, nil
+	
+	return processedStream, nil
 }
 
-// AddSystemPrompt adds a system prompt to the conversation
+// AddSystemPrompt adds a system message to the conversation history
 func (ma *MultimodalAgent) AddSystemPrompt(text string) {
-	ma.History.AddSystemMessage(text)
-}
-
-// GetConversationHistory returns the full conversation history
-func (ma *MultimodalAgent) GetConversationHistory() *conversation.History {
-	return ma.History
+	ma.History.AddMessage("system", text)
+	ma.LLM.SetSystemPrompt(text)
 }
 
 // SetTemperature sets the temperature for generation
@@ -221,14 +290,77 @@ func (ma *MultimodalAgent) SetMaxTokens(maxTokens int) {
 	ma.MaxTokens = maxTokens
 }
 
-// Close closes the agent resources
-func (ma *MultimodalAgent) Close() error {
-	// Save the conversation
-	conversationFile := filepath.Join(ma.ConversationDir, ma.History.ID+".json")
-	if err := ma.History.SaveToFile(conversationFile); err != nil {
-		return fmt.Errorf("failed to save conversation: %w", err)
-	}
+// GetConversationHistory returns the conversation history
+func (ma *MultimodalAgent) GetConversationHistory() *conversation.History {
+	return ma.History
+}
 
-	// Close the shim
-	return ma.Shim.Close()
+// Close cleans up resources and saves the final state
+func (ma *MultimodalAgent) Close() error {
+	// Save the conversation history
+	if err := ma.saveConversation(); err != nil {
+		fmt.Printf("Warning: Failed to save conversation during close: %v\n", err)
+	}
+	
+	// Close the LLM
+	if err := ma.LLM.Close(); err != nil {
+		return fmt.Errorf("failed to close LLM: %w", err)
+	}
+	
+	return nil
+}
+
+// Helper methods
+
+// saveConversation saves the conversation history to a file
+func (ma *MultimodalAgent) saveConversation() error {
+	// Create the conversation file path
+	filePath := filepath.Join(ma.ConversationDir, ma.History.GetID()+".json")
+	
+	// Save the conversation to a file
+	file, err := os.Create(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to create conversation file: %w", err)
+	}
+	defer file.Close()
+	
+	// Serialize and save the conversation
+	if err := ma.History.Save(file); err != nil {
+		return fmt.Errorf("failed to save conversation to file: %w", err)
+	}
+	
+	return nil
+}
+
+// extractTextFromInput extracts text content from a multimodal input
+func extractTextFromInput(input *multimodal.Input) string {
+	var text string
+	
+	for _, content := range input.Contents {
+		if content.Type == multimodal.MediaTypeText {
+			text += content.Text + " "
+		}
+	}
+	
+	return text
+}
+
+// extractTextFromOutput extracts text content from a multimodal output
+func extractTextFromOutput(output *multimodal.Output) string {
+	var text string
+	
+	for _, content := range output.Contents {
+		if content.Type == multimodal.MediaTypeText {
+			text += content.Text
+		}
+	}
+	
+	return text
+}
+
+// generateSystemPrompt creates a system prompt for the agent
+func generateSystemPrompt(agent *Agent) string {
+	// In a real implementation, this would generate a system prompt based on
+	// the agent's definition, capabilities, etc.
+	return fmt.Sprintf("You are %s, an AI assistant. Your purpose is to help the user.", agent.Name)
 }

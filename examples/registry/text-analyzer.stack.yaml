@@ -1,0 +1,62 @@
+name: text-analyzer
+description: A complete text analysis pipeline for processing, analyzing, and summarizing text content
+version: 1.0.0
+
+agents:
+  - id: text-processor
+    uses: text-processor:latest
+    params:
+      clean_text: true
+      preserve_formatting: false
+      extract_entities: true
+      language: "en"
+
+  - id: sentiment-analyzer
+    uses: sentiment-analyzer:latest
+    inputFrom:
+      - text-processor
+    params:
+      model: "advanced"
+      include_confidence: true
+      granularity: "paragraph"
+
+  - id: entity-analyzer
+    uses: entity-analyzer:latest
+    inputFrom:
+      - text-processor
+    params:
+      entity_types:
+        - "person"
+        - "organization"
+        - "location"
+        - "date"
+      include_context: true
+
+  - id: text-summarizer
+    uses: text-summarizer:latest
+    inputFrom:
+      - text-processor
+      - sentiment-analyzer
+      - entity-analyzer
+    params:
+      style: "concise"
+      max_length: 200
+      include_entities: true
+      include_sentiment: true
+      format: "markdown"
+
+  - id: report-generator
+    uses: report-generator:latest
+    inputFrom:
+      - text-summarizer
+      - sentiment-analyzer
+      - entity-analyzer
+    params:
+      template: "analysis_report"
+      sections:
+        - "summary"
+        - "sentiment_analysis"
+        - "entity_analysis"
+        - "key_insights"
+      output_format: "markdown"
+      include_visualizations: true

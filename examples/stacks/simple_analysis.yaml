@@ -1,0 +1,30 @@
+name: simple-analysis
+description: A simple analysis stack with three agents for text processing
+version: 1.0.0
+
+agents:
+  - id: text-extractor
+    uses: text-extractor:latest
+    params:
+      extract_from: "input"
+      clean_text: true
+      preserve_formatting: false
+
+  - id: sentiment-analyzer
+    uses: sentiment-analyzer:latest
+    inputFrom:
+      - text-extractor
+    params:
+      model: "default"
+      include_confidence: true
+      granularity: "paragraph"
+
+  - id: summary-generator
+    uses: text-summarizer:latest
+    inputFrom:
+      - text-extractor
+      - sentiment-analyzer
+    params:
+      style: "concise"
+      max_length: 200
+      include_sentiment: true

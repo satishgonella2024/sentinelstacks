@@ -1,0 +1,53 @@
+name: research-team
+
+networks:
+  brain-net:
+    driver: default
+  data-net:
+    driver: default
+
+volumes:
+  research-memory:
+    size: 2GB
+  output-memory:
+    size: 1GB
+    encrypted: true
+
+agents:
+  coordinator:
+    image: sentinelstacks/agent:coordinator
+    networks:
+      - brain-net
+      - data-net
+    volumes:
+      - research-memory:/memory
+    environment:
+      ROLE: coordinator
+      TASK: research_coordination
+    resources:
+      memory: 1GB
+      
+  researcher:
+    image: sentinelstacks/agent:researcher
+    networks:
+      - brain-net
+    volumes:
+      - research-memory:/memory/read-only
+    environment:
+      ROLE: researcher
+      TOPIC: ai_safety
+    resources:
+      memory: 2GB
+      
+  writer:
+    image: sentinelstacks/agent:writer
+    networks:
+      - brain-net
+      - data-net
+    volumes:
+      - output-memory:/memory
+    environment:
+      ROLE: writer
+      FORMAT: academic_paper
+    resources:
+      memory: 1GB

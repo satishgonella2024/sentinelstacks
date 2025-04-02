@@ -1,225 +1,175 @@
 # SentinelStacks
 
-![SentinelStacks Logo](docs/visualizations/sentinelstacks_logo.svg)
+SentinelStacks is a comprehensive system for creating, managing, and orchestrating AI agents using natural language definitions.
 
-SentinelStacks is an open-source AI agent management system that simplifies the creation, deployment, and management of AI agents across multiple LLM backends.
+## Overview
 
-[![Go Tests](https://github.com/sentinelstacks/sentinel/actions/workflows/go-test.yml/badge.svg)](https://github.com/sentinelstacks/sentinel/actions/workflows/go-test.yml)
-[![Documentation Deployment](https://github.com/sentinelstacks/sentinel/actions/workflows/docs.yml/badge.svg)](https://sentinelstacks.github.io/sentinel/)
-[![Docker Build](https://github.com/sentinelstacks/sentinel/actions/workflows/docker.yml/badge.svg)](https://github.com/sentinelstacks/sentinel/actions/workflows/docker.yml)
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+SentinelStacks provides a Docker-like workflow for AI agents:
 
-## Features
-
-- **Natural Language Agent Definition**: Define agents using simple YAML or natural language
-- **Multi-LLM Support**: Run the same agent across different LLM backends (Claude, OpenAI, Ollama)
-- **Agent Management**: Build, run, and manage agents with a simple CLI
-- **State Management**: Define and maintain agent state between runs
-- **Tool Integration**: Connect agents to external tools and APIs
-- **Multi-agent Orchestration**: Create complex workflows with multiple agents
-- **Registry System**: Store and share agents with your team
-- **Multimodal Support**: Create agents that process and generate images alongside text
-
-## Installation
-
-### Binary Installation
-
-```bash
-# Download and install the latest release (coming soon)
-curl -L https://install.sentinelstacks.dev | bash
-```
-
-### From Source
-
-```bash
-# Clone the repository
-git clone https://github.com/sentinelstacks/sentinel.git
-cd sentinel
-
-# Build and install
-go build -o sentinel ./cmd/sentinel
-sudo mv sentinel /usr/local/bin/
-```
-
-### Via Docker
-
-```bash
-# Pull the latest image
-docker pull sentinelstacks/sentinel:latest
-
-# Run the container
-docker run -it sentinelstacks/sentinel:latest
-```
-
-## Quick Start
-
-```bash
-# Create a new agent
-sentinel create my-agent
-
-# Edit the Sentinelfile
-nano my-agent/Sentinelfile 
-
-# Build the agent
-sentinel build my-agent
-
-# Run the agent
-sentinel run my-agent
-```
-
-## Example Sentinelfile
-
-```yaml
-name: SimpleAgent
-description: A simple assistant that helps answer questions
-baseModel: claude-3-haiku-20240307
-capabilities:
-  - Answer general knowledge questions
-  - Maintain a friendly, helpful tone
-  - Remember context from the conversation
-parameters:
-  temperature: 0.7
-  responseLength: medium
-```
-
-## Multimodal Support
-
-SentinelStacks now includes full multimodal support for working with images:
-
-### Analyzing Images
-
-Use the dedicated multimodal command to analyze images:
-
-```bash
-# Using Claude provider
-sentinel multimodal analyze-image --image /path/to/image.jpg --provider claude
-
-# Using OpenAI Vision
-sentinel multimodal analyze-image --image /path/to/image.jpg --provider openai
-
-# Using Ollama with a local LLaVA model
-sentinel multimodal analyze-image --image /path/to/image.jpg --provider ollama --model llava
-```
-
-### Running Agents with Images
-
-You can also run any agent with an image input:
-
-```bash
-sentinel run my-agent --image /path/to/image.jpg
-```
-
-The system will automatically select an appropriate multimodal model based on your configured provider.
-
-### Supported Providers
-
-Multimodal support is available with the following providers:
-
-- **Claude**: Using Claude 3 models
-- **OpenAI**: Using GPT-4 Vision models
-- **Ollama**: Using LLaVA, BakLLaVA, and other multimodal models
-
-## Documentation
-
-For comprehensive documentation, visit [SentinelStacks Documentation](https://sentinelstacks.github.io/sentinel/).
-
-- [Architecture Overview](https://sentinelstacks.github.io/sentinel/architecture/)
-- [User Guides](https://sentinelstacks.github.io/sentinel/user-guides/)
-- [Example Agents](https://sentinelstacks.github.io/sentinel/examples/)
-- [Development Roadmap](https://sentinelstacks.github.io/sentinel/planning/roadmap/)
-- [Multimodal Support](https://sentinelstacks.github.io/sentinel/features/multimodal/)
-
-## Example Agents
-
-SentinelStacks includes several example agents to help you get started:
-
-- **chatbot**: Basic conversational agent
-- **translator**: Language translation agent
-- **codehelper**: Programming assistance agent
-- **visualanalysis**: Image analysis agent (multimodal)
-
-## CLI Implementation
-
-SentinelStacks provides a powerful command-line interface inspired by Docker's workflow. The CLI allows you to manage agents through their entire lifecycle.
-
-### Available Commands
-
-```
-Usage:
-  sentinel [command]
-
-Available Commands:
-  build       Build a Sentinel Image from a Sentinelfile
-  config      Manage SentinelStacks configuration
-  images      List Sentinel Images
-  init        Initialize a new Sentinelfile
-  logs        View logs from an agent
-  ps          List running agents
-  run         Run a Sentinel Agent from an image
-  stop        Stop a running agent
-  version     Print version information
-```
-
-### Examples
-
-#### Initialize a new Sentinelfile
-```bash
-sentinel init --template chatbot
-```
-
-#### Build an agent from a Sentinelfile
-```bash
-sentinel build -t myuser/chatbot:latest
-```
-
-#### List available agent images
-```bash
-sentinel images
-```
-
-#### Run an agent
-```bash
-sentinel run myuser/chatbot:latest
-```
-
-#### List running agents
-```bash
-sentinel ps
-```
-
-#### Stop a running agent
-```bash
-sentinel stop <agent_id>
-```
-
-#### View agent logs
-```bash
-sentinel logs <agent_id>
-```
+- Define agents using Sentinelfiles
+- Build agent images from Sentinelfiles
+- Run agents from images locally or from registries
+- Share agents through registries
+- Stack multiple agents together to create complex workflows
 
 ## Key Features
 
-- **Natural Language Agent Definitions**: Define agents using simple, human-readable YAML files called Sentinelfiles.
-- **Docker-like Workflow**: Build, run, share, and manage agents with a familiar command structure.
-- **Extensible Provider System**: Support for multiple LLM providers through a unified interface.
-- **Multimodal Support**: Process and generate text, images, and other media types depending on model capabilities.
-- **Agent Registry**: Share and discover agents through a central registry.
-- **Local Development**: Develop and test agents locally before sharing.
-- **CLI & API Access**: Choose between command-line and programmatic interfaces.
+- **Natural Language Agent Definition**: Create agents by describing what they should do in natural language
+- **Local Agent Execution**: Run agents on your local machine with simple commands
+- **Agent Registry**: Share and reuse agents through a registry system
+- **Multi-Agent Stacks**: Define complex workflows with multiple agents working together
+- **Context Propagation**: Pass data between agents in a stack
+- **CLI-First Design**: Complete command-line interface for all operations
+
+## Quick Start
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/subrahmanyagonella/the-repo/sentinelstacks.git
+cd sentinelstacks
+
+# Build the binary
+make build
+```
+
+### Create Your First Agent
+
+```bash
+# Create an agent from a natural language description
+sentinel init "An agent that summarizes text input" --name summarizer
+
+# Build the agent
+sentinel build -t summarizer:latest .
+
+# Run the agent
+sentinel run summarizer:latest
+```
+
+### Create a Multi-Agent Stack
+
+```bash
+# Initialize a stack
+sentinel stack init my-analysis --template analyzer
+
+# Run the stack
+sentinel stack run -f Stackfile.yaml --input="This is a test input"
+```
+
+## Core Concepts
+
+### Agents
+
+Agents are the basic building blocks in SentinelStacks. An agent:
+- Has a specific purpose
+- Takes inputs and produces outputs
+- Is defined by a Sentinelfile
+- Is built into an agent image
+- Can be run locally or pulled from a registry
+
+### Stacks
+
+Stacks are collections of agents arranged in a workflow:
+- Define a directed acyclic graph (DAG) of agent execution
+- Manage data flow between agents
+- Execute agents in the correct order based on dependencies
+- Allow complex processing pipelines with specialized agents
+
+### Sentinelfile
+
+A Sentinelfile defines an agent's behavior:
+```yaml
+name: text-summarizer
+description: Summarizes text input
+version: 1.0.0
+base_model: claude-3-sonnet-20240229
+input:
+  - name: text
+    type: string
+    description: "Text to summarize"
+  - name: max_length
+    type: integer
+    default: 100
+    description: "Maximum length of summary"
+output_format: "text"
+system_prompt: |
+  You are a specialized text summarization agent.
+prompt_template: |
+  Summarize the following text in {{max_length}} words or less:
+  
+  {{text}}
+```
+
+### Stackfile
+
+A Stackfile defines a multi-agent workflow:
+```yaml
+name: data-analysis-pipeline
+description: Analyzes and summarizes data
+version: 1.0.0
+agents:
+  - id: extractor
+    uses: data-extractor:latest
+    params:
+      format: "json"
+  - id: analyzer
+    uses: data-analyzer:latest
+    inputFrom:
+      - extractor
+    params:
+      analysis_type: "comprehensive"
+  - id: summarizer
+    uses: text-summarizer:latest
+    inputFrom:
+      - analyzer
+    params:
+      max_length: 200
+```
+
+## Command Reference
+
+### Agent Commands
+
+- `sentinel init` - Initialize a new agent
+- `sentinel build` - Build an agent from a Sentinelfile
+- `sentinel run` - Run an agent locally
+- `sentinel push` - Push an agent to a registry
+- `sentinel pull` - Pull an agent from a registry
+- `sentinel stop` - Stop a running agent
+- `sentinel logs` - View logs from a running agent
+- `sentinel images` - List available agent images
+
+### Stack Commands
+
+- `sentinel stack init` - Initialize a new stack
+- `sentinel stack run` - Run a multi-agent stack
+- `sentinel stack list` - List available stacks
+- `sentinel stack inspect` - Inspect a stack configuration
 
 ## Documentation
 
-Comprehensive documentation is available in the [docs](./docs) directory, including:
+- [Getting Started Guide](docs/SETUP.md)
+- [Agent Creation Guide](docs/AGENTS.md)
+- [Stack Creation Guide](docs/STACK-README.md)
+- [Registry Guide](docs/REGISTRY.md)
+- [API Reference](docs/API.md)
 
-- [User Guides](./docs/user-guides)
-- [Development Guides](./docs/development)
-- [Architecture](./docs/architecture)
-- [API Reference](./docs/architecture/api.md)
+## Architecture
+
+SentinelStacks follows a modular architecture:
+
+- **Core Runtime**: Executes agents and manages their lifecycle
+- **Stack Engine**: Orchestrates multi-agent workflows
+- **Registry System**: Manages agent sharing and discovery
+- **Parser**: Converts natural language to agent configurations
+- **CLI**: Provides command-line interface to all features
+- **Web UI**: (Coming soon) Visual interface for managing agents and stacks
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing to this project.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

@@ -1,0 +1,87 @@
+classDiagram
+    class StackEngine {
+        -StackSpec spec
+        -map~string,AgentInstance~ agents
+        -DAG executionGraph
+        -StateManager stateManager
+        +NewStackEngine(spec StackSpec) *StackEngine
+        +BuildExecutionGraph() *DAG
+        +Execute(ctx context.Context) error
+        +GetStatus() StackStatus
+        +Stop() error
+    }
+    
+    class StackSpec {
+        +string Name
+        +string Description
+        +string Version
+        +[]StackAgentSpec Agents
+        +[]string Networks
+        +[]string Volumes
+        +map~string,interface{}~ Metadata
+    }
+    
+    class StackAgentSpec {
+        +string ID
+        +string Uses
+        +[]string InputFrom
+        +string InputKey
+        +string OutputKey
+        +map~string,interface{}~ Params
+        +[]string Depends
+    }
+    
+    class DAG {
+        -[]Node nodes
+        -map~string,[]string~ edges
+        +AddNode(id string, spec StackAgentSpec)
+        +AddEdge(from string, to string)
+        +TopologicalSort() []string
+        +GetNode(id string) *Node
+        +Validate() error
+    }
+    
+    class Node {
+        +string ID
+        +StackAgentSpec Spec
+        +NodeStatus Status
+        +[]string Inputs
+        +[]string Outputs
+    }
+    
+    class StateManager {
+        <<interface>>
+        +Get(agentID string, key string) (interface{}, error)
+        +Set(agentID string, key string, value interface{}) error
+        +GetAll(agentID string) (map~string,interface{}~, error)
+        +Clear(agentID string) error
+    }
+    
+    class AgentInstance {
+        -string id
+        -agent.Definition definition
+        -runtime.Executor executor
+        -StateManager stateManager
+        +Execute(ctx context.Context, input interface{}) (interface{}, error)
+        +GetStatus() AgentStatus
+        +Stop() error
+    }
+    
+    class ContextManager {
+        -map~string,interface{}~ contextData
+        +SetValue(path string, value interface{}) error
+        +GetValue(path string) (interface{}, error)
+        +ApplyTemplate(template string) (string, error)
+        +MergeContext(other *ContextManager) error
+    }
+    
+    StackEngine *-- StackSpec : contains
+    StackEngine *-- DAG : builds
+    StackEngine *-- StateManager : uses
+    StackEngine *-- AgentInstance : manages
+    
+    StackSpec *-- "many" StackAgentSpec : contains
+    DAG *-- "many" Node : contains
+    
+    AgentInstance --> StateManager : uses
+    StackEngine --> ContextManager : uses

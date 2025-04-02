@@ -1,13 +1,18 @@
 package runtime
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sentinelstacks/sentinel/internal/shim"
 )
 
 // AgentStatus represents the status of an agent
@@ -119,8 +124,43 @@ func (r *Runtime) loadAgents() error {
 		return nil
 	}
 
-	// For now, simply return without loading agents
-	// In a real implementation, this would load agent data from the config file
+	// Read the config file
+	data, err := os.ReadFile(r.configFile)
+	if err != nil {
+		return fmt.Errorf("could not read config file: %w", err)
+	}
+
+	// Unmarshal the data
+	var agentInfos map[string]AgentInfo
+	if err := json.Unmarshal(data, &agentInfos); err != nil {
+		return fmt.Errorf("could not unmarshal agent data: %w", err)
+	}
+
+	// Convert AgentInfo to Agent
+	for id, info := range agentInfos {
+		// Create state directory if it doesn't exist
+		stateDir := filepath.Join(r.dataDir, "agents", id)
+		if err := os.MkdirAll(stateDir, 0755); err != nil {
+			return fmt.Errorf("could not create agent state directory: %w", err)
+		}
+
+		// Create agent object
+		agent := &Agent{
+			ID:        id,
+			Name:      info.Name,
+			Image:     info.Image,
+			Status:    AgentStatus(info.Status), // Convert string to AgentStatus
+			CreatedAt: info.CreatedAt,
+			Model:     info.Model,
+			Memory:    info.Memory,
+			APIUsage:  info.APIUsage,
+			StateDir:  stateDir,
+		}
+
+		// Add agent to map
+		r.agents[id] = agent
+	}
+
 	return nil
 }
 
@@ -152,7 +192,7 @@ func (r *Runtime) CreateAgent(name, image, model string) (*Agent, error) {
 	// Save agent to runtime
 	r.agents[id] = agent
 
-	// Save agent configuration
+	// Save agent configuration - method is called within lock context
 	if err := r.saveAgents(); err != nil {
 		return nil, fmt.Errorf("could not save agent: %w", err)
 	}
@@ -174,11 +214,37 @@ func (r *Runtime) StartAgent(id string) error {
 		return fmt.Errorf("agent already running: %s", id)
 	}
 
-	// In a real implementation, this would start the agent process
-	// For now, just update the status
+	// Build command to run the agent
+	cmd := exec.Command(os.Args[0], "run", "--non-interactive", agent.Image)
+
+	// Set environment variables for the agent
+	cmd.Env = append(os.Environ(),
+		fmt.Sprintf("SENTINEL_AGENT_ID=%s", agent.ID),
+		fmt.Sprintf("SENTINEL_AGENT_NAME=%s", agent.Name),
+		fmt.Sprintf("SENTINEL_AGENT_MODEL=%s", agent.Model),
+	)
+
+	// Create log file for the agent
+	logFile, err := os.Create(filepath.Join(agent.StateDir, "agent.log"))
+	if err != nil {
+		return fmt.Errorf("could not create log file: %w", err)
+	}
+
+	// Set command output to log file
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
+
+	// Start the process
+	if err := cmd.Start(); err != nil {
+		logFile.Close()
+		return fmt.Errorf("could not start agent process: %w", err)
+	}
+
+	// Store process
+	agent.Process = cmd.Process
 	agent.Status = StatusRunning
 
-	// Save agent configuration
+	// Save agent configuration - called within lock context
 	return r.saveAgents()
 }
 
@@ -196,11 +262,52 @@ func (r *Runtime) StopAgent(id string) error {
 		return fmt.Errorf("agent not running: %s", id)
 	}
 
-	// In a real implementation, this would stop the agent process
-	// For now, just update the status
+	// Check if process exists
+	if agent.Process == nil {
+		// Just update status if process doesn't exist
+		agent.Status = StatusStopped
+		// Called within lock context
+		return r.saveAgents()
+	}
+
+	// First try to send a SIGTERM signal
+	if err := agent.Process.Signal(syscall.SIGTERM); err != nil {
+		// If SIGTERM fails, try SIGKILL
+		if err := agent.Process.Kill(); err != nil {
+			return fmt.Errorf("could not kill agent process: %w", err)
+		}
+	}
+
+	// Wait for a short time to let the process terminate gracefully
+	done := make(chan error, 1)
+	go func() {
+		state, err := agent.Process.Wait()
+		if err != nil {
+			done <- err
+			return
+		}
+		done <- nil
+		fmt.Printf("Process exited with code: %d\n", state.ExitCode())
+	}()
+
+	// Wait for process to exit or timeout
+	select {
+	case err := <-done:
+		if err != nil {
+			return fmt.Errorf("error waiting for process: %w", err)
+		}
+	case <-time.After(5 * time.Second):
+		// Process didn't exit in time, force kill
+		if err := agent.Process.Kill(); err != nil {
+			return fmt.Errorf("could not force kill agent process: %w", err)
+		}
+	}
+
+	// Update agent state
+	agent.Process = nil
 	agent.Status = StatusStopped
 
-	// Save agent configuration
+	// Save agent configuration - called within lock context
 	return r.saveAgents()
 }
 
@@ -270,13 +377,142 @@ func (r *Runtime) DeleteAgent(id string) error {
 		return fmt.Errorf("could not remove agent state directory: %w", err)
 	}
 
-	// Save agent configuration
+	// Save agent configuration - called within lock context
 	return r.saveAgents()
 }
 
 // saveAgents saves all agents to the config file
 func (r *Runtime) saveAgents() error {
-	// In a real implementation, this would serialize and save agent data
-	// For now, simply return success
+	// This method should be called within a lock context
+	// to avoid deadlocks
+
+	// Convert agents to AgentInfo for serialization
+	agentInfos := make(map[string]AgentInfo)
+	for id, agent := range r.agents {
+		agentInfos[id] = AgentInfo{
+			ID:        agent.ID,
+			Name:      agent.Name,
+			Image:     agent.Image,
+			Status:    string(agent.Status),
+			CreatedAt: agent.CreatedAt,
+			Model:     agent.Model,
+			Memory:    agent.Memory,
+			APIUsage:  agent.APIUsage,
+		}
+	}
+
+	// Marshal the data to JSON
+	data, err := json.Marshal(agentInfos)
+	if err != nil {
+		return fmt.Errorf("could not marshal agent data: %w", err)
+	}
+
+	// Write the data to the config file
+	if err := os.WriteFile(r.configFile, data, 0644); err != nil {
+		return fmt.Errorf("could not write agent data to file: %w", err)
+	}
+
 	return nil
+}
+
+// CreateMultimodalAgent creates a new multimodal agent
+func (r *Runtime) CreateMultimodalAgent(name, image, model, provider, apiKey, endpoint string) (*MultimodalAgent, error) {
+	// Create regular agent first
+	agent, err := r.CreateAgent(name, image, model)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create base agent: %w", err)
+	}
+
+	// Create shim configuration
+	shimConfig := shim.Config{
+		Provider: provider,
+		Model:    model,
+		APIKey:   apiKey,
+		Endpoint: endpoint,
+	}
+
+	// Create multimodal agent
+	return NewMultimodalAgent(agent, shimConfig)
+}
+
+// GetAgentLogs returns the logs for a specific agent
+func (r *Runtime) GetAgentLogs(id string, tail int) (string, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	agent, exists := r.agents[id]
+	if !exists {
+		return "", fmt.Errorf("agent not found: %s", id)
+	}
+
+	// Get log file path
+	logFile := filepath.Join(agent.StateDir, "agent.log")
+
+	// Check if log file exists
+	if _, err := os.Stat(logFile); os.IsNotExist(err) {
+		return "", fmt.Errorf("no logs found for agent: %s", id)
+	}
+
+	// Read log file
+	data, err := os.ReadFile(logFile)
+	if err != nil {
+		return "", fmt.Errorf("could not read log file: %w", err)
+	}
+
+	// If tail is specified, return only the last N lines
+	if tail > 0 {
+		lines := strings.Split(string(data), "\n")
+		if len(lines) > tail {
+			lines = lines[len(lines)-tail:]
+		}
+		return strings.Join(lines, "\n"), nil
+	}
+
+	return string(data), nil
+}
+
+// UpdateAgentMetrics updates the metrics for a specific agent
+func (r *Runtime) UpdateAgentMetrics(id string, apiCalls int, memoryUsage int64) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	agent, exists := r.agents[id]
+	if !exists {
+		return fmt.Errorf("agent not found: %s", id)
+	}
+
+	// Update metrics
+	agent.APIUsage += apiCalls
+	agent.Memory = memoryUsage
+
+	// Save agent configuration - called within lock context
+	return r.saveAgents()
+}
+
+// GetAgentMetrics returns metrics for an agent
+func (r *Runtime) GetAgentMetrics(id string) (map[string]interface{}, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	agent, exists := r.agents[id]
+	if !exists {
+		return nil, fmt.Errorf("agent not found: %s", id)
+	}
+
+	// Basic metrics
+	metrics := map[string]interface{}{
+		"apiCalls":    agent.APIUsage,
+		"memoryUsage": agent.Memory,
+		"uptime":      time.Since(agent.CreatedAt).Seconds(),
+		"status":      string(agent.Status),
+	}
+
+	// If the agent is running and has a process, try to get CPU usage
+	if agent.Status == StatusRunning && agent.Process != nil {
+		// This would be platform-specific in a real implementation
+		// For now, just add a placeholder
+		metrics["cpuUsage"] = 0.0
+	}
+
+	return metrics, nil
 }

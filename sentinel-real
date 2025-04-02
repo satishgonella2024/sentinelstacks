@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ "$1" = "images" ]; then
+  # Run the real-images command
+  ./real-images
+else
+  # Pass all arguments to the original sentinel
+  ./sentinel "$@"
+fi

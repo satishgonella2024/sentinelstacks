@@ -1,0 +1,7 @@
+// This file is kept for compatibility, but all functionality has moved to pkg/network/
+package main
+
+import (
+	// Use local import for our network module
+	_ "github.com/subrahmanyagonella/the-repo/sentinelstacks/network-module/pkg/network"
+)

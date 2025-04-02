@@ -1,7 +1,6 @@
 package build
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/sentinelstacks/sentinel/internal/parser"
+	"github.com/sentinelstacks/sentinel/internal/registry"
 	"github.com/sentinelstacks/sentinel/pkg/agent"
 )
 
@@ -48,7 +48,7 @@ func NewBuildCmd() *cobra.Command {
 			if llmProvider == "" {
 				llmProvider = viper.GetString("llm.provider")
 				if llmProvider == "" {
-					llmProvider = "claude" // Default
+					llmProvider = "ollama" // Default
 				}
 			}
 
@@ -59,7 +59,7 @@ func NewBuildCmd() *cobra.Command {
 				// Set appropriate default based on provider
 				if llmEndpoint == "" {
 					if llmProvider == "ollama" {
-						llmEndpoint = "http://localhost:11434"
+						llmEndpoint = "http://model.gonella.co.uk/api/generate"
 					}
 				}
 			}
@@ -142,26 +142,16 @@ func NewBuildCmd() *cobra.Command {
 				Definition: *def,
 			}
 
-			// Create a directory for images if it doesn't exist
-			homeDir, err := os.UserHomeDir()
+			// Get the registry
+			reg, err := registry.GetLocalRegistry()
 			if err != nil {
-				return fmt.Errorf("failed to get home directory: %w", err)
+				return fmt.Errorf("failed to get registry: %w", err)
 			}
 
-			imagesDir := homeDir + "/.sentinel/images"
-			if err := os.MkdirAll(imagesDir, 0755); err != nil {
-				return fmt.Errorf("failed to create images directory: %w", err)
-			}
-
-			// Save the image JSON
-			imagePath := fmt.Sprintf("%s/%s_%s.json", imagesDir, strings.ReplaceAll(imageName, "/", "_"), tagVersion)
-			imageJSON, err := json.MarshalIndent(image, "", "  ")
-			if err != nil {
-				return fmt.Errorf("failed to marshal image: %w", err)
-			}
-
-			if err := os.WriteFile(imagePath, imageJSON, 0644); err != nil {
-				return fmt.Errorf("failed to write image: %w", err)
+			// Save the image to the registry
+			regImage := registry.ConvertFromAgentImage(image)
+			if err := reg.Save(regImage); err != nil {
+				return fmt.Errorf("failed to save image: %w", err)
 			}
 
 			fmt.Println("Creating Sentinel Image...")
