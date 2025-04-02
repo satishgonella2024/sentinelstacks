@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sentinelstacks/sentinel/internal/multimodal"
-	"github.com/sentinelstacks/sentinel/internal/shim/google"
+	"github.com/satishgonella2024/sentinelstacks/internal/multimodal"
+	"github.com/satishgonella2024/sentinelstacks/internal/shim/google"
 )
 
 // GoogleShim is an implementation of LLMShim for Google's Gemini models

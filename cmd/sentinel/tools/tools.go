@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/sentinelstacks/sentinel/internal/runtime"
-	"github.com/sentinelstacks/sentinel/internal/tools"
+	"github.com/satishgonella2024/sentinelstacks/internal/runtime"
+	"github.com/satishgonella2024/sentinelstacks/internal/tools"
 )
 
 // NewToolsCmd creates the tools command

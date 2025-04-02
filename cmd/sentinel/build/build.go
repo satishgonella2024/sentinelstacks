@@ -9,9 +9,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/sentinelstacks/sentinel/internal/parser"
-	"github.com/sentinelstacks/sentinel/internal/registry"
-	"github.com/sentinelstacks/sentinel/pkg/agent"
+	"github.com/satishgonella2024/sentinelstacks/internal/parser"
+	"github.com/satishgonella2024/sentinelstacks/internal/registry"
+	"github.com/satishgonella2024/sentinelstacks/pkg/agent"
 )
 
 // NewBuildCmd creates the build command

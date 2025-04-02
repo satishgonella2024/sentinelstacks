@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	
-	"github.com/sentinelstacks/sentinel/pkg/models"
+	"github.com/satishgonella2024/sentinelstacks/pkg/models"
 )
 
 // VolumeRepository defines the interface for volume data operations

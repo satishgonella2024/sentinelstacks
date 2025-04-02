@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel"
-	versionCmd "github.com/sentinelstacks/sentinel/cmd/sentinel/version"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel"
+	versionCmd "github.com/satishgonella2024/sentinelstacks/cmd/sentinel/version"
 )
 
 func main() {

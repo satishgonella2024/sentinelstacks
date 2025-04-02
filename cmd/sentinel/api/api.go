@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/sentinelstacks/sentinel/internal/api"
+	"github.com/satishgonella2024/sentinelstacks/internal/api"
 	"github.com/spf13/cobra"
 )
 

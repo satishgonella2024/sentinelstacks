@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/stack"
+	"github.com/satishgonella2024/sentinelstacks/internal/stack"
 )
 
 // RegistryClient handles communication with the stack registry API

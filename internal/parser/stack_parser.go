@@ -9,7 +9,7 @@ import (
 	
 	"gopkg.in/yaml.v3"
 	
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/stack"
+	"github.com/satishgonella2024/sentinelstacks/internal/stack"
 )
 
 // StackParser is responsible for parsing natural language descriptions into structured stack specifications

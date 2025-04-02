@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sentinelstacks/sentinel/internal/runtime"
+	"github.com/satishgonella2024/sentinelstacks/internal/runtime"
 )
 
 // Runtime is a mock implementation of the runtime.Runtime interface

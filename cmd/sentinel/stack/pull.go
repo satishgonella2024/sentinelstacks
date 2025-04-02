@@ -13,10 +13,10 @@ import (
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/registry/client"
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/registry/format"
-	packages "github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/registry/package"
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/registry/security"
+	"github.com/satishgonella2024/sentinelstacks/internal/registry/client"
+	"github.com/satishgonella2024/sentinelstacks/internal/registry/format"
+	packages "github.com/satishgonella2024/sentinelstacks/internal/registry/package"
+	"github.com/satishgonella2024/sentinelstacks/internal/registry/security"
 )
 
 // NewPullCommand creates a 'stack pull' command

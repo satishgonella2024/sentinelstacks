@@ -12,7 +12,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
-	"github.com/sentinelstacks/sentinel/internal/runtime"
+	"github.com/satishgonella2024/sentinelstacks/internal/runtime"
 )
 
 // LogLevel represents the severity level of a log entry

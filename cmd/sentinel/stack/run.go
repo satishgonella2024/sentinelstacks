@@ -15,8 +15,9 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/parser"
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/stack"
+	"github.com/satishgonella2024/sentinelstacks/internal/memory"
+	"github.com/satishgonella2024/sentinelstacks/internal/parser"
+	"github.com/satishgonella2024/sentinelstacks/internal/stack"
 )
 
 var (
@@ -49,17 +50,11 @@ func NewRunCommand() *cobra.Command {
 }
 
 // runStack is the main function for executing a stack
+// runStack is the main function for executing a stack
 func runStack(cmd *cobra.Command, args []string) error {
 	// Set up context with cancellation
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	// Set timeout if specified
-	if timeoutSec > 0 {
-		var cancelTimeout context.CancelFunc
-		ctx, cancelTimeout = context.WithTimeout(ctx, time.Duration(timeoutSec)*time.Second)
-		defer cancelTimeout()
-	}
 
 	// Handle interrupt signals
 	signalChan := make(chan os.Signal, 1)
@@ -83,11 +78,33 @@ func runStack(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to parse input: %w", err)
 	}
 
+	// Parse input JSON if provided
+	var inputData map[string]interface{}
+	if inputJson != "" {
+		if err := json.Unmarshal([]byte(inputJson), &inputData); err != nil {
+			return fmt.Errorf("failed to parse input JSON: %w", err)
+		}
+	}
+
+	// Create memory factory
+	memoryFactory, err := memory.NewMemoryStoreFactory("")
+	if err != nil {
+		return fmt.Errorf("failed to create memory factory: %w", err)
+	}
+
 	// Create and execute stack engine
 	if verbose {
 		fmt.Printf("Creating stack engine for '%s'...\n", stackSpec.Name)
 	}
-	engine, err := stack.NewStackEngine(stackSpec)
+
+	// Create options
+	engineOptions := []stack.EngineOption{
+		stack.WithVerbose(verbose),
+		stack.WithMemoryFactory(memoryFactory),
+	}
+
+	// Create engine
+	engine, err := stack.NewStackEngine(stackSpec, engineOptions...)
 	if err != nil {
 		return fmt.Errorf("failed to create stack engine: %w", err)
 	}
@@ -107,11 +124,21 @@ func runStack(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Agents: %d\n", len(stackSpec.Agents))
 	fmt.Printf("Execution order: %v\n", executionOrder)
 
+	// Create execution options
+	executeOptions := []stack.ExecuteOption{
+		stack.WithTimeout(timeoutSec),
+	}
+
+	// Add input data if provided
+	if inputData != nil {
+		executeOptions = append(executeOptions, stack.WithInput(inputData))
+	}
+
 	// Execute the stack
 	fmt.Println("Starting execution...")
 	startTime := time.Now()
 	
-	err = engine.Execute(ctx)
+	err = engine.Execute(ctx, executeOptions...)
 	
 	duration := time.Since(startTime)
 	if err != nil {

@@ -10,8 +10,8 @@ import (
 	"time"
 	
 	"github.com/google/uuid"
-	"github.com/sentinelstacks/sentinel/pkg/models"
-	"github.com/sentinelstacks/sentinel/pkg/repository"
+	"github.com/satishgonella2024/sentinelstacks/pkg/models"
+	"github.com/satishgonella2024/sentinelstacks/pkg/repository"
 )
 
 // FSVolumeRepository implements VolumeRepository using the filesystem

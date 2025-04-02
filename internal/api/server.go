@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/sentinelstacks/sentinel/internal/runtime"
+	"github.com/satishgonella2024/sentinelstacks/internal/runtime"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -23,7 +23,7 @@ import (
 // @description API for managing AI agents in SentinelStacks
 
 // @contact.name API Support
-// @contact.url https://github.com/sentinelstacks/sentinel
+// @contact.url https://github.com/satishgonella2024/sentinelstacks
 // @contact.email support@sentinelstacks.io
 
 // @license.name MIT

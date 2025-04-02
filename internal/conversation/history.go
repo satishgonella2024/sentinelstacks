@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/sentinelstacks/sentinel/internal/multimodal"
+	"github.com/satishgonella2024/sentinelstacks/internal/multimodal"
 )
 
 // MessageType represents the type of a message

@@ -1,0 +1,55 @@
+# SentinelStacks Component Diagram
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                         │
+│                              USER                                       │
+│                                                                         │
+└───────────────────────────────┬─────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Command Line Interface                          │
+│                                                                         │
+│   ┌───────────┐   ┌───────────┐   ┌───────────┐   ┌───────────┐        │
+│   │   init    │   │   build   │   │    run    │   │   stack   │        │
+│   └─────┬─────┘   └─────┬─────┘   └─────┬─────┘   └─────┬─────┘        │
+│         │               │               │               │              │
+└─────────┼───────────────┼───────────────┼───────────────┼──────────────┘
+          │               │               │               │
+          ▼               │               │               ▼
+┌─────────────────┐       │               │        ┌─────────────────┐
+│                 │       │               │        │                 │
+│  Parser System  │◄──────┘               │        │  Stack Engine   │
+│                 │                       │        │                 │
+└─────────┬───────┘                       │        └─────────┬───────┘
+          │                               │                  │
+          │                               │                  │
+          ▼                               ▼                  │
+┌─────────────────┐               ┌─────────────────┐        │
+│                 │               │                 │        │
+│  Agent Runtime  │◄──────────────┤   Tools System  │◄───────┘
+│                 │               │                 │
+└─────────┬───────┘               └─────────────────┘
+          │
+          │
+          ▼
+┌─────────────────┐               ┌─────────────────┐
+│                 │               │                 │
+│ Registry System │◄──────────────┤  Memory System  │
+│                 │               │                 │
+└─────────────────┘               └─────────────────┘
+
+
+# Key Workflows
+
+1. Agent Creation:
+   User → init command → Parser System → Agent Definition
+
+2. Agent Building:
+   User → build command → Agent Definition → Agent Runtime → Agent Image
+
+3. Agent Execution:
+   User → run command → Agent Runtime → Tools System
+
+4. Stack Execution:
+   User → stack command → Stack Engine → Agent Runtime → Tools System 

@@ -3,7 +3,7 @@ package stop
 import (
 	"fmt"
 
-	"github.com/sentinelstacks/sentinel/internal/runtime"
+	"github.com/satishgonella2024/sentinelstacks/internal/runtime"
 	"github.com/spf13/cobra"
 )
 

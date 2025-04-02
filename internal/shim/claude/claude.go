@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sentinelstacks/sentinel/internal/multimodal"
-	"github.com/sentinelstacks/sentinel/internal/shim"
+	"github.com/satishgonella2024/sentinelstacks/internal/multimodal"
+	"github.com/satishgonella2024/sentinelstacks/internal/shim"
 )
 
 // Constants for Claude API

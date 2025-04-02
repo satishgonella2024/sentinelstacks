@@ -10,31 +10,33 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	apiCmd "github.com/sentinelstacks/sentinel/cmd/sentinel/api"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/build"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/chat"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/compose"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/config"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/exec"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/history"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/images"
-	initCmd "github.com/sentinelstacks/sentinel/cmd/sentinel/init"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/login"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/logout"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/logs"
-	multimodalCmd "github.com/sentinelstacks/sentinel/cmd/sentinel/multimodal"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/network"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/ps"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/pull"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/push"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/run"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/search"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/shell"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/stop"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/system"
-	toolsCmd "github.com/sentinelstacks/sentinel/cmd/sentinel/tools"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/version"
-	"github.com/sentinelstacks/sentinel/cmd/sentinel/volume"
+	apiCmd "github.com/satishgonella2024/sentinelstacks/cmd/sentinel/api"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/build"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/chat"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/compose"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/config"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/exec"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/history"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/images"
+	initCmd "github.com/satishgonella2024/sentinelstacks/cmd/sentinel/init"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/login"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/logout"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/logs"
+	memoryCmd "github.com/satishgonella2024/sentinelstacks/cmd/sentinel/memory"
+	multimodalCmd "github.com/satishgonella2024/sentinelstacks/cmd/sentinel/multimodal"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/network"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/ps"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/pull"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/push"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/run"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/search"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/shell"
+	stackCmd "github.com/satishgonella2024/sentinelstacks/cmd/sentinel/stack"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/stop"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/system"
+	toolsCmd "github.com/satishgonella2024/sentinelstacks/cmd/sentinel/tools"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/version"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel/volume"
 )
 
 // rootCmd is the root command for the sentinel CLI
@@ -178,6 +180,8 @@ func init() {
 	rootCmd.AddCommand(history.NewHistoryCmd())          // History command
 	rootCmd.AddCommand(network.NewNetworkCmd())          // Network command
 	rootCmd.AddCommand(volume.NewVolumeCmd())            // Volume command
-	rootCmd.AddCommand(compose.NewComposeCmd())          // Compose command
+	rootCmd.AddCommand(memoryCmd.NewMemoryCmd())         // Memory command
+	rootCmd.AddCommand(stackCmd.NewStackCommand())       // Stack command (new multi-agent orchestration)
+	rootCmd.AddCommand(compose.NewComposeCmd())          // Compose command (deprecated, use 'stack' instead)
 	rootCmd.AddCommand(system.NewSystemCmd())            // System command
 }

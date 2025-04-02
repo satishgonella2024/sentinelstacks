@@ -3,5 +3,5 @@ package main
 
 import (
 	// Use local import for our network module
-	_ "github.com/subrahmanyagonella/the-repo/sentinelstacks/network-module/pkg/network"
+	_ "github.com/satishgonella2024/sentinelstacks/network-module/pkg/network"
 )

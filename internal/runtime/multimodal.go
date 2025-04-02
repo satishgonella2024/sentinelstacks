@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/sentinelstacks/sentinel/internal/conversation"
-	"github.com/sentinelstacks/sentinel/internal/multimodal"
-	"github.com/sentinelstacks/sentinel/internal/shim"
+	"github.com/satishgonella2024/sentinelstacks/internal/conversation"
+	"github.com/satishgonella2024/sentinelstacks/internal/multimodal"
+	"github.com/satishgonella2024/sentinelstacks/internal/shim"
 )
 
 // MultimodalAgent extends the Agent struct with multimodal capabilities

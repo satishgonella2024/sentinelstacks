@@ -10,8 +10,8 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/parser"
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/stack"
+	"github.com/satishgonella2024/sentinelstacks/internal/parser"
+	"github.com/satishgonella2024/sentinelstacks/internal/stack"
 )
 
 // NewInspectCommand creates a 'stack inspect' command

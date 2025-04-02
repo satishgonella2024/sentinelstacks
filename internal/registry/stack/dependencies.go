@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/stack"
+	"github.com/satishgonella2024/sentinelstacks/internal/stack"
 )
 
 // DependencyResolver handles resolving and managing stack dependencies

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/sentinelstacks/sentinel/internal/shim"
+	"github.com/satishgonella2024/sentinelstacks/internal/shim"
 )
 
 // AgentStatus represents the status of an agent

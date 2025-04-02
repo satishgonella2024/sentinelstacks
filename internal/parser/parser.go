@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sentinelstacks/sentinel/internal/shim"
-	"github.com/sentinelstacks/sentinel/pkg/agent"
+	"github.com/satishgonella2024/sentinelstacks/internal/shim"
+	"github.com/satishgonella2024/sentinelstacks/pkg/agent"
 )
 
 // SentinelfileParser handles parsing Sentinelfiles

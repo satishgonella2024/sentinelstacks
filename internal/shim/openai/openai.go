@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/sentinelstacks/sentinel/internal/multimodal"
+	"github.com/satishgonella2024/sentinelstacks/internal/multimodal"
 )
 
 // OpenAIShim implements the LLM provider interface for OpenAI

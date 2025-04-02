@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sentinelstacks/sentinel/internal/tools"
+	"github.com/satishgonella2024/sentinelstacks/internal/tools"
 )
 
 // RegisterFileTools registers all file tools

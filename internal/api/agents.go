@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/sentinelstacks/sentinel/internal/runtime"
+	"github.com/satishgonella2024/sentinelstacks/internal/runtime"
 )
 
 // AgentRequest represents a request to create a new agent

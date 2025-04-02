@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sentinelstacks/sentinel/pkg/app"
-	"github.com/sentinelstacks/sentinel/pkg/models"
+	"github.com/satishgonella2024/sentinelstacks/pkg/app"
+	"github.com/satishgonella2024/sentinelstacks/pkg/models"
 	"github.com/spf13/cobra"
 )
 

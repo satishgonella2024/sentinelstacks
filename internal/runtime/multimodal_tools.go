@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sentinelstacks/sentinel/internal/multimodal"
-	"github.com/sentinelstacks/sentinel/internal/tools"
-	"github.com/sentinelstacks/sentinel/pkg/agent"
+	"github.com/satishgonella2024/sentinelstacks/internal/multimodal"
+	"github.com/satishgonella2024/sentinelstacks/internal/tools"
+	"github.com/satishgonella2024/sentinelstacks/pkg/agent"
 )
 
 // AddToolsToAgent adds tool capabilities to an agent

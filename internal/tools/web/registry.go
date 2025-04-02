@@ -2,7 +2,7 @@ package web
 
 import (
 	"github.com/spf13/viper"
-	"github.com/sentinelstacks/sentinel/internal/tools"
+	"github.com/satishgonella2024/sentinelstacks/internal/tools"
 )
 
 // RegisterWebTools registers all web tools

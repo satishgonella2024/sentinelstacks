@@ -3,7 +3,7 @@ package network
 import (
 	"fmt"
 
-	"github.com/sentinelstacks/sentinel/cmd/sentinel"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel"
 	"github.com/spf13/cobra"
 )
 

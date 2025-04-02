@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	
-	"github.com/sentinelstacks/sentinel/pkg/models"
+	"github.com/satishgonella2024/sentinelstacks/pkg/models"
 )
 
 // MultiAgentSystemRepository defines the interface for multi-agent system data operations

@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
-	"github.com/sentinelstacks/sentinel/pkg/agent"
+	"github.com/satishgonella2024/sentinelstacks/pkg/agent"
 )
 
 // NewInspectCmd creates a new inspect command

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sentinelstacks/sentinel/internal/tools"
+	"github.com/satishgonella2024/sentinelstacks/internal/tools"
 )
 
 // ReadFileTool implements a tool for reading files

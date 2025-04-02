@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/registry/client"
-	packages "github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/registry/package"
+	"github.com/satishgonella2024/sentinelstacks/internal/registry/client"
+	packages "github.com/satishgonella2024/sentinelstacks/internal/registry/package"
 )
 
 // NewSearchCommand creates a 'stack search' command

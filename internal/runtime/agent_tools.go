@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	
-	"github.com/sentinelstacks/sentinel/internal/multimodal"
-	"github.com/sentinelstacks/sentinel/internal/shim"
-	"github.com/sentinelstacks/sentinel/internal/tools"
-	"github.com/sentinelstacks/sentinel/internal/tools/file"
-	"github.com/sentinelstacks/sentinel/internal/tools/web"
+	"github.com/satishgonella2024/sentinelstacks/internal/multimodal"
+	"github.com/satishgonella2024/sentinelstacks/internal/shim"
+	"github.com/satishgonella2024/sentinelstacks/internal/tools"
+	"github.com/satishgonella2024/sentinelstacks/internal/tools/file"
+	"github.com/satishgonella2024/sentinelstacks/internal/tools/web"
 )
 
 // init registers all tools

@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/registry/security"
+	"github.com/satishgonella2024/sentinelstacks/internal/registry/security"
 )
 
 // PackageType defines the type of content in a package

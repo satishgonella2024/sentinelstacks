@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sentinelstacks/sentinel/internal/multimodal"
+	"github.com/satishgonella2024/sentinelstacks/internal/multimodal"
 )
 
 // Constants for Google AI API

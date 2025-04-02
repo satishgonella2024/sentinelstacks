@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sentinelstacks/sentinel/internal/multimodal"
-	"github.com/sentinelstacks/sentinel/internal/shim/claude"
+	"github.com/satishgonella2024/sentinelstacks/internal/multimodal"
+	"github.com/satishgonella2024/sentinelstacks/internal/shim/claude"
 )
 
 // ClaudeShim is an implementation of LLMShim for Anthropic's Claude models

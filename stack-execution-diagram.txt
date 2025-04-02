@@ -1,0 +1,96 @@
+# SentinelStacks - Stack Execution Flow
+
+┌───────────────┐
+│  Stack File   │
+│  (YAML/JSON)  │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│  Parse Stack  │
+│  Specification│
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│  Build DAG    │
+│  (Dependency  │
+│   Graph)      │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐     ┌───────────────┐
+│ Validate DAG  │─────► Detect Cycles │
+│ Structure     │     │ & Errors      │
+└───────┬───────┘     └───────────────┘
+        │
+        ▼
+┌───────────────┐
+│ Topological   │
+│ Sort          │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│ Initialize    │
+│ State Manager │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│ Find Ready    │◄───────────────┐
+│ Agents        │                │
+└───────┬───────┘                │
+        │                        │
+        ▼                        │
+┌───────────────┐                │
+│ Any Agents    │───No──┐        │
+│ Ready?        │       │        │
+└───────┬───────┘       │        │
+        │                │        │
+       Yes               │        │
+        │                ▼        │
+        ▼         ┌─────────────┐ │
+┌───────────────┐ │ All Agents  │ │
+│ Execute Agent │ │ Complete?   │ │
+└───────┬───────┘ └──────┬──────┘ │
+        │                │        │
+        │               Yes       │
+        ▼                │        │
+┌───────────────┐        │        │
+│ Update Agent  │        │        │
+│ State         │        │        │
+└───────┬───────┘        │        │
+        │                ▼        │
+        │         ┌─────────────┐ │
+        │         │ Generate    │ │
+        └────────►│ Execution   │ │
+                  │ Summary     │ │
+                  └─────────────┘ │
+                        │         │
+                        ▼         │
+                  ┌─────────────┐ │
+                  │ Return      │ │
+                  │ Results     │ │
+                  └─────────────┘ │
+                                  │
+                                  │
+┌───────────────┐                 │
+│ Propagate     │                 │
+│ Context       │─────────────────┘
+└───────────────┘
+
+# Stack Execution Process
+
+1. Parse Stack File: Convert YAML/JSON specification into StackSpec struct
+2. Build DAG: Create directed acyclic graph from agent dependencies
+3. Validate DAG: Ensure no circular dependencies exist
+4. Topological Sort: Determine valid execution order
+5. Initialize State: Set up context for inter-agent communication
+6. Execution Loop:
+   a. Find ready agents (all dependencies satisfied)
+   b. Execute agents in parallel where possible
+   c. Update agent states
+   d. Propagate outputs as inputs to dependent agents
+   e. Repeat until all agents complete or fail
+7. Generate Summary: Compile execution statistics and results 

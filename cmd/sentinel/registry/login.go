@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	"github.com/sentinelstacks/sentinel/pkg/registry"
+	"github.com/satishgonella2024/sentinelstacks/pkg/registry"
 )
 
 // NewLoginCmd creates a new login command

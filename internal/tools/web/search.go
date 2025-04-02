@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/sentinelstacks/sentinel/internal/tools"
+	"github.com/satishgonella2024/sentinelstacks/internal/tools"
 )
 
 // SearchTool implements a tool for web search

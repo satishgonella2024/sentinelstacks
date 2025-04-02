@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/registry/format"
-	packages "github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/registry/package"
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/stack"
+	"github.com/satishgonella2024/sentinelstacks/internal/registry/format"
+	packages "github.com/satishgonella2024/sentinelstacks/internal/registry/package"
+	"github.com/satishgonella2024/sentinelstacks/internal/stack"
 )
 
 // RegistryClient handles communication with the registry server

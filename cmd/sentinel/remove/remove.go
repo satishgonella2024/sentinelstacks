@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/sentinelstacks/sentinel/pkg/agent"
+	"github.com/satishgonella2024/sentinelstacks/pkg/agent"
 )
 
 // NewRemoveCmd creates a new remove command

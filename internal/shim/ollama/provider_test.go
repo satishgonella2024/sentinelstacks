@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sentinelstacks/sentinel/internal/multimodal"
+	"github.com/satishgonella2024/sentinelstacks/internal/multimodal"
 )
 
 func TestNewProvider(t *testing.T) {

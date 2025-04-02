@@ -9,8 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/sentinelstacks/sentinel/internal/registry"
-	"github.com/sentinelstacks/sentinel/pkg/agent"
+	"github.com/satishgonella2024/sentinelstacks/internal/registry"
+	"github.com/satishgonella2024/sentinelstacks/pkg/agent"
 )
 
 // NewImagesCmd creates a new images command

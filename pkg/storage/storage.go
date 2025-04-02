@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/sentinelstacks/sentinel/pkg/types"
+	"github.com/satishgonella2024/sentinelstacks/pkg/types"
 )
 
 // Storage handles data persistence

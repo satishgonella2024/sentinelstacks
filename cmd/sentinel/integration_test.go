@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	versionCmd "github.com/sentinelstacks/sentinel/cmd/sentinel/version"
+	versionCmd "github.com/satishgonella2024/sentinelstacks/cmd/sentinel/version"
 )
 
 // TestVersionCommand tests the version command separately with direct output capturing

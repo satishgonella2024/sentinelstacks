@@ -1,0 +1,89 @@
+# SentinelStacks - Agent Lifecycle
+
+┌─────────────────────┐
+│                     │
+│  Natural Language   │
+│  Description        │
+│                     │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│                     │
+│  sentinel init      │
+│  Command            │
+│                     │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│                     │
+│  Sentinelfile       │
+│  Creation           │
+│                     │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐    ┌─────────────────────┐
+│                     │    │                     │
+│  sentinel build     │    │  LLM-Based          │
+│  Command            │───►│  Sentinelfile       │
+│                     │    │  Parsing            │
+└──────────┬──────────┘    │                     │
+           │               └─────────────────────┘
+           ▼
+┌─────────────────────┐
+│                     │
+│  Agent Image        │
+│  Creation           │
+│                     │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐    ┌─────────────────────┐
+│                     │    │                     │
+│  sentinel run       │    │  Agent Runtime      │
+│  Command            │───►│  Environment        │
+│                     │    │                     │
+└──────────┬──────────┘    └─────────────────────┘
+           │
+           ▼
+┌─────────────────────┐
+│                     │
+│  Agent Execution    │
+│  (System Prompt +   │
+│  Prompt Template)   │
+│                     │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐    ┌─────────────────────┐
+│                     │    │                     │
+│  Tool Usage         │◄──►│  Tool Registry      │
+│  & Permissions      │    │  & Permission Mgmt  │
+│                     │    │                     │
+└──────────┬──────────┘    └─────────────────────┘
+           │
+           ▼
+┌─────────────────────┐
+│                     │
+│  Agent Output       │
+│  & State Management │
+│                     │
+└─────────────────────┘
+
+# Agent Lifecycle Stages
+
+1. Definition: Natural language description converted to Sentinelfile
+2. Building: Sentinelfile compiled into agent image
+3. Execution: Agent image loaded and executed in runtime
+4. Processing: Agent interacts with tools based on inputs
+5. Completion: Agent produces outputs and manages state
+
+# Agent Components
+
+- System Prompt: Defines agent personality and core capabilities
+- Prompt Template: Structures inputs for the agent
+- Tool Permissions: Controls what agent can access
+- State Schema: Defines persistent data structure
+- Input/Output Format: Specifies data interchange format 

@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/registry/format"
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/registry/security"
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/internal/stack"
+	"github.com/satishgonella2024/sentinelstacks/internal/registry/format"
+	"github.com/satishgonella2024/sentinelstacks/internal/registry/security"
+	"github.com/satishgonella2024/sentinelstacks/internal/stack"
 )
 
 // PackageBuilder builds SentinelStacks packages in the standard format

@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"github.com/sentinelstacks/sentinel/pkg/agent"
+	"github.com/satishgonella2024/sentinelstacks/pkg/agent"
 )
 
 // Image represents a Sentinel Image

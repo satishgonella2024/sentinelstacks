@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/sentinelstacks/sentinel/pkg/storage"
-	"github.com/sentinelstacks/sentinel/pkg/types"
+	"github.com/satishgonella2024/sentinelstacks/pkg/storage"
+	"github.com/satishgonella2024/sentinelstacks/pkg/types"
 )
 
 // NetworkService provides operations for managing networks

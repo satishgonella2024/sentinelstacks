@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sentinelstacks/sentinel/internal/multimodal"
+	"github.com/satishgonella2024/sentinelstacks/internal/multimodal"
 )
 
 // MockProvider is a mock implementation of the Provider interface

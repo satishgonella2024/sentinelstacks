@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/sentinelstacks/sentinel/internal/registry"
+	"github.com/satishgonella2024/sentinelstacks/internal/registry"
 )
 
 // NewPushCmd creates the push command

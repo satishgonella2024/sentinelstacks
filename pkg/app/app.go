@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sentinelstacks/sentinel/pkg/services"
-	"github.com/sentinelstacks/sentinel/pkg/storage"
+	"github.com/satishgonella2024/sentinelstacks/pkg/services"
+	"github.com/satishgonella2024/sentinelstacks/pkg/storage"
 )
 
 // App represents the main application

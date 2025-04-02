@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	// Import our local network package
-	"github.com/subrahmanyagonella/the-repo/sentinelstacks/network-module/pkg/network"
+	"github.com/satishgonella2024/sentinelstacks/network-module/pkg/network"
 )
 
 func main() {

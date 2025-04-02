@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sentinelstacks/sentinel/pkg/agent"
+	"github.com/satishgonella2024/sentinelstacks/pkg/agent"
 )
 
 // LocalRegistry represents a local registry for Sentinel Images

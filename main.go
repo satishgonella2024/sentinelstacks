@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sentinelstacks/sentinel/cmd/sentinel"
+	"github.com/satishgonella2024/sentinelstacks/cmd/sentinel"
 )
 
 func main() {

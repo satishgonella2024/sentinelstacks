@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 
 	"github.com/spf13/cobra"
-	"github.com/sentinelstacks/sentinel/pkg/app"
+	"github.com/satishgonella2024/sentinelstacks/pkg/app"
 	// Using JSON instead of YAML to avoid dependency issues
 )
 
