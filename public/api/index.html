@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SentinelStacks API Documentation</title>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui.css" />
+  <link rel="icon" type="image/png" href="https://unpkg.com/swagger-ui-dist@4.5.0/favicon-32x32.png" sizes="32x32" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .topbar {
+      background-color: #4a35a9;
+      padding: 15px 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .topbar-title {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .topbar-links {
+      display: flex;
+      gap: 20px;
+    }
+    .topbar-links a {
+      color: white;
+      text-decoration: none;
+    }
+    .topbar-links a:hover {
+      text-decoration: underline;
+    }
+    .version-selector {
+      padding: 5px 10px;
+      background-color: white;
+      border-radius: 4px;
+      color: #4a35a9;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+    #swagger-ui {
+      margin-top: 0;
+    }
+    .swagger-ui .topbar {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-title">SentinelStacks API</div>
+    <div class="topbar-links">
+      <a href="https://github.com/sentinelstacks/sentinel" target="_blank">GitHub</a>
+      <a href="../index.html">Documentation</a>
+      <select class="version-selector" id="version-selector" onchange="changeVersion(this.value)">
+        <option value="swagger.yaml">OpenAPI 3.0</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="swagger-ui"></div>
+
+  <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-bundle.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = function() {
+      // Begin Swagger UI initialization
+      window.ui = SwaggerUIBundle({
+        url: "swagger.yaml",
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout",
+        defaultModelsExpandDepth: -1,  // Hide the models section by default
+        displayRequestDuration: true,
+        defaultModelRendering: 'model',
+        showExtensions: true,
+        showCommonExtensions: true,
+        tagsSorter: 'alpha',
+        operationsSorter: 'alpha'
+      });
+    };
+
+    function changeVersion(url) {
+      window.ui.specActions.updateUrl(url);
+      window.ui.specActions.download(url);
+    }
+  </script>
+</body>
+</html> 

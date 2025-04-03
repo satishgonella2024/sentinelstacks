@@ -148,6 +148,29 @@ inputs := map[string]interface{}{"message": "Hello, world!"}
 results, err := stackService.ExecuteStack(ctx, stackID, inputs)
 ```
 
+### API Documentation
+
+SentinelStacks provides comprehensive REST API documentation:
+
+- **OpenAPI Specification**: Available at `docs/api-reference.yaml`
+- **API Usage Guide**: Details on authentication, memory management, and best practices in `docs/api-usage-guide.md`
+
+To view the interactive API documentation:
+
+```bash
+# Generate API documentation
+./scripts/generate_api_docs.sh
+
+# Serve the API documentation on http://localhost:8082
+./scripts/serve_api_docs.sh
+```
+
+The API includes endpoints for:
+- **Agent Management**: Create, retrieve, update, and delete agents
+- **Memory Management**: Store, retrieve, search, and delete memory entries
+- **Image Registry**: Search, pull, and push agent images
+- **Authentication**: Secure access with JWT tokens
+
 ## Storage
 
 Sentinel Stacks provides persistent storage for:

@@ -1,0 +1,959 @@
+openapi: 3.0.3
+info:
+  title: SentinelStacks API
+  description: |
+    API for managing AI agents, stacks, and memory in SentinelStacks.
+    
+    This API allows you to create, manage, and interact with AI agents, as well as
+    configure memory and vector storage.
+  version: 1.0.0
+  contact:
+    name: SentinelStacks Team
+    url: https://github.com/sentinelstacks/sentinel
+    email: support@sentinelstacks.io
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:8080/v1
+    description: Local development server
+tags:
+  - name: agents
+    description: Agent management operations
+  - name: images
+    description: Image management operations
+  - name: stacks
+    description: Multi-agent stack operations
+  - name: memory
+    description: Memory and vector storage operations
+  - name: registry
+    description: Registry operations for storing and retrieving agent packages
+  - name: auth
+    description: Authentication operations
+  - name: system
+    description: System-level operations
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Authenticate with the API
+      description: Get a JWT token for API access
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              username: "user"
+              password: "password"
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /agents:
+    get:
+      tags:
+        - agents
+      summary: List all agents
+      description: Get a list of all running agents
+      operationId: listAgents
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AgentResponse'
+                example:
+                  agents:
+                    - id: "agent_123"
+                      image: "username/researcher:latest"
+                      status: "running"
+                      created_at: "2023-04-01T12:00:00Z"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - agents
+      summary: Create a new agent
+      description: Create a new agent from an image
+      operationId: createAgent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentRequest'
+      responses:
+        '201':
+          description: Agent created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /agents/{id}:
+    get:
+      tags:
+        - agents
+      summary: Get agent details
+      description: Get details of a specific agent by ID
+      operationId: getAgent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Agent ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - agents
+      summary: Delete an agent
+      description: Stop and delete an agent by ID
+      operationId: deleteAgent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Agent ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+                example:
+                  id: "agent_123"
+                  status: "deleted"
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /agents/{id}/logs:
+    get:
+      tags:
+        - agents
+      summary: Get agent logs
+      description: Get logs for a specific agent
+      operationId: getAgentLogs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Agent ID
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Number of log entries to return (default 100)
+          required: false
+          schema:
+            type: integer
+            default: 100
+        - name: since
+          in: query
+          description: Return logs since timestamp (RFC3339 format)
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LogEntry'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /agents/{id}/chat:
+    get:
+      tags:
+        - agents
+      summary: Connect to agent chat
+      description: Establish a WebSocket connection for chatting with an agent
+      operationId: agentChat
+      parameters:
+        - name: id
+          in: path
+          description: Agent ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '101':
+          description: Switching protocols to WebSocket
+
+  /agents/{id}/events:
+    get:
+      tags:
+        - agents
+      summary: Connect to agent events
+      description: Establish a WebSocket connection for receiving agent events
+      operationId: agentEvents
+      parameters:
+        - name: id
+          in: path
+          description: Agent ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '101':
+          description: Switching protocols to WebSocket
+
+  /images:
+    get:
+      tags:
+        - images
+      summary: List all images
+      description: Get a list of all available agent images
+      operationId: listImages
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  images:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ImageResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /images/{id}:
+    get:
+      tags:
+        - images
+      summary: Get image details
+      description: Get details of a specific image by ID
+      operationId: getImage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Image ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageResponse'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /memory/store:
+    post:
+      tags:
+        - memory
+      summary: Store memory
+      description: Store a key-value pair in agent memory
+      operationId: storeMemory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoryStoreRequest'
+      responses:
+        '200':
+          description: Successfully stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryStoreResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /memory/retrieve:
+    get:
+      tags:
+        - memory
+      summary: Retrieve memory
+      description: Retrieve a value from agent memory by key
+      operationId: retrieveMemory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: agent_id
+          in: query
+          description: Agent ID
+          required: true
+          schema:
+            type: string
+        - name: key
+          in: query
+          description: Memory key
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryRetrieveResponse'
+        '404':
+          description: Key not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /memory/search:
+    get:
+      tags:
+        - memory
+      summary: Search memory
+      description: Search for similar entries in agent memory
+      operationId: searchMemory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: agent_id
+          in: query
+          description: Agent ID
+          required: true
+          schema:
+            type: string
+        - name: query
+          in: query
+          description: Search query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Number of results to return
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: threshold
+          in: query
+          description: Similarity threshold (0.0-1.0)
+          required: false
+          schema:
+            type: number
+            format: float
+            default: 0.7
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemorySearchResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /memory/delete:
+    delete:
+      tags:
+        - memory
+      summary: Delete memory
+      description: Delete a key from agent memory
+      operationId: deleteMemory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: agent_id
+          in: query
+          description: Agent ID
+          required: true
+          schema:
+            type: string
+        - name: key
+          in: query
+          description: Memory key to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryDeleteResponse'
+        '404':
+          description: Key not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /registry/search:
+    get:
+      tags:
+        - registry
+      summary: Search registry
+      description: Search for images in the registry
+      operationId: searchRegistry
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          description: Search query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Maximum number of results
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RegistryImage'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /registry/push:
+    post:
+      tags:
+        - registry
+      summary: Push image
+      description: Push an image to the registry
+      operationId: pushImage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                image_id:
+                  type: string
+                tag:
+                  type: string
+              required:
+                - image_id
+      responses:
+        '200':
+          description: Successfully pushed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  image:
+                    $ref: '#/components/schemas/RegistryImage'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /registry/pull:
+    post:
+      tags:
+        - registry
+      summary: Pull image
+      description: Pull an image from the registry
+      operationId: pullImage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                tag:
+                  type: string
+              required:
+                - name
+      responses:
+        '200':
+          description: Successfully pulled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  image:
+                    $ref: '#/components/schemas/ImageResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      tags:
+        - system
+      summary: API health check
+      description: Check if the API server is running
+      operationId: healthCheck
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  version:
+                    type: string
+                example:
+                  status: "ok"
+                  version: "1.0.0"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from the /auth/login endpoint
+
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "user"
+        password:
+          type: string
+          example: "password"
+      required:
+        - username
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJ..."
+        username:
+          type: string
+          example: "user"
+        expires:
+          type: string
+          format: date-time
+          example: "2023-04-20T12:00:00Z"
+
+    AgentRequest:
+      type: object
+      properties:
+        image:
+          type: string
+          example: "username/agent-name:latest"
+        parameters:
+          type: object
+          additionalProperties: true
+          example:
+            memory_retention: "30d"
+            search_depth: 15
+        environment:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            API_KEY: "your-service-api-key"
+      required:
+        - image
+
+    AgentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "agent_abc123"
+        image:
+          type: string
+          example: "username/agent-name:latest"
+        status:
+          type: string
+          enum: [starting, running, stopping, stopped, error]
+          example: "running"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-03-30T14:00:00Z"
+        memory_usage:
+          type: integer
+          example: 128
+        uptime:
+          type: string
+          example: "1h 30m"
+        endpoints:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            chat: "ws://localhost:8080/v1/agents/agent_def456/chat"
+            events: "ws://localhost:8080/v1/agents/agent_def456/events"
+
+    ImageResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "sha256:a1b2c3..."
+        name:
+          type: string
+          example: "username/agent-name"
+        tag:
+          type: string
+          example: "latest"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-03-30T12:00:00Z"
+        size:
+          type: integer
+          example: 1024
+        llm:
+          type: string
+          example: "claude-3-sonnet"
+        capabilities:
+          type: array
+          items:
+            type: string
+          example: ["web_search", "document_analysis"]
+        parameters:
+          type: object
+          additionalProperties: true
+          example:
+            memory_retention: "7d"
+            search_depth: 10
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            description: "An agent that helps with research tasks"
+            author: "username"
+            version: "1.0.0"
+
+    LogEntry:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2023-03-31T09:01:00Z"
+        level:
+          type: string
+          enum: [debug, info, warning, error]
+          example: "info"
+        message:
+          type: string
+          example: "Agent initialized successfully"
+
+    MemoryStoreRequest:
+      type: object
+      properties:
+        agent_id:
+          type: string
+          example: "agent_abc123"
+        key:
+          type: string
+          example: "user_preference"
+        value:
+          type: object
+          example: "dark_mode"
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            timestamp: "2023-04-01T12:00:00Z"
+            source: "user_input"
+      required:
+        - agent_id
+        - key
+        - value
+
+    MemoryStoreResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        key:
+          type: string
+          example: "user_preference"
+
+    MemoryRetrieveResponse:
+      type: object
+      properties:
+        key:
+          type: string
+          example: "user_preference"
+        value:
+          type: object
+          example: "dark_mode"
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            timestamp: "2023-04-01T12:00:00Z"
+            source: "api"
+
+    MemorySearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemorySearchResult'
+
+    MemorySearchResult:
+      type: object
+      properties:
+        key:
+          type: string
+          example: "meeting_notes"
+        score:
+          type: number
+          format: float
+          example: 0.92
+        value:
+          type: object
+          example: "Example memory result that matched the query"
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            timestamp: "2023-04-01T12:00:00Z"
+            source: "api"
+
+    MemoryDeleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        key:
+          type: string
+          example: "user_preference"
+
+    RegistryImage:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "username/agent-name"
+        tag:
+          type: string
+          example: "latest"
+        description:
+          type: string
+          example: "A research assistant agent"
+        author:
+          type: string
+          example: "username"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-03-30T12:00:00Z"
+        downloads:
+          type: integer
+          example: 42
+        stars:
+          type: integer
+          example: 5
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Resource not found" 
