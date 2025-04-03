@@ -167,7 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
             <li key={item.name}>
               <NavLink
                 to={item.path}
-                className={({ isActive }) =>
+                className={({ isActive }: { isActive: boolean }) =>
                   `flex items-center px-4 py-3 text-sm font-medium transition-colors ${
                     isActive
                       ? 'text-white bg-primary-700 bg-opacity-40'
@@ -186,7 +186,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       <div className="absolute bottom-0 w-full border-t border-gray-800 p-4">
         <NavLink
           to="/settings"
-          className={({ isActive }) =>
+          className={({ isActive }: { isActive: boolean }) =>
             `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
               isActive
                 ? 'text-white bg-primary-700 bg-opacity-40'
