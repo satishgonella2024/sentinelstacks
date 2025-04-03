@@ -64,6 +64,7 @@ nav:
     - Quick Start: user-guides/quick_start.md
     - LLM Providers: user-guides/llm_providers.md
     - Advanced Agents: user-guides/advanced_agents.md
+    - Agent Tools: user-guides/agent_tools.md
     - Registry Management: user-guides/registry_guide.md
     - Multimodal Support: usage/multimodal.md
   - Examples:
