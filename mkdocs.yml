@@ -60,10 +60,6 @@ nav:
     - Stackfile Specification: architecture/stackfile_spec.md
     - Shim Architecture: architecture/shim_architecture.md
     - Visualizations: visualizations/README.md
-  - API:
-    - Overview: api/index.md
-    - OpenAPI Specification: api-reference.yaml
-    - Usage Guide: api-usage-guide.md
   - User Guides:
     - Getting Started: user-guides/README.md
     - Quick Start: user-guides/quick_start.md
@@ -82,7 +78,6 @@ nav:
     - NLP Generator: examples/nlp-generator.md
   - Development:
     - Git Strategy: development/git_strategy.md
-    - GitHub Pages: GITHUB_PAGES.md
   - Planning:
     - Roadmap: planning/roadmap.md
     - Progress Tracker: planning/progress_tracker.md
