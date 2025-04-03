@@ -4,39 +4,50 @@
 *.dll
 *.so
 *.dylib
+*.test
+*.out
 bin/
 dist/
 
 # Test binary, built with `go test -c`
 *.test
 
-# Output of the go coverage tool
+# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-coverage.html
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
 
 # Go workspace file
 go.work
-go.work.sum
 
-# IDE files
+# IDE specific files
 .idea/
 .vscode/
 *.swp
 *.swo
-
-# OS specific files
 .DS_Store
-Thumbs.db
 
-# Environment variables
+# Project specific
+data/
+*.log
 .env
 .env.local
+.env.*.local
 
-# Node modules
-**/node_modules/
+# Build artifacts
+build/
+*.tar.gz
+*.zip
 
-# SentinelStacks specific
-.sentinel/
+# Temporary files
+tmp/
+temp/
+
+# Coverage tools
+*.cover
+*.prof
+
+# Binary and log files
+example
+example_app

@@ -1,75 +1,117 @@
-# Contributing to SentinelStacks
+# Contributing to Sentinel Stacks
 
-Thank you for your interest in contributing to SentinelStacks! This document provides guidelines and instructions for contributing to the project.
-
-## Code of Conduct
-
-Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) to foster an inclusive and respectful community.
-
-## Getting Started
-
-1. Fork the repository on GitHub
-2. Clone your fork locally: `git clone https://github.com/your-username/sentinel.git`
-3. Add the upstream repository: `git remote add upstream https://github.com/sentinelstacks/sentinel.git`
-4. Create a new branch for your feature or bugfix: `git checkout -b feature/my-feature`
-5. Make your changes, following our code style and commit guidelines
-6. Push your branch to your fork: `git push origin feature/my-feature`
-7. Open a Pull Request from your fork to the main repository
-
-## Development Setup
-
-Make sure you have the following installed:
-- Go (version 1.21 or later)
-- Git
-
-Install dependencies:
-```bash
-go mod download
-```
-
-Build the project:
-```bash
-go build -o bin/sentinel ./cmd/sentinel
-```
+Thank you for your interest in contributing to Sentinel Stacks! This document provides guidelines and instructions for contributing to the project.
 
 ## Git Workflow
 
-Please follow our [Git workflow strategy](docs/development/git_strategy.md) when making contributions. Key points:
-
-- Use feature branches named according to our convention
-- Follow our commit message format
-- Keep PRs focused on a single change
-- Rebase your branch on upstream main before submitting a PR
-
-## Testing
-
-All contributions should include appropriate tests. Run the tests to ensure your changes don't break existing functionality:
-
-```bash
-go test ./...
+### Branch Structure
+```
+main (production)
+└── develop (integration)
+    ├── feature/* (new features)
+    ├── release/* (release preparation)
+    └── hotfix/* (urgent fixes)
 ```
 
-For more detailed testing instructions, see the [testing guide](docs/development/testing.md).
+### Branch Naming Conventions
+- Feature branches: `feature/description` (e.g., `feature/memory-plugins`)
+- Release branches: `release/v1.0.0`
+- Hotfix branches: `hotfix/description`
 
-## Documentation
+### Workflow Process
+1. New features branch from `develop`
+2. Feature branches merge back to `develop`
+3. Releases branch from `develop`
+4. Hotfixes branch from `main`
+5. `develop` merges to `main` for releases
 
-If your changes require updates to documentation, please include them in the same PR. Documentation is written in Markdown and stored in the `docs/` directory.
+### Commit Message Convention
+```
+type(scope): description
 
-## Submitting a Pull Request
+Types:
+- feat: new feature
+- fix: bug fix
+- docs: documentation changes
+- style: formatting, missing semicolons, etc.
+- refactor: code refactoring
+- test: adding tests
+- chore: maintenance
+```
 
-1. Make sure your code is properly tested
-2. Ensure your commits follow our commit guidelines
-3. Update documentation as necessary
-4. Fill out the PR template completely
-5. Request a review from a maintainer
+## Development Process
+
+1. **Create a Feature Branch**
+   ```bash
+   git checkout develop
+   git pull origin develop
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make Changes**
+   - Write code
+   - Add tests
+   - Update documentation
+   - Follow the code style guidelines
+
+3. **Commit Changes**
+   ```bash
+   git add .
+   git commit -m "feat(scope): description of changes"
+   ```
+
+4. **Push Changes**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+5. **Create Pull Request**
+   - Create a PR from your feature branch to `develop`
+   - Ensure all tests pass
+   - Request review from team members
+
+## Code Style Guidelines
+
+1. **Go Code**
+   - Follow the [Effective Go](https://golang.org/doc/effective_go.html) guidelines
+   - Use `gofmt` for formatting
+   - Run `go vet` before committing
+
+2. **Documentation**
+   - Document all exported types and functions
+   - Keep comments clear and concise
+   - Update README.md for significant changes
+
+3. **Testing**
+   - Write unit tests for new features
+   - Ensure test coverage doesn't decrease
+   - Use table-driven tests where appropriate
+
+## Pull Request Process
+
+1. **Before Submitting**
+   - Ensure all tests pass
+   - Update documentation
+   - Rebase on latest develop branch
+   - Squash commits if necessary
+
+2. **PR Description**
+   - Describe the changes
+   - Reference related issues
+   - List any breaking changes
+   - Provide testing instructions
+
+3. **Review Process**
+   - Address reviewer comments
+   - Update PR as needed
+   - Get approval from at least one reviewer
 
 ## Getting Help
 
-If you have questions or need help with the contribution process, you can:
-- Open an issue with your question
-- Ask in our community chat/forum
-- Reach out to the maintainers directly
+- Open an issue for questions or problems
+- Join our community chat
+- Check the documentation
 
 ## License
 
-By contributing to SentinelStacks, you agree that your contributions will be licensed under the project's [MIT License](LICENSE). 
+By contributing to Sentinel Stacks, you agree that your contributions will be licensed under the project's license. 
