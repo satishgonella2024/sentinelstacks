@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SentinelStacks API Documentation</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #redoc-container {
+        height: 100vh;
+      }
+      .menu-content img {
+        max-width: 200px;
+        display: block;
+        margin: 12px auto;
+      }
+      .api-info, .api-info h1 {
+        font-family: 'Montserrat', sans-serif !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="redoc-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"></script>
+    <script>
+      Redoc.init(
+        '/swagger/doc.json',
+        {
+          hideDownloadButton: false,
+          hideHostname: false,
+          pathInMiddlePanel: true,
+          requiredPropsFirst: true,
+          scrollYOffset: 0,
+          sortPropsAlphabetically: false,
+          theme: {
+            colors: {
+              primary: {
+                main: '#2C68B0'
+              }
+            },
+            typography: {
+              fontFamily: '"Roboto", sans-serif',
+              headings: {
+                fontFamily: '"Montserrat", sans-serif',
+                fontWeight: 600
+              }
+            }
+          }
+        },
+        document.getElementById('redoc-container')
+      );
+    </script>
+  </body>
+</html> 

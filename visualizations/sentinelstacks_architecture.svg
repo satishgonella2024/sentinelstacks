@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 650">
+  <!-- Background -->
+  <rect width="900" height="650" fill="#f8f9fa"/>
+  
+  <!-- Title -->
+  <text x="450" y="40" font-family="Arial" font-size="24" font-weight="bold" text-anchor="middle" fill="#212121">SentinelStacks Architecture</text>
+  
+  <!-- User Interfaces -->
+  <rect x="50" y="80" width="800" height="80" rx="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
+  <text x="450" y="110" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#1565c0">User Interfaces</text>
+  
+  <rect x="80" y="100" width="120" height="40" rx="5" fill="#bbdefb" stroke="#1565c0" stroke-width="1"/>
+  <text x="140" y="125" font-family="Arial" font-size="14" text-anchor="middle" fill="#1565c0">Sentinel CLI</text>
+  
+  <rect x="240" y="100" width="120" height="40" rx="5" fill="#bbdefb" stroke="#1565c0" stroke-width="1"/>
+  <text x="300" y="125" font-family="Arial" font-size="14" text-anchor="middle" fill="#1565c0">Sentinel Desktop</text>
+  
+  <rect x="400" y="100" width="120" height="40" rx="5" fill="#bbdefb" stroke="#1565c0" stroke-width="1"/>
+  <text x="460" y="125" font-family="Arial" font-size="14" text-anchor="middle" fill="#1565c0">Sentinel API</text>
+  
+  <rect x="560" y="100" width="120" height="40" rx="5" fill="#bbdefb" stroke="#1565c0" stroke-width="1"/>
+  <text x="620" y="125" font-family="Arial" font-size="14" text-anchor="middle" fill="#1565c0">Sentinel Orchestra</text>
+  
+  <rect x="700" y="100" width="120" height="40" rx="5" fill="#bbdefb" stroke="#1565c0" stroke-width="1"/>
+  <text x="760" y="125" font-family="Arial" font-size="14" text-anchor="middle" fill="#1565c0">Sentinel SDK</text>
+  
+  <!-- Core Services -->
+  <rect x="50" y="180" width="800" height="120" rx="5" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="450" y="210" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#2e7d32">Core Services</text>
+  
+  <rect x="80" y="230" width="120" height="40" rx="5" fill="#c8e6c9" stroke="#2e7d32" stroke-width="1"/>
+  <text x="140" y="255" font-family="Arial" font-size="14" text-anchor="middle" fill="#2e7d32">NLP Parser</text>
+  
+  <rect x="240" y="230" width="120" height="40" rx="5" fill="#c8e6c9" stroke="#2e7d32" stroke-width="1"/>
+  <text x="300" y="255" font-family="Arial" font-size="14" text-anchor="middle" fill="#2e7d32">Image Builder</text>
+  
+  <rect x="400" y="230" width="120" height="40" rx="5" fill="#c8e6c9" stroke="#2e7d32" stroke-width="1"/>
+  <text x="460" y="255" font-family="Arial" font-size="14" text-anchor="middle" fill="#2e7d32">agentd</text>
+  
+  <rect x="560" y="230" width="120" height="40" rx="5" fill="#c8e6c9" stroke="#2e7d32" stroke-width="1"/>
+  <text x="620" y="255" font-family="Arial" font-size="14" text-anchor="middle" fill="#2e7d32">Registry Service</text>
+  
+  <rect x="700" y="230" width="120" height="40" rx="5" fill="#c8e6c9" stroke="#2e7d32" stroke-width="1"/>
+  <text x="760" y="255" font-family="Arial" font-size="14" text-anchor="middle" fill="#2e7d32">Auth Service</text>
+  
+  <!-- Runtime Environment -->
+  <rect x="50" y="320" width="800" height="120" rx="5" fill="#fff3e0" stroke="#e65100" stroke-width="2"/>
+  <text x="450" y="350" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#e65100">Runtime Environment</text>
+  
+  <rect x="80" y="370" width="120" height="40" rx="5" fill="#ffe0b2" stroke="#e65100" stroke-width="1"/>
+  <text x="140" y="395" font-family="Arial" font-size="14" text-anchor="middle" fill="#e65100">Sentinel Runtime</text>
+  
+  <rect x="240" y="370" width="120" height="40" rx="5" fill="#ffe0b2" stroke="#e65100" stroke-width="1"/>
+  <text x="300" y="395" font-family="Arial" font-size="14" text-anchor="middle" fill="#e65100">Sentinel Shim</text>
+  
+  <rect x="400" y="370" width="120" height="40" rx="5" fill="#ffe0b2" stroke="#e65100" stroke-width="1"/>
+  <text x="460" y="395" font-family="Arial" font-size="14" text-anchor="middle" fill="#e65100">State Manager</text>
+  
+  <rect x="560" y="370" width="120" height="40" rx="5" fill="#ffe0b2" stroke="#e65100" stroke-width="1"/>
+  <text x="620" y="395" font-family="Arial" font-size="14" text-anchor="middle" fill="#e65100">Tool Coordinator</text>
+  
+  <rect x="700" y="370" width="120" height="40" rx="5" fill="#ffe0b2" stroke="#e65100" stroke-width="1"/>
+  <text x="760" y="395" font-family="Arial" font-size="14" text-anchor="middle" fill="#e65100">Agent Networks</text>
+  
+  <!-- External Integrations -->
+  <rect x="50" y="460" width="800" height="120" rx="5" fill="#e1f5fe" stroke="#0277bd" stroke-width="2"/>
+  <text x="450" y="490" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#0277bd">External Integrations</text>
+  
+  <rect x="80" y="510" width="120" height="40" rx="5" fill="#b3e5fc" stroke="#0277bd" stroke-width="1"/>
+  <text x="140" y="535" font-family="Arial" font-size="14" text-anchor="middle" fill="#0277bd">Claude API</text>
+  
+  <rect x="240" y="510" width="120" height="40" rx="5" fill="#b3e5fc" stroke="#0277bd" stroke-width="1"/>
+  <text x="300" y="535" font-family="Arial" font-size="14" text-anchor="middle" fill="#0277bd">OpenAI API</text>
+  
+  <rect x="400" y="510" width="120" height="40" rx="5" fill="#b3e5fc" stroke="#0277bd" stroke-width="1"/>
+  <text x="460" y="535" font-family="Arial" font-size="14" text-anchor="middle" fill="#0277bd">Llama API</text>
+  
+  <rect x="560" y="510" width="120" height="40" rx="5" fill="#b3e5fc" stroke="#0277bd" stroke-width="1"/>
+  <text x="620" y="535" font-family="Arial" font-size="14" text-anchor="middle" fill="#0277bd">External Tools</text>
+  
+  <rect x="700" y="510" width="120" height="40" rx="5" fill="#b3e5fc" stroke="#0277bd" stroke-width="1"/>
+  <text x="760" y="535" font-family="Arial" font-size="14" text-anchor="middle" fill="#0277bd">3rd Party Services</text>
+  
+  <!-- Infrastructure -->
+  <rect x="50" y="600" width="800" height="30" rx="5" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2"/>
+  <text x="450" y="620" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#7b1fa2">Infrastructure (Kubernetes, Docker, Cloud Services)</text>
+  
+  <!-- Connections -->
+  <!-- Interfaces to Core -->
+  <path d="M 140 140 L 140 230" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 300 140 L 300 230" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 460 140 L 460 230" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 620 140 L 620 230" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 760 140 L 760 230" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  
+  <!-- Core to Runtime -->
+  <path d="M 140 270 L 140 370" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 300 270 L 300 370" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 460 270 L 460 370" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 620 270 L 620 370" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 760 270 L 760 370" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  
+  <!-- Runtime to Integrations -->
+  <path d="M 140 410 L 140 510" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 300 410 L 300 510" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 460 410 L 460 510" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 620 410 L 620 510" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 760 410 L 760 510" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  
+  <!-- Integrations to Infrastructure -->
+  <path d="M 140 550 L 140 600" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 300 550 L 300 600" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 460 550 L 460 600" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 620 550 L 620 600" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+  <path d="M 760 550 L 760 600" stroke="#616161" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
+</svg>

@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200">
+  <!-- Definitions for gradients and effects -->
+  <defs>
+    <!-- Primary gradient for the shield -->
+    <linearGradient id="shield-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F2E68" />
+      <stop offset="100%" stop-color="#0062FF" />
+    </linearGradient>
+    
+    <!-- Stack element gradients with enterprise feel -->
+    <linearGradient id="stack-gradient-1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1A56DB" />
+      <stop offset="100%" stop-color="#2F7EF7" />
+    </linearGradient>
+    
+    <linearGradient id="stack-gradient-2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#155ECC" />
+      <stop offset="100%" stop-color="#2872E8" />
+    </linearGradient>
+    
+    <linearGradient id="stack-gradient-3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1065BF" />
+      <stop offset="100%" stop-color="#2166D9" />
+    </linearGradient>
+    
+    <!-- Subtle shadow for depth -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#0A1F3D" flood-opacity="0.3"/>
+    </filter>
+    
+    <!-- Light reflection effect -->
+    <linearGradient id="reflection" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main logo container -->
+  <g>
+    <!-- Logo mark (left side) -->
+    <g transform="translate(50, 50)">
+      <!-- Stacks elements (more refined and professional) -->
+      <g filter="url(#shadow)">
+        <!-- Bottom stack -->
+        <rect x="0" y="80" width="100" height="20" rx="4" fill="url(#stack-gradient-1)" />
+        
+        <!-- Middle stack -->
+        <rect x="10" y="60" width="100" height="20" rx="4" fill="url(#stack-gradient-2)" />
+        
+        <!-- Top stack -->
+        <rect x="20" y="40" width="100" height="20" rx="4" fill="url(#stack-gradient-3)" />
+        
+        <!-- Sentinel shield (modernized) -->
+        <path d="M70 0 
+                 L110 25 
+                 L110 75 
+                 L70 100 
+                 L30 75 
+                 L30 25 Z" 
+              fill="url(#shield-gradient)" />
+        
+        <!-- Shield reflection overlay -->
+        <path d="M70 0 
+                 L110 25 
+                 L110 75 
+                 L70 100 
+                 L30 75 
+                 L30 25 Z" 
+              fill="url(#reflection)" />
+        
+        <!-- Abstract eye/scanner shape inside shield -->
+        <circle cx="70" cy="50" r="15" fill="#FFFFFF" opacity="0.95" />
+        <circle cx="70" cy="50" r="8" fill="#0F2E68" />
+        <circle cx="73" cy="47" r="3" fill="#FFFFFF" opacity="0.8" />
+      </g>
+    </g>
+    
+    <!-- Wordmark (right side) -->
+    <g transform="translate(200, 100)">
+      <!-- SentinelStacks - modern san-serif with custom letter spacing -->
+      <text font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="46" letter-spacing="0.5" fill="#0A1F3D">
+        SentinelStacks
+      </text>
+      
+      <!-- Tagline with enterprise positioning -->
+      <text font-family="Arial, Helvetica, sans-serif" font-weight="400" font-size="18" letter-spacing="1.2" fill="#526B99" x="3" y="35">
+        ENTERPRISE AI AGENT MANAGEMENT
+      </text>
+    </g>
+  </g>
+</svg>
