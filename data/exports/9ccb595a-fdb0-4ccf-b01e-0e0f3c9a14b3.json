@@ -1,0 +1,39 @@
+{
+  "Name": "example-stack",
+  "Description": "A sample stack for demonstration (Updated)",
+  "Version": "1.0.0",
+  "Type": "default",
+  "Agents": [
+    {
+      "ID": "agent1",
+      "Uses": "echo",
+      "Depends": null,
+      "InputFrom": null,
+      "With": {
+        "message": "Hello from Agent 1"
+      }
+    },
+    {
+      "ID": "agent2",
+      "Uses": "transform",
+      "Depends": null,
+      "InputFrom": [
+        "agent1"
+      ],
+      "With": {
+        "operation": "uppercase"
+      }
+    },
+    {
+      "ID": "agent3",
+      "Uses": "output",
+      "Depends": null,
+      "InputFrom": [
+        "agent2"
+      ],
+      "With": {
+        "format": "json"
+      }
+    }
+  ]
+}

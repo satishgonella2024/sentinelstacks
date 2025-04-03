@@ -15,17 +15,7 @@ import (
 	"time"
 
 	"github.com/satishgonella2024/sentinelstacks/internal/registry/security"
-)
-
-// PackageType defines the type of content in a package
-type PackageType string
-
-const (
-	// PackageTypeAgent represents an agent package
-	PackageTypeAgent PackageType = "agent"
-	
-	// PackageTypeStack represents a stack package
-	PackageTypeStack PackageType = "stack"
+	"github.com/satishgonella2024/sentinelstacks/pkg/types"
 )
 
 // FileType defines the type of file in a package
@@ -50,17 +40,17 @@ const (
 
 // PackageManifest contains metadata about a package
 type PackageManifest struct {
-	Name          string            `json:"name"`
-	Version       string            `json:"version"`
-	Type          PackageType       `json:"type"`
-	Description   string            `json:"description"`
-	Author        string            `json:"author"`
-	Created       time.Time         `json:"created"`
-	Files         []FileInfo        `json:"files"`
-	Dependencies  []Dependency      `json:"dependencies"`
-	Signatures    []SignatureRecord `json:"signatures"`
-	SchemaVersion string            `json:"schemaVersion"`
-	Labels        map[string]string `json:"labels,omitempty"`
+	Name          string                 `json:"name"`
+	Version       string                 `json:"version"`
+	Type          types.PackageType      `json:"type"`
+	Description   string                 `json:"description"`
+	Author        string                 `json:"author"`
+	Created       time.Time              `json:"created"`
+	Files         []FileInfo             `json:"files"`
+	Dependencies  []types.Dependency     `json:"dependencies"`
+	Signatures    []SignatureRecord      `json:"signatures"`
+	SchemaVersion string                 `json:"schemaVersion"`
+	Labels        map[string]string      `json:"labels,omitempty"`
 }
 
 // FileInfo represents a file in the package
@@ -70,14 +60,6 @@ type FileInfo struct {
 	SHA256   string   `json:"sha256"`
 	IsMain   bool     `json:"isMain"`
 	Type     FileType `json:"type"`
-}
-
-// Dependency represents a dependency on another package
-type Dependency struct {
-	Name     string      `json:"name"`
-	Version  string      `json:"version"`
-	Type     PackageType `json:"type"`
-	Required bool        `json:"required"`
 }
 
 // SignatureRecord represents a stored signature
@@ -98,7 +80,7 @@ type SentinelPackage struct {
 }
 
 // NewSentinelPackage creates a new sentinel package
-func NewSentinelPackage(pkgType PackageType, name, version, description, author string) *SentinelPackage {
+func NewSentinelPackage(pkgType types.PackageType, name, version, description, author string) *SentinelPackage {
 	return &SentinelPackage{
 		Manifest: PackageManifest{
 			Name:          name,
@@ -108,7 +90,7 @@ func NewSentinelPackage(pkgType PackageType, name, version, description, author 
 			Author:        author,
 			Created:       time.Now().UTC(),
 			Files:         []FileInfo{},
-			Dependencies:  []Dependency{},
+			Dependencies:  []types.Dependency{},
 			Signatures:    []SignatureRecord{},
 			SchemaVersion: "1.0",
 			Labels:        make(map[string]string),
@@ -185,8 +167,8 @@ func (p *SentinelPackage) AddDirectory(sourceDirPath, targetPrefix string) error
 }
 
 // AddDependency adds a dependency to the package
-func (p *SentinelPackage) AddDependency(name, version string, depType PackageType, required bool) {
-	p.Manifest.Dependencies = append(p.Manifest.Dependencies, Dependency{
+func (p *SentinelPackage) AddDependency(name, version string, depType types.PackageType, required bool) {
+	p.Manifest.Dependencies = append(p.Manifest.Dependencies, types.Dependency{
 		Name:     name,
 		Version:  version,
 		Type:     depType,
@@ -445,6 +427,34 @@ func (p *SentinelPackage) GetMainFiles() []FileInfo {
 	}
 	
 	return mainFiles
+}
+
+// ToPackageInfo converts to a types.PackageInfo
+func (p *SentinelPackage) ToPackageInfo() types.PackageInfo {
+	tags := make([]string, 0, len(p.Manifest.Labels))
+	for key, value := range p.Manifest.Labels {
+		tags = append(tags, fmt.Sprintf("%s:%s", key, value))
+	}
+
+	// Create metadata map
+	metadata := map[string]interface{}{
+		"schemaVersion": p.Manifest.SchemaVersion,
+		"fileCount":     len(p.Manifest.Files),
+		"signed":        len(p.Manifest.Signatures) > 0,
+	}
+
+	return types.PackageInfo{
+		Name:         p.Manifest.Name,
+		Version:      p.Manifest.Version,
+		Type:         p.Manifest.Type,
+		Description:  p.Manifest.Description,
+		Author:       p.Manifest.Author,
+		CreatedAt:    p.Manifest.Created,
+		UpdatedAt:    p.Manifest.Created, // Use created as updated for now
+		Tags:         tags,
+		Dependencies: p.Manifest.Dependencies,
+		Metadata:     metadata,
+	}
 }
 
 // calculateFileSHA256 calculates SHA256 hash of a file

@@ -6,75 +6,83 @@ import (
 	"sync"
 	"time"
 
-	"github.com/satishgonella2024/sentinelstacks/internal/memory"
-	"github.com/satishgonella2024/sentinelstacks/internal/stack"
+	"github.com/satishgonella2024/sentinelstacks/pkg/types"
 )
 
-// PersistentStateManager implements StateManager using the memory system
+// PersistentStateManager implements types.StateManager using memory stores
 type PersistentStateManager struct {
 	memoryManager *MemoryManager
 	ctx           context.Context
 	stackName     string
 	agentIDs      []string
-	agentStates   map[string]*stack.AgentState
-	summary       *stack.StackExecutionSummary
+	agentStates   map[string]*types.AgentState
+	summary       *types.StackExecutionSummary
 	mu            sync.RWMutex
 }
 
 // NewPersistentStateManager creates a new persistent state manager
-func NewPersistentStateManager(ctx context.Context, stackName string, factory memory.MemoryStoreFactory, stackID, executionID string) (*PersistentStateManager, error) {
+func NewPersistentStateManager(ctx context.Context, stackName string, factory types.MemoryStoreFactory, stackID, executionID string) (*PersistentStateManager, error) {
 	// Create memory manager
-	memoryManager := NewMemoryManager(factory, stackID, executionID)
-	
-	// Create summary
-	summary := &stack.StackExecutionSummary{
-		StackName:     stackName,
-		ExecutionID:   executionID,
-		StartTime:     time.Now(),
-		TotalAgents:   0,
-		CompletedCount: 0,
-		FailedCount:   0,
-		BlockedCount:  0,
-		AgentStates:   make(map[string]*stack.AgentState),
+	memManager, err := NewMemoryManager(ctx, factory, stackID, executionID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create memory manager: %w", err)
 	}
-	
-	return &PersistentStateManager{
-		memoryManager: memoryManager,
+
+	// Create state manager
+	manager := &PersistentStateManager{
+		memoryManager: memManager,
 		ctx:           ctx,
 		stackName:     stackName,
 		agentIDs:      []string{},
-		agentStates:   make(map[string]*stack.AgentState),
-		summary:       summary,
-	}, nil
+		agentStates:   make(map[string]*types.AgentState),
+		summary: &types.StackExecutionSummary{
+			StackName:   stackName,
+			ExecutionID: executionID,
+			StartTime:   time.Now(),
+			AgentStates: make(map[string]*types.AgentState),
+		},
+	}
+
+	// Try to load existing state
+	err = manager.loadState()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load state: %w", err)
+	}
+
+	return manager, nil
 }
 
 // InitializeAgents initializes the state for a list of agents
 func (m *PersistentStateManager) InitializeAgents(agentIDs []string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.agentIDs = agentIDs
 	m.summary.TotalAgents = len(agentIDs)
-	
+
 	// Initialize agent states
 	for _, agentID := range agentIDs {
-		m.agentStates[agentID] = &stack.AgentState{
-			ID:           agentID,
-			Status:       stack.AgentStatusPending,
-			StartTime:    time.Time{},
-			EndTime:      time.Time{},
-			Dependencies: []string{},
+		if _, exists := m.agentStates[agentID]; !exists {
+			m.agentStates[agentID] = &types.AgentState{
+				ID:           agentID,
+				Status:       types.AgentStatusPending,
+				StartTime:    time.Time{},
+				EndTime:      time.Time{},
+				Dependencies: []string{},
+				Inputs:       make(map[string]interface{}),
+				Outputs:      make(map[string]interface{}),
+			}
 		}
 		
 		m.summary.AgentStates[agentID] = m.agentStates[agentID]
 	}
-	
-	// Save initial state
+
+	// Save state
 	m.saveState()
 }
 
 // UpdateAgentStatus updates the status of an agent
-func (m *PersistentStateManager) UpdateAgentStatus(agentID string, status stack.AgentStatus) error {
+func (m *PersistentStateManager) UpdateAgentStatus(agentID string, status types.AgentStatus) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	
@@ -90,22 +98,22 @@ func (m *PersistentStateManager) UpdateAgentStatus(agentID string, status stack.
 	
 	// Update timestamps
 	now := time.Now()
-	if status == stack.AgentStatusRunning && agentState.StartTime.IsZero() {
+	if status == types.AgentStatusRunning && agentState.StartTime.IsZero() {
 		agentState.StartTime = now
-	} else if (status == stack.AgentStatusCompleted || status == stack.AgentStatusFailed) && agentState.EndTime.IsZero() {
+	} else if (status == types.AgentStatusCompleted || status == types.AgentStatusFailed) && agentState.EndTime.IsZero() {
 		agentState.EndTime = now
 	}
 	
 	// Update summary counts
-	if prevStatus == stack.AgentStatusPending && status == stack.AgentStatusRunning {
+	if prevStatus == types.AgentStatusPending && status == types.AgentStatusRunning {
 		// No change in counts
-	} else if prevStatus == stack.AgentStatusRunning && status == stack.AgentStatusCompleted {
+	} else if prevStatus == types.AgentStatusRunning && status == types.AgentStatusCompleted {
 		m.summary.CompletedCount++
-	} else if prevStatus == stack.AgentStatusRunning && status == stack.AgentStatusFailed {
+	} else if prevStatus == types.AgentStatusRunning && status == types.AgentStatusFailed {
 		m.summary.FailedCount++
-	} else if prevStatus == stack.AgentStatusPending && status == stack.AgentStatusBlocked {
+	} else if prevStatus == types.AgentStatusPending && status == types.AgentStatusBlocked {
 		m.summary.BlockedCount++
-	} else if prevStatus == stack.AgentStatusBlocked && status == stack.AgentStatusRunning {
+	} else if prevStatus == types.AgentStatusBlocked && status == types.AgentStatusRunning {
 		m.summary.BlockedCount--
 	}
 	
@@ -128,26 +136,6 @@ func (m *PersistentStateManager) UpdateAgentErrorMessage(agentID string, errorMe
 	
 	// Update error message
 	agentState.ErrorMessage = errorMessage
-	
-	// Save updated state
-	m.saveState()
-	
-	return nil
-}
-
-// UpdateAgentDependencies updates the dependencies for an agent
-func (m *PersistentStateManager) UpdateAgentDependencies(agentID string, dependencies []string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	
-	// Check if agent exists
-	agentState, ok := m.agentStates[agentID]
-	if !ok {
-		return fmt.Errorf("agent not found: %s", agentID)
-	}
-	
-	// Update dependencies
-	agentState.Dependencies = dependencies
 	
 	// Save updated state
 	m.saveState()
@@ -252,12 +240,12 @@ func (m *PersistentStateManager) GetAll(agentID string) (map[string]interface{},
 }
 
 // GetStackSummary gets the current execution summary
-func (m *PersistentStateManager) GetStackSummary() *stack.StackExecutionSummary {
+func (m *PersistentStateManager) GetStackSummary() *types.StackExecutionSummary {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	
 	// Create a copy to avoid concurrent access issues
-	summary := &stack.StackExecutionSummary{
+	summary := &types.StackExecutionSummary{
 		StackName:      m.summary.StackName,
 		ExecutionID:    m.summary.ExecutionID,
 		StartTime:      m.summary.StartTime,
@@ -266,7 +254,7 @@ func (m *PersistentStateManager) GetStackSummary() *stack.StackExecutionSummary 
 		CompletedCount: m.summary.CompletedCount,
 		FailedCount:    m.summary.FailedCount,
 		BlockedCount:   m.summary.BlockedCount,
-		AgentStates:    make(map[string]*stack.AgentState),
+		AgentStates:    make(map[string]*types.AgentState),
 	}
 	
 	// Copy agent states
@@ -276,20 +264,6 @@ func (m *PersistentStateManager) GetStackSummary() *stack.StackExecutionSummary 
 	}
 	
 	return summary
-}
-
-// Close releases all resources
-func (m *PersistentStateManager) Close() error {
-	// Set end time if not already set
-	if m.summary.EndTime.IsZero() {
-		m.summary.EndTime = time.Now()
-	}
-	
-	// Save final state
-	m.saveState()
-	
-	// Close memory manager
-	return m.memoryManager.Close()
 }
 
 // saveState saves the current execution summary to memory
@@ -324,7 +298,7 @@ func (m *PersistentStateManager) loadState() error {
 	}
 	
 	// Convert to summary
-	summary, ok := summaryValue.(*stack.StackExecutionSummary)
+	summary, ok := summaryValue.(*types.StackExecutionSummary)
 	if !ok {
 		return fmt.Errorf("invalid summary format: %T", summaryValue)
 	}

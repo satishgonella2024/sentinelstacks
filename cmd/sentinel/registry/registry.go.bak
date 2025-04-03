@@ -1,0 +1,54 @@
+// Package registry contains commands for interacting with the registry
+package registry
+
+import (
+	"github.com/spf13/cobra"
+)
+
+// NewRegistryCmd creates a new registry command
+func NewRegistryCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "registry",
+		Short: "Manage agent registries",
+		Long:  `Commands for managing agent registries, including push, pull, login, and logout.`,
+	}
+
+	// Add subcommands
+	cmd.AddCommand(NewLoginCmd())
+	cmd.AddCommand(NewLogoutCmd())
+	cmd.AddCommand(NewPushCmd())
+	cmd.AddCommand(NewPullCmd())
+	cmd.AddCommand(NewSearchCmd())
+	cmd.AddCommand(NewTagsCmd())
+
+	return cmd
+}
+
+// NewTagsCmd creates a command to list tags for a package
+func NewTagsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "tags [package-name]",
+		Short: "List available tags for a package",
+		Long:  `List all available tags (versions) for a package in the registry.`,
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return nil // TODO: Implement tags listing
+		},
+	}
+
+	return cmd
+}
+
+// NewLogoutCmd creates a command to log out from the registry
+func NewLogoutCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "logout",
+		Short: "Log out from the registry",
+		Long:  `Log out from the registry, invalidating the current authentication token.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return nil // TODO: Implement logout
+		},
+	}
+
+	return cmd
+}

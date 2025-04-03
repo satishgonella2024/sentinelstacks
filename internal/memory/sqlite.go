@@ -7,36 +7,51 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/satishgonella2024/sentinelstacks/pkg/types"
 )
 
 // SQLiteMemoryStore is a SQLite-backed implementation of MemoryStore
 type SQLiteMemoryStore struct {
 	db        *sql.DB
+	tableName string
 	namespace string
 	ttl       time.Duration
-	tableName string
 }
 
-// NewSQLiteMemoryStore creates a new SQLite-backed store
-func NewSQLiteMemoryStore(config MemoryConfig) (*SQLiteMemoryStore, error) {
-	// Set default connection string if not provided
-	connString := config.ConnectionString
-	if connString == "" {
-		connString = ":memory:"
+// NewSQLiteMemoryStore creates a new SQLite memory store
+func NewSQLiteMemoryStore(config types.MemoryConfig) (*SQLiteMemoryStore, error) {
+	tableName := "memory"
+	if config.CollectionName != "" {
+		// Replace any invalid characters in table name
+		tableName = strings.ReplaceAll(config.CollectionName, "-", "_")
+		tableName = strings.ReplaceAll(tableName, ".", "_")
+		tableName = strings.ReplaceAll(tableName, " ", "_")
 	}
 
-	// Set default table name if not provided
-	tableName := config.CollectionName
-	if tableName == "" {
-		tableName = "memory_store"
+	// Determine storage path
+	storagePath := config.StoragePath
+	if storagePath == "" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get home directory: %w", err)
+		}
+		storagePath = filepath.Join(homeDir, ".sentinel", "memory")
 	}
 
-	// Open database connection
-	db, err := sql.Open("sqlite3", connString)
+	// Ensure directory exists
+	if err := os.MkdirAll(storagePath, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create storage directory: %w", err)
+	}
+
+	// Connect to database
+	dbPath := filepath.Join(storagePath, "memory.db")
+	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
@@ -44,34 +59,32 @@ func NewSQLiteMemoryStore(config MemoryConfig) (*SQLiteMemoryStore, error) {
 	// Create store
 	store := &SQLiteMemoryStore{
 		db:        db,
+		tableName: tableName,
 		namespace: config.Namespace,
 		ttl:       config.TTL,
-		tableName: tableName,
 	}
 
-	// Initialize tables
-	if err := store.initTables(); err != nil {
+	// Initialize database
+	if err := store.initialize(); err != nil {
 		db.Close()
-		return nil, fmt.Errorf("failed to initialize tables: %w", err)
+		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
 
 	return store, nil
 }
 
-// initTables creates the necessary tables if they don't exist
-func (s *SQLiteMemoryStore) initTables() error {
+// initialize creates the necessary tables
+func (s *SQLiteMemoryStore) initialize() error {
+	// Create memory table if it doesn't exist
 	createTableSQL := fmt.Sprintf(`
-	CREATE TABLE IF NOT EXISTS %s (
-		id TEXT PRIMARY KEY,
-		key TEXT NOT NULL,
-		value TEXT NOT NULL,
-		metadata TEXT,
-		created_at TIMESTAMP NOT NULL,
-		updated_at TIMESTAMP NOT NULL
-	);
-	CREATE INDEX IF NOT EXISTS idx_%s_key ON %s(key);
-	CREATE INDEX IF NOT EXISTS idx_%s_updated_at ON %s(updated_at);
-	`, s.tableName, s.tableName, s.tableName, s.tableName, s.tableName)
+		CREATE TABLE IF NOT EXISTS %s (
+			key TEXT PRIMARY KEY,
+			value TEXT NOT NULL,
+			metadata TEXT,
+			created_at INTEGER NOT NULL,
+			updated_at INTEGER NOT NULL
+		)
+	`, s.tableName)
 
 	_, err := s.db.Exec(createTableSQL)
 	return err
@@ -79,36 +92,39 @@ func (s *SQLiteMemoryStore) initTables() error {
 
 // Save stores a value with the given key
 func (s *SQLiteMemoryStore) Save(ctx context.Context, key string, value interface{}) error {
-	fullKey := s.getNamespacedKey(key)
-	now := time.Now().UTC()
+	// Add namespace prefix if specified
+	if s.namespace != "" {
+		key = s.namespace + ":" + key
+	}
 
-	// Convert value to JSON
+	// Serialize value to JSON
 	valueJSON, err := json.Marshal(value)
 	if err != nil {
-		return fmt.Errorf("failed to marshal value: %w", err)
+		return fmt.Errorf("failed to serialize value: %w", err)
 	}
 
-	// Check if key exists
-	var count int
-	err = s.db.QueryRowContext(ctx, fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE id = ?", s.tableName), fullKey).Scan(&count)
+	// Serialize metadata (empty for now)
+	metadataJSON, err := json.Marshal(map[string]interface{}{})
 	if err != nil {
-		return fmt.Errorf("failed to check if key exists: %w", err)
+		return fmt.Errorf("failed to serialize metadata: %w", err)
 	}
 
-	if count > 0 {
-		// Update existing record
-		_, err = s.db.ExecContext(ctx, fmt.Sprintf("UPDATE %s SET value = ?, updated_at = ? WHERE id = ?", s.tableName),
-			string(valueJSON), now, fullKey)
-		if err != nil {
-			return fmt.Errorf("failed to update record: %w", err)
-		}
-	} else {
-		// Insert new record
-		_, err = s.db.ExecContext(ctx, fmt.Sprintf("INSERT INTO %s (id, key, value, metadata, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)", s.tableName),
-			fullKey, key, string(valueJSON), "{}", now, now)
-		if err != nil {
-			return fmt.Errorf("failed to insert record: %w", err)
-		}
+	// Get current timestamp
+	now := time.Now().UnixNano()
+
+	// Upsert value
+	upsertSQL := fmt.Sprintf(`
+		INSERT INTO %s (key, value, metadata, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?)
+		ON CONFLICT(key) DO UPDATE SET
+			value = excluded.value,
+			metadata = excluded.metadata,
+			updated_at = excluded.updated_at
+	`, s.tableName)
+
+	_, err = s.db.ExecContext(ctx, upsertSQL, key, string(valueJSON), string(metadataJSON), now, now)
+	if err != nil {
+		return fmt.Errorf("failed to save value: %w", err)
 	}
 
 	return nil
@@ -116,34 +132,41 @@ func (s *SQLiteMemoryStore) Save(ctx context.Context, key string, value interfac
 
 // Load retrieves a value by key
 func (s *SQLiteMemoryStore) Load(ctx context.Context, key string) (interface{}, error) {
-	fullKey := s.getNamespacedKey(key)
-
-	// Prepare query
-	query := fmt.Sprintf("SELECT value, updated_at FROM %s WHERE id = ?", s.tableName)
-	var args []interface{}
-	args = append(args, fullKey)
-
-	if s.ttl > 0 {
-		expiryTime := time.Now().UTC().Add(-s.ttl)
-		query = fmt.Sprintf("SELECT value, updated_at FROM %s WHERE id = ? AND updated_at > ?", s.tableName)
-		args = append(args, expiryTime)
+	// Add namespace prefix if specified
+	if s.namespace != "" {
+		key = s.namespace + ":" + key
 	}
 
-	// Execute query
-	var valueJSON string
-	var updatedAt time.Time
-	err := s.db.QueryRowContext(ctx, query, args...).Scan(&valueJSON, &updatedAt)
+	// Query value
+	querySQL := fmt.Sprintf(`
+		SELECT value, created_at, updated_at FROM %s
+		WHERE key = ?
+	`, s.tableName)
+
+	var valueStr string
+	var createdAt, updatedAt int64
+	err := s.db.QueryRowContext(ctx, querySQL, key).Scan(&valueStr, &createdAt, &updatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.New("key not found")
+			return nil, fmt.Errorf("key not found: %s", key)
 		}
-		return nil, fmt.Errorf("database error: %w", err)
+		return nil, fmt.Errorf("failed to load value: %w", err)
 	}
 
-	// Parse the value from JSON
+	// Check if entry has expired
+	if s.ttl > 0 {
+		updatedTime := time.Unix(0, updatedAt)
+		if time.Since(updatedTime) > s.ttl {
+			// Remove expired entry
+			s.Delete(ctx, key)
+			return nil, fmt.Errorf("key expired: %s", key)
+		}
+	}
+
+	// Deserialize value from JSON
 	var value interface{}
-	if err := json.Unmarshal([]byte(valueJSON), &value); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal value: %w", err)
+	if err := json.Unmarshal([]byte(valueStr), &value); err != nil {
+		return nil, fmt.Errorf("failed to deserialize value: %w", err)
 	}
 
 	return value, nil
@@ -151,109 +174,93 @@ func (s *SQLiteMemoryStore) Load(ctx context.Context, key string) (interface{}, 
 
 // Delete removes a key-value pair
 func (s *SQLiteMemoryStore) Delete(ctx context.Context, key string) error {
-	fullKey := s.getNamespacedKey(key)
-
-	// Delete the record
-	result, err := s.db.ExecContext(ctx, fmt.Sprintf("DELETE FROM %s WHERE id = ?", s.tableName), fullKey)
-	if err != nil {
-		return fmt.Errorf("failed to delete record: %w", err)
+	// Add namespace prefix if specified
+	if s.namespace != "" {
+		key = s.namespace + ":" + key
 	}
 
-	// Check if anything was deleted
-	rowsAffected, err := result.RowsAffected()
+	// Delete value
+	deleteSQL := fmt.Sprintf(`DELETE FROM %s WHERE key = ?`, s.tableName)
+	_, err := s.db.ExecContext(ctx, deleteSQL, key)
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
-		return errors.New("key not found")
+		return fmt.Errorf("failed to delete value: %w", err)
 	}
 
 	return nil
 }
 
-// Clear removes all keys and values
-func (s *SQLiteMemoryStore) Clear(ctx context.Context) error {
-	var query string
-	var args []interface{}
-
+// List returns all keys with optional prefix filtering
+func (s *SQLiteMemoryStore) List(ctx context.Context, prefix string) ([]string, error) {
+	// Prepare namespace prefix
+	namespacePrefix := ""
 	if s.namespace != "" {
-		// Clear only keys in the namespace
-		query = fmt.Sprintf("DELETE FROM %s WHERE id LIKE ?", s.tableName)
-		args = []interface{}{s.namespace + ":%"}
-	} else {
-		// Clear all keys
-		query = fmt.Sprintf("DELETE FROM %s", s.tableName)
+		namespacePrefix = s.namespace + ":"
 	}
 
-	_, err := s.db.ExecContext(ctx, query, args...)
+	// Combine namespace prefix with query prefix
+	queryPrefix := namespacePrefix + prefix
+	likePattern := queryPrefix + "%"
+
+	// Query keys
+	querySQL := fmt.Sprintf(`
+		SELECT key FROM %s
+		WHERE key LIKE ?
+		ORDER BY key
+	`, s.tableName)
+
+	rows, err := s.db.QueryContext(ctx, querySQL, likePattern)
 	if err != nil {
-		return fmt.Errorf("failed to clear records: %w", err)
-	}
-
-	return nil
-}
-
-// Keys returns all keys in the store
-func (s *SQLiteMemoryStore) Keys(ctx context.Context) ([]string, error) {
-	var query string
-	var args []interface{}
-
-	// Build query based on namespace and TTL
-	if s.namespace != "" {
-		if s.ttl > 0 {
-			expiryTime := time.Now().UTC().Add(-s.ttl)
-			query = fmt.Sprintf("SELECT key FROM %s WHERE id LIKE ? AND updated_at > ? ORDER BY key", s.tableName)
-			args = []interface{}{s.namespace + ":%", expiryTime}
-		} else {
-			query = fmt.Sprintf("SELECT key FROM %s WHERE id LIKE ? ORDER BY key", s.tableName)
-			args = []interface{}{s.namespace + ":%"}
-		}
-	} else {
-		if s.ttl > 0 {
-			expiryTime := time.Now().UTC().Add(-s.ttl)
-			query = fmt.Sprintf("SELECT key FROM %s WHERE updated_at > ? ORDER BY key", s.tableName)
-			args = []interface{}{expiryTime}
-		} else {
-			query = fmt.Sprintf("SELECT key FROM %s ORDER BY key", s.tableName)
-		}
-	}
-
-	// Execute query
-	rows, err := s.db.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query keys: %w", err)
+		return nil, fmt.Errorf("failed to list keys: %w", err)
 	}
 	defer rows.Close()
 
 	// Collect keys
-	var keys []string
+	keys := make([]string, 0)
 	for rows.Next() {
 		var key string
 		if err := rows.Scan(&key); err != nil {
 			return nil, fmt.Errorf("failed to scan key: %w", err)
 		}
+
+		// Remove namespace prefix for returned keys
+		if namespacePrefix != "" && strings.HasPrefix(key, namespacePrefix) {
+			key = key[len(namespacePrefix):]
+		}
+
 		keys = append(keys, key)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating rows: %w", err)
+		return nil, fmt.Errorf("error iterating keys: %w", err)
 	}
 
 	return keys, nil
 }
 
-// Close closes the memory store
-func (s *SQLiteMemoryStore) Close() error {
-	return s.db.Close()
+// Clear removes all data
+func (s *SQLiteMemoryStore) Clear(ctx context.Context) error {
+	// If namespace is specified, only clear data for that namespace
+	if s.namespace != "" {
+		deleteSQL := fmt.Sprintf(`DELETE FROM %s WHERE key LIKE ?`, s.tableName)
+		_, err := s.db.ExecContext(ctx, deleteSQL, s.namespace+":%")
+		if err != nil {
+			return fmt.Errorf("failed to clear data: %w", err)
+		}
+	} else {
+		// Otherwise clear all data
+		deleteSQL := fmt.Sprintf(`DELETE FROM %s`, s.tableName)
+		_, err := s.db.ExecContext(ctx, deleteSQL)
+		if err != nil {
+			return fmt.Errorf("failed to clear data: %w", err)
+		}
+	}
+
+	return nil
 }
 
-// getNamespacedKey adds the namespace prefix to a key
-func (s *SQLiteMemoryStore) getNamespacedKey(key string) string {
-	if s.namespace == "" {
-		return key
-	}
-	return fmt.Sprintf("%s:%s", s.namespace, key)
+// Close releases all resources
+func (s *SQLiteMemoryStore) Close() error {
+	return s.db.Close()
 }
 
 // SQLiteVectorStore extends SQLiteMemoryStore with vector operations
@@ -385,16 +392,16 @@ func (s *SQLiteVectorStore) SaveEmbedding(ctx context.Context, key string, vecto
 		// Update existing vector
 		setStatements := make([]string, s.vectorDimension)
 		updateArgs := make([]interface{}, s.vectorDimension+1)
-		
+
 		for i := 0; i < s.vectorDimension; i++ {
 			setStatements[i] = fmt.Sprintf("dim_%d = ?", i)
 			updateArgs[i] = args[i+1]
 		}
 		updateArgs[s.vectorDimension] = fullKey
 
-		updateSQL := fmt.Sprintf("UPDATE %s SET %s WHERE id = ?", 
+		updateSQL := fmt.Sprintf("UPDATE %s SET %s WHERE id = ?",
 			s.vectorTableName, strings.Join(setStatements, ", "))
-		
+
 		_, err = tx.ExecContext(ctx, updateSQL, updateArgs...)
 		if err != nil {
 			return fmt.Errorf("failed to update vector: %w", err)
@@ -402,10 +409,10 @@ func (s *SQLiteVectorStore) SaveEmbedding(ctx context.Context, key string, vecto
 	} else {
 		// Insert new vector
 		insertSQL := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)",
-			s.vectorTableName, 
-			strings.Join(columns, ", "), 
+			s.vectorTableName,
+			strings.Join(columns, ", "),
 			strings.Join(placeholders, ", "))
-		
+
 		_, err = tx.ExecContext(ctx, insertSQL, args...)
 		if err != nil {
 			return fmt.Errorf("failed to insert vector: %w", err)
@@ -431,35 +438,35 @@ func (s *SQLiteVectorStore) Query(ctx context.Context, vector []float32, topK in
 	// 1. Calculate dot product: SUM(qi * vi) for each dimension
 	// 2. We'll normalize vectors when inserting them, so magnitude is roughly 1
 	// 3. Therefore, dot product approximates cosine similarity
-	
+
 	dotProductTerms := make([]string, s.vectorDimension)
 	args := make([]interface{}, s.vectorDimension)
-	
+
 	for i := 0; i < s.vectorDimension; i++ {
 		dotProductTerms[i] = fmt.Sprintf("(v.dim_%d * ?)", i)
 		args[i] = vector[i]
 	}
-	
+
 	// Build query with filtering by namespace and TTL if needed
 	var queryConditions []string
 	var additionalArgs []interface{}
-	
+
 	if s.namespace != "" {
 		queryConditions = append(queryConditions, "m.id LIKE ?")
 		additionalArgs = append(additionalArgs, s.namespace+":%")
 	}
-	
+
 	if s.ttl > 0 {
 		expiryTime := time.Now().UTC().Add(-s.ttl)
 		queryConditions = append(queryConditions, "m.updated_at > ?")
 		additionalArgs = append(additionalArgs, expiryTime)
 	}
-	
+
 	conditionSQL := ""
 	if len(queryConditions) > 0 {
 		conditionSQL = "WHERE " + strings.Join(queryConditions, " AND ")
 	}
-	
+
 	// Build complete query
 	query := fmt.Sprintf(`
 		SELECT m.key, m.metadata, (%s) as similarity
@@ -469,51 +476,51 @@ func (s *SQLiteVectorStore) Query(ctx context.Context, vector []float32, topK in
 		ORDER BY similarity DESC
 		LIMIT ?
 	`, strings.Join(dotProductTerms, " + "), s.vectorTableName, s.tableName, conditionSQL)
-	
+
 	// Add all args
 	queryArgs := append(args, additionalArgs...)
-	
+
 	// Add limit
 	if topK <= 0 {
 		topK = 10 // Default limit
 	}
 	queryArgs = append(queryArgs, topK)
-	
+
 	// Execute query
 	rows, err := s.db.QueryContext(ctx, query, queryArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", err)
 	}
 	defer rows.Close()
-	
+
 	// Process results
 	var results []SimilarityMatch
 	for rows.Next() {
 		var key string
 		var metadataJSON string
 		var similarity float32
-		
+
 		if err := rows.Scan(&key, &metadataJSON, &similarity); err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
-		
+
 		// Parse metadata
 		var metadata map[string]interface{}
 		if err := json.Unmarshal([]byte(metadataJSON), &metadata); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal metadata: %w", err)
 		}
-		
+
 		results = append(results, SimilarityMatch{
 			Key:      key,
 			Score:    similarity,
 			Metadata: metadata,
 		})
 	}
-	
+
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating rows: %w", err)
 	}
-	
+
 	return results, nil
 }
 
@@ -564,16 +571,24 @@ func normalizeVector(vector []float32) []float32 {
 	for _, v := range vector {
 		sum += v * v
 	}
-	
+
 	magnitude := float32(math.Sqrt(float64(sum)))
 	if magnitude == 0 {
 		return vector
 	}
-	
+
 	normalized := make([]float32, len(vector))
 	for i, v := range vector {
 		normalized[i] = v / magnitude
 	}
-	
+
 	return normalized
+}
+
+// getNamespacedKey adds the namespace prefix to a key
+func (s *SQLiteMemoryStore) getNamespacedKey(key string) string {
+	if s.namespace == "" {
+		return key
+	}
+	return fmt.Sprintf("%s:%s", s.namespace, key)
 }

@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/satishgonella2024/sentinelstacks/internal/stack"
+	"github.com/satishgonella2024/sentinelstacks/pkg/types"
 )
 
 // SimpleAgentRuntime is a basic implementation for testing
@@ -22,7 +22,7 @@ func NewSimpleAgentRuntime(logToConsole bool) (*SimpleAgentRuntime, error) {
 }
 
 // Execute simulates agent execution
-func (r *SimpleAgentRuntime) Execute(ctx context.Context, agentSpec stack.StackAgentSpec, inputs map[string]interface{}) (map[string]interface{}, error) {
+func (r *SimpleAgentRuntime) Execute(ctx context.Context, agentSpec types.StackAgentSpec, inputs map[string]interface{}) (map[string]interface{}, error) {
 	// Log execution if enabled
 	if r.logToConsole {
 		log.Printf("Executing agent %s (uses: %s)", agentSpec.ID, agentSpec.Uses)

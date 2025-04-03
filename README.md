@@ -1,175 +1,175 @@
-# SentinelStacks
+# Sentinel Stacks
 
-SentinelStacks is a comprehensive system for creating, managing, and orchestrating AI agents using natural language definitions.
+An agent orchestration platform for AI systems
 
 ## Overview
 
-SentinelStacks provides a Docker-like workflow for AI agents:
+Sentinel Stacks is a platform for orchestrating AI agents and creating complex AI workflows. It allows you to define stacks of agents that can be executed together to accomplish specific tasks.
 
-- Define agents using Sentinelfiles
-- Build agent images from Sentinelfiles
-- Run agents from images locally or from registries
-- Share agents through registries
-- Stack multiple agents together to create complex workflows
+## Architecture
 
-## Key Features
+The project is organized into several key components:
 
-- **Natural Language Agent Definition**: Create agents by describing what they should do in natural language
-- **Local Agent Execution**: Run agents on your local machine with simple commands
-- **Agent Registry**: Share and reuse agents through a registry system
-- **Multi-Agent Stacks**: Define complex workflows with multiple agents working together
-- **Context Propagation**: Pass data between agents in a stack
-- **CLI-First Design**: Complete command-line interface for all operations
+### Core Components
 
-## Quick Start
+- **API Layer** (`pkg/api`): Provides a unified interface for interacting with all services
+- **Stack Engine** (`pkg/stack`): Executes stacks of agents according to their dependencies
+- **Memory System** (`pkg/memory`): Stores and retrieves data for agents and stacks
+- **Registry** (`pkg/registry`): Manages packages and dependencies
+
+### Type Definitions
+
+- **Common Types** (`pkg/types`): Defines interfaces and types used across the codebase
+- **Adapters** (`pkg/adapter`): Handles conversion between internal and public types
+
+### Command Line Interfaces
+
+- **Sentinel CLI** (`cmd/sentinelcli`): Main command line interface
+- **API Example** (`cmd/api_example`): Example usage of the API
+
+## Getting Started
+
+### Prerequisites
+
+- Go 1.20 or later
+- SQLite (for persistent storage)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/subrahmanyagonella/the-repo/sentinelstacks.git
+git clone https://github.com/satishgonella2024/sentinelstacks.git
 cd sentinelstacks
 
-# Build the binary
+# Build the application
 make build
 ```
 
-### Create Your First Agent
+### Running Examples
 
 ```bash
-# Create an agent from a natural language description
-sentinel init "An agent that summarizes text input" --name summarizer
+# Run the comprehensive example
+make run-example-comprehensive
 
-# Build the agent
-sentinel build -t summarizer:latest .
-
-# Run the agent
-sentinel run summarizer:latest
+# Run specific service examples
+make run-example-stack     # Stack service example
+make run-example-memory    # Memory service example
+make run-example-registry  # Registry service example
 ```
 
-### Create a Multi-Agent Stack
+### Starting the CLI
 
 ```bash
-# Initialize a stack
-sentinel stack init my-analysis --template analyzer
+# Start the Sentinel CLI
+make run
 
-# Run the stack
-sentinel stack run -f Stackfile.yaml --input="This is a test input"
+# Start with custom data directory
+./bin/sentinelcli -data /path/to/data
 ```
 
-## Core Concepts
+## Creating Stacks
 
-### Agents
+A stack is defined as a collection of agents with dependencies and connections between them. Here's a simple example:
 
-Agents are the basic building blocks in SentinelStacks. An agent:
-- Has a specific purpose
-- Takes inputs and produces outputs
-- Is defined by a Sentinelfile
-- Is built into an agent image
-- Can be run locally or pulled from a registry
-
-### Stacks
-
-Stacks are collections of agents arranged in a workflow:
-- Define a directed acyclic graph (DAG) of agent execution
-- Manage data flow between agents
-- Execute agents in the correct order based on dependencies
-- Allow complex processing pipelines with specialized agents
-
-### Sentinelfile
-
-A Sentinelfile defines an agent's behavior:
-```yaml
-name: text-summarizer
-description: Summarizes text input
-version: 1.0.0
-base_model: claude-3-sonnet-20240229
-input:
-  - name: text
-    type: string
-    description: "Text to summarize"
-  - name: max_length
-    type: integer
-    default: 100
-    description: "Maximum length of summary"
-output_format: "text"
-system_prompt: |
-  You are a specialized text summarization agent.
-prompt_template: |
-  Summarize the following text in {{max_length}} words or less:
-  
-  {{text}}
+```go
+// Create a stack specification
+spec := types.StackSpec{
+    Name:        "example-stack",
+    Description: "A simple example stack",
+    Version:     "1.0.0",
+    Type:        types.StackTypeDefault,
+    Agents: []types.StackAgentSpec{
+        {
+            ID:   "input-agent",
+            Uses: "echo",
+            With: map[string]interface{}{
+                "message": "Hello from input agent",
+            },
+        },
+        {
+            ID:        "process-agent",
+            Uses:      "transform",
+            InputFrom: []string{"input-agent"},
+            With: map[string]interface{}{
+                "operation": "uppercase",
+            },
+        },
+        {
+            ID:        "output-agent",
+            Uses:      "output",
+            InputFrom: []string{"process-agent"},
+            With: map[string]interface{}{
+                "format": "json",
+            },
+        },
+    },
+}
 ```
 
-### Stackfile
+## API Usage
 
-A Stackfile defines a multi-agent workflow:
-```yaml
-name: data-analysis-pipeline
-description: Analyzes and summarizes data
-version: 1.0.0
-agents:
-  - id: extractor
-    uses: data-extractor:latest
-    params:
-      format: "json"
-  - id: analyzer
-    uses: data-analyzer:latest
-    inputFrom:
-      - extractor
-    params:
-      analysis_type: "comprehensive"
-  - id: summarizer
-    uses: text-summarizer:latest
-    inputFrom:
-      - analyzer
-    params:
-      max_length: 200
+The API provides a unified interface for accessing all services:
+
+```go
+// Initialize the API
+config := api.APIConfig{
+    StackConfig: api.StackServiceConfig{
+        StoragePath: "data/stacks",
+        Verbose:     true,
+    },
+    MemoryConfig: api.MemoryServiceConfig{
+        StoragePath:         "data/memory",
+        EmbeddingProvider:   "local",
+        EmbeddingModel:      "local",
+        EmbeddingDimensions: 1536,
+    },
+    RegistryConfig: api.RegistryServiceConfig{
+        RegistryURL: "https://registry.example.com",
+        CachePath:   "data/registry-cache",
+    },
+}
+
+sentinel, err := api.NewAPI(config)
+if err != nil {
+    log.Fatalf("Failed to initialize API: %v", err)
+}
+defer sentinel.Close()
+
+// Access services
+stackService := sentinel.Stack()
+memoryService := sentinel.Memory()
+registryService := sentinel.Registry()
+
+// Create a stack
+stackID, err := stackService.CreateStack(ctx, spec)
+
+// Execute a stack
+inputs := map[string]interface{}{"message": "Hello, world!"}
+results, err := stackService.ExecuteStack(ctx, stackID, inputs)
 ```
 
-## Command Reference
+## Storage
 
-### Agent Commands
+Sentinel Stacks provides persistent storage for:
 
-- `sentinel init` - Initialize a new agent
-- `sentinel build` - Build an agent from a Sentinelfile
-- `sentinel run` - Run an agent locally
-- `sentinel push` - Push an agent to a registry
-- `sentinel pull` - Pull an agent from a registry
-- `sentinel stop` - Stop a running agent
-- `sentinel logs` - View logs from a running agent
-- `sentinel images` - List available agent images
+- **Stacks**: Definitions and execution history
+- **Memory**: Key-value data and vector embeddings
+- **Registry**: Cached packages and artifacts
 
-### Stack Commands
+By default, data is stored in the `data` directory:
 
-- `sentinel stack init` - Initialize a new stack
-- `sentinel stack run` - Run a multi-agent stack
-- `sentinel stack list` - List available stacks
-- `sentinel stack inspect` - Inspect a stack configuration
-
-## Documentation
-
-- [Getting Started Guide](docs/SETUP.md)
-- [Agent Creation Guide](docs/AGENTS.md)
-- [Stack Creation Guide](docs/STACK-README.md)
-- [Registry Guide](docs/REGISTRY.md)
-- [API Reference](docs/API.md)
-
-## Architecture
-
-SentinelStacks follows a modular architecture:
-
-- **Core Runtime**: Executes agents and manages their lifecycle
-- **Stack Engine**: Orchestrates multi-agent workflows
-- **Registry System**: Manages agent sharing and discovery
-- **Parser**: Converts natural language to agent configurations
-- **CLI**: Provides command-line interface to all features
-- **Web UI**: (Coming soon) Visual interface for managing agents and stacks
+```
+data/
+  ├── stacks/       # Stack definitions and state
+  ├── memory/       # Memory storage
+  ├── registry-cache/ # Downloaded packages
+  └── exports/      # Exported stack definitions
+```
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing to this project.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.

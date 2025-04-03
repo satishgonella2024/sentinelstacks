@@ -8,27 +8,29 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/satishgonella2024/sentinelstacks/pkg/types"
 )
 
 // LocalMemoryStore is an in-memory implementation of MemoryStore
 type LocalMemoryStore struct {
 	name      string
-	data      map[string]MemoryEntry
+	data      map[string]types.MemoryEntry
 	namespace string
 	ttl       time.Duration
 	mu        sync.RWMutex
 }
 
 // NewLocalMemoryStore creates a new local memory store
-func NewLocalMemoryStore(config MemoryConfig) (*LocalMemoryStore, error) {
+func NewLocalMemoryStore(config types.MemoryConfig) (*LocalMemoryStore, error) {
 	name := "local-memory"
 	if config.CollectionName != "" {
 		name = config.CollectionName
 	}
-	
+
 	return &LocalMemoryStore{
 		name:      name,
-		data:      make(map[string]MemoryEntry),
+		data:      make(map[string]types.MemoryEntry),
 		namespace: config.Namespace,
 		ttl:       config.TTL,
 	}, nil
@@ -38,25 +40,25 @@ func NewLocalMemoryStore(config MemoryConfig) (*LocalMemoryStore, error) {
 func (s *LocalMemoryStore) Save(ctx context.Context, key string, value interface{}) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	
+
 	// Add namespace prefix if specified
 	if s.namespace != "" {
 		key = s.namespace + ":" + key
 	}
-	
+
 	// Create entry
 	now := time.Now()
-	entry := MemoryEntry{
+	entry := types.MemoryEntry{
 		Key:       key,
 		Value:     value,
 		Metadata:  map[string]interface{}{},
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
-	
+
 	// Store entry
 	s.data[key] = entry
-	
+
 	return nil
 }
 
@@ -64,18 +66,18 @@ func (s *LocalMemoryStore) Save(ctx context.Context, key string, value interface
 func (s *LocalMemoryStore) Load(ctx context.Context, key string) (interface{}, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	
+
 	// Add namespace prefix if specified
 	if s.namespace != "" {
 		key = s.namespace + ":" + key
 	}
-	
+
 	// Check if entry exists
 	entry, ok := s.data[key]
 	if !ok {
 		return nil, fmt.Errorf("key not found: %s", key)
 	}
-	
+
 	// Check if entry has expired
 	if s.ttl > 0 && time.Since(entry.UpdatedAt) > s.ttl {
 		// Remove expired entry
@@ -86,7 +88,7 @@ func (s *LocalMemoryStore) Load(ctx context.Context, key string) (interface{}, e
 		}()
 		return nil, fmt.Errorf("key expired: %s", key)
 	}
-	
+
 	return entry.Value, nil
 }
 
@@ -94,222 +96,281 @@ func (s *LocalMemoryStore) Load(ctx context.Context, key string) (interface{}, e
 func (s *LocalMemoryStore) Delete(ctx context.Context, key string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	
+
 	// Add namespace prefix if specified
 	if s.namespace != "" {
 		key = s.namespace + ":" + key
 	}
-	
+
 	// Delete entry
 	delete(s.data, key)
-	
+
 	return nil
 }
 
-// Clear removes all keys and values
-func (s *LocalMemoryStore) Clear(ctx context.Context) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	
-	// If namespace is specified, only clear entries with that namespace
-	if s.namespace != "" {
-		prefix := s.namespace + ":"
-		for key := range s.data {
-			if strings.HasPrefix(key, prefix) {
-				delete(s.data, key)
-			}
-		}
-	} else {
-		// Otherwise clear all entries
-		s.data = make(map[string]MemoryEntry)
-	}
-	
-	return nil
-}
-
-// Keys returns all keys in the store
-func (s *LocalMemoryStore) Keys(ctx context.Context) ([]string, error) {
+// List returns all keys with optional prefix filtering
+func (s *LocalMemoryStore) List(ctx context.Context, prefix string) ([]string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	
-	var keys []string
-	
-	// If namespace is specified, only return keys with that namespace
+
+	// Prepare namespace prefix
+	namespacePrefix := ""
 	if s.namespace != "" {
-		prefix := s.namespace + ":"
-		prefixLen := len(prefix)
-		
-		for key := range s.data {
-			if strings.HasPrefix(key, prefix) {
-				// Remove namespace prefix from returned keys
-				keys = append(keys, key[prefixLen:])
+		namespacePrefix = s.namespace + ":"
+	}
+
+	// Combine namespace prefix with query prefix
+	queryPrefix := namespacePrefix + prefix
+
+	// Collect matching keys
+	keys := make([]string, 0)
+	for k := range s.data {
+		// Check if key has prefix
+		if strings.HasPrefix(k, queryPrefix) {
+			// Check if entry has expired
+			if s.ttl > 0 && time.Since(s.data[k].UpdatedAt) > s.ttl {
+				// Skip expired entries
+				continue
 			}
-		}
-	} else {
-		// Otherwise return all keys
-		keys = make([]string, 0, len(s.data))
-		for key := range s.data {
+
+			// Remove namespace prefix for returned keys
+			key := k
+			if namespacePrefix != "" && strings.HasPrefix(k, namespacePrefix) {
+				key = k[len(namespacePrefix):]
+			}
+
 			keys = append(keys, key)
 		}
 	}
-	
+
+	// Sort keys for deterministic output
+	sort.Strings(keys)
+
 	return keys, nil
 }
 
-// Close closes the memory store
+// Clear removes all data for this namespace
+func (s *LocalMemoryStore) Clear(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// If namespace is specified, only clear data for that namespace
+	if s.namespace != "" {
+		prefix := s.namespace + ":"
+		for k := range s.data {
+			if strings.HasPrefix(k, prefix) {
+				delete(s.data, k)
+			}
+		}
+	} else {
+		// Otherwise clear all data
+		s.data = make(map[string]types.MemoryEntry)
+	}
+
+	return nil
+}
+
+// Close releases all resources
 func (s *LocalMemoryStore) Close() error {
-	// No resources to release for in-memory store
+	// Nothing to close for in-memory store
 	return nil
 }
 
 // LocalVectorStore is an in-memory implementation of VectorStore
 type LocalVectorStore struct {
-	*LocalMemoryStore
-	vectors map[string][]float32
-	maxDim  int
+	namespace string
+	vectors   map[string][]float32
+	metadata  map[string]map[string]interface{}
+	maxDim    int
+	mu        sync.RWMutex
 }
 
 // NewLocalVectorStore creates a new local vector store
-func NewLocalVectorStore(config MemoryConfig) (*LocalVectorStore, error) {
-	base, err := NewLocalMemoryStore(config)
-	if err != nil {
-		return nil, err
-	}
-	
+func NewLocalVectorStore(config types.MemoryConfig) (*LocalVectorStore, error) {
 	// Default vector dimensions
 	maxDim := 1536
 	if config.VectorDimensions > 0 {
 		maxDim = config.VectorDimensions
 	}
-	
+
 	return &LocalVectorStore{
-		LocalMemoryStore: base,
-		vectors:          make(map[string][]float32),
-		maxDim:           maxDim,
+		namespace: config.Namespace,
+		vectors:   make(map[string][]float32),
+		metadata:  make(map[string]map[string]interface{}),
+		maxDim:    maxDim,
 	}, nil
 }
 
-// SaveEmbedding stores a vector embedding
-func (s *LocalVectorStore) SaveEmbedding(ctx context.Context, key string, vector []float32, metadata map[string]interface{}) error {
+// StoreVector saves a vector with metadata
+func (s *LocalVectorStore) StoreVector(ctx context.Context, id string, vector []float32, metadata map[string]interface{}) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	
+
 	// Validate vector dimensions
 	if len(vector) > s.maxDim {
 		return fmt.Errorf("vector dimensions exceed maximum (%d > %d)", len(vector), s.maxDim)
 	}
-	
+
 	// Add namespace prefix if specified
+	storeID := id
 	if s.namespace != "" {
-		key = s.namespace + ":" + key
+		storeID = s.namespace + ":" + id
 	}
-	
+
 	// Create metadata if nil
 	if metadata == nil {
 		metadata = make(map[string]interface{})
 	}
-	
-	// Store vector
-	s.vectors[key] = vector
-	
-	// Store metadata
-	now := time.Now()
-	entry := MemoryEntry{
-		Key:       key,
-		Value:     metadata,
-		Metadata:  metadata,
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
-	s.data[key] = entry
-	
+
+	// Store vector and metadata
+	s.vectors[storeID] = vector
+	s.metadata[storeID] = metadata
+
 	return nil
 }
 
-// Query performs a similarity search on stored embeddings
-func (s *LocalVectorStore) Query(ctx context.Context, vector []float32, topK int) ([]SimilarityMatch, error) {
+// FindSimilar finds similar vectors
+func (s *LocalVectorStore) FindSimilar(ctx context.Context, vector []float32, limit int) ([]types.SimilarityResult, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	
+
 	// Validate vector dimensions
 	if len(vector) > s.maxDim {
 		return nil, fmt.Errorf("vector dimensions exceed maximum (%d > %d)", len(vector), s.maxDim)
 	}
-	
+
 	// Check if there are any vectors
 	if len(s.vectors) == 0 {
-		return []SimilarityMatch{}, nil
+		return []types.SimilarityResult{}, nil
 	}
-	
+
 	// Compute similarity scores for all vectors
-	scores := make([]SimilarityMatch, 0, len(s.vectors))
-	
+	scores := make([]types.SimilarityResult, 0, len(s.vectors))
+
 	prefix := ""
 	if s.namespace != "" {
 		prefix = s.namespace + ":"
 	}
-	
+
 	for key, vec := range s.vectors {
 		// Skip if key doesn't match namespace
 		if s.namespace != "" && !strings.HasPrefix(key, prefix) {
 			continue
 		}
-		
+
 		// Compute cosine similarity
 		score := cosineSimilarity(vector, vec)
-		
+
 		// Get metadata
-		entry, ok := s.data[key]
 		var metadata map[string]interface{}
-		if ok {
-			metadata = entry.Metadata
+		if metaMap, ok := s.metadata[key]; ok {
+			metadata = metaMap
 		} else {
 			metadata = map[string]interface{}{}
 		}
-		
+
 		// Remove namespace prefix from returned key
 		returnKey := key
 		if s.namespace != "" && strings.HasPrefix(key, prefix) {
 			returnKey = key[len(prefix):]
 		}
-		
+
 		// Add to scores
-		scores = append(scores, SimilarityMatch{
-			Key:      returnKey,
+		scores = append(scores, types.SimilarityResult{
+			ID:       returnKey,
 			Score:    score,
 			Metadata: metadata,
 		})
 	}
-	
+
 	// Sort by score (descending)
 	sort.Slice(scores, func(i, j int) bool {
 		return scores[i].Score > scores[j].Score
 	})
-	
+
 	// Limit to topK
-	if topK > 0 && topK < len(scores) {
-		scores = scores[:topK]
+	if limit > 0 && limit < len(scores) {
+		scores = scores[:limit]
 	}
-	
+
 	return scores, nil
 }
 
-// DeleteEmbedding removes an embedding
-func (s *LocalVectorStore) DeleteEmbedding(ctx context.Context, key string) error {
+// GetVector gets a vector by ID
+func (s *LocalVectorStore) GetVector(ctx context.Context, id string) ([]float32, map[string]interface{}, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	// Add namespace prefix if specified
+	storeID := id
+	if s.namespace != "" {
+		storeID = s.namespace + ":" + id
+	}
+
+	// Get vector
+	vector, ok := s.vectors[storeID]
+	if !ok {
+		return nil, nil, fmt.Errorf("vector not found: %s", id)
+	}
+
+	// Get metadata
+	metadata, ok := s.metadata[storeID]
+	if !ok {
+		metadata = make(map[string]interface{})
+	}
+
+	return vector, metadata, nil
+}
+
+// DeleteVector removes a vector
+func (s *LocalVectorStore) DeleteVector(ctx context.Context, id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	
+
 	// Add namespace prefix if specified
+	storeID := id
 	if s.namespace != "" {
-		key = s.namespace + ":" + key
+		storeID = s.namespace + ":" + id
 	}
-	
-	// Delete vector
-	delete(s.vectors, key)
-	
-	// Delete metadata
-	delete(s.data, key)
-	
+
+	// Check if vector exists
+	if _, ok := s.vectors[storeID]; !ok {
+		return fmt.Errorf("vector not found: %s", id)
+	}
+
+	// Delete vector and metadata
+	delete(s.vectors, storeID)
+	delete(s.metadata, storeID)
+
+	return nil
+}
+
+// Clear removes all vectors
+func (s *LocalVectorStore) Clear(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// If namespace is specified, only clear vectors for that namespace
+	if s.namespace != "" {
+		prefix := s.namespace + ":"
+		for key := range s.vectors {
+			if strings.HasPrefix(key, prefix) {
+				delete(s.vectors, key)
+				delete(s.metadata, key)
+			}
+		}
+	} else {
+		// Otherwise clear all vectors
+		s.vectors = make(map[string][]float32)
+		s.metadata = make(map[string]map[string]interface{})
+	}
+
+	return nil
+}
+
+// Close releases all resources
+func (s *LocalVectorStore) Close() error {
+	// Nothing to close for in-memory store
 	return nil
 }
 
@@ -320,21 +381,21 @@ func cosineSimilarity(a, b []float32) float32 {
 	if len(b) < length {
 		length = len(b)
 	}
-	
+
 	// Calculate dot product and magnitudes
 	var dotProduct, magnitudeA, magnitudeB float32
-	
+
 	for i := 0; i < length; i++ {
 		dotProduct += a[i] * b[i]
 		magnitudeA += a[i] * a[i]
 		magnitudeB += b[i] * b[i]
 	}
-	
+
 	// Handle zero magnitude
 	if magnitudeA == 0 || magnitudeB == 0 {
 		return 0
 	}
-	
+
 	// Return cosine similarity
 	return dotProduct / (float32(math.Sqrt(float64(magnitudeA))) * float32(math.Sqrt(float64(magnitudeB))))
 }

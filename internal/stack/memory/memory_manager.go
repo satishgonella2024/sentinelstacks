@@ -6,35 +6,35 @@ import (
 	"sync"
 	"time"
 
-	"github.com/satishgonella2024/sentinelstacks/internal/memory"
+	"github.com/satishgonella2024/sentinelstacks/pkg/types"
 )
 
 // MemoryManager manages memory for a stack execution
 type MemoryManager struct {
-	factory       memory.MemoryStoreFactory
-	stores        map[string]memory.MemoryStore
+	factory       types.MemoryStoreFactory
+	stores        map[string]types.MemoryStore
 	stackID       string
 	executionID   string
-	defaultConfig memory.MemoryConfig
+	defaultConfig types.MemoryConfig
 	mu            sync.Mutex
 }
 
 // NewMemoryManager creates a new memory manager for a stack execution
-func NewMemoryManager(factory memory.MemoryStoreFactory, stackID, executionID string) *MemoryManager {
+func NewMemoryManager(ctx context.Context, factory types.MemoryStoreFactory, stackID, executionID string) (*MemoryManager, error) {
 	return &MemoryManager{
 		factory:     factory,
-		stores:      make(map[string]memory.MemoryStore),
+		stores:      make(map[string]types.MemoryStore),
 		stackID:     stackID,
 		executionID: executionID,
-		defaultConfig: memory.MemoryConfig{
+		defaultConfig: types.MemoryConfig{
 			TTL:              24 * time.Hour, // Default TTL for execution data
 			VectorDimensions: 1536,
 		},
-	}
+	}, nil
 }
 
 // GetAgentStore gets or creates a memory store for an agent in the stack
-func (m *MemoryManager) GetAgentStore(ctx context.Context, agentID string) (memory.MemoryStore, error) {
+func (m *MemoryManager) GetAgentStore(ctx context.Context, agentID string) (types.MemoryStore, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	
@@ -52,7 +52,7 @@ func (m *MemoryManager) GetAgentStore(ctx context.Context, agentID string) (memo
 	config.Namespace = m.executionID
 	
 	// Create new store
-	store, err := m.factory.Create(memory.MemoryStoreTypeLocal, config)
+	store, err := m.factory.Create(types.MemoryStoreTypeLocal, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create agent memory store: %w", err)
 	}
@@ -64,7 +64,7 @@ func (m *MemoryManager) GetAgentStore(ctx context.Context, agentID string) (memo
 }
 
 // GetStackStore gets or creates a memory store for the stack itself
-func (m *MemoryManager) GetStackStore(ctx context.Context) (memory.MemoryStore, error) {
+func (m *MemoryManager) GetStackStore(ctx context.Context) (types.MemoryStore, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	
@@ -82,7 +82,7 @@ func (m *MemoryManager) GetStackStore(ctx context.Context) (memory.MemoryStore, 
 	config.Namespace = m.executionID
 	
 	// Create new store
-	store, err := m.factory.Create(memory.MemoryStoreTypeLocal, config)
+	store, err := m.factory.Create(types.MemoryStoreTypeLocal, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create stack memory store: %w", err)
 	}
@@ -215,81 +215,6 @@ func (m *MemoryManager) LoadAgentOutput(ctx context.Context, agentID string) (in
 	}
 	
 	return output, nil
-}
-
-// SaveContextValue saves a value to the stack context
-func (m *MemoryManager) SaveContextValue(ctx context.Context, key string, value interface{}) error {
-	// Get stack store
-	store, err := m.GetStackStore(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get stack store: %w", err)
-	}
-	
-	// Save value
-	err = store.Save(ctx, key, value)
-	if err != nil {
-		return fmt.Errorf("failed to save context value: %w", err)
-	}
-	
-	return nil
-}
-
-// LoadContextValue loads a value from the stack context
-func (m *MemoryManager) LoadContextValue(ctx context.Context, key string) (interface{}, error) {
-	// Get stack store
-	store, err := m.GetStackStore(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get stack store: %w", err)
-	}
-	
-	// Load value
-	value, err := store.Load(ctx, key)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load context value: %w", err)
-	}
-	
-	return value, nil
-}
-
-// CollectAgentOutputs loads outputs from all agents that have completed
-func (m *MemoryManager) CollectAgentOutputs(ctx context.Context, agentIDs []string) (map[string]interface{}, error) {
-	// Get stack store
-	store, err := m.GetStackStore(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get stack store: %w", err)
-	}
-	
-	// Collect outputs
-	outputs := make(map[string]interface{})
-	
-	for _, agentID := range agentIDs {
-		key := fmt.Sprintf("agent_%s_output", agentID)
-		
-		// Try to load output
-		output, err := store.Load(ctx, key)
-		if err == nil {
-			outputs[agentID] = output
-		}
-	}
-	
-	return outputs, nil
-}
-
-// Clear removes all data for this execution
-func (m *MemoryManager) Clear(ctx context.Context) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	
-	var lastErr error
-	
-	// Clear all stores
-	for key, store := range m.stores {
-		if err := store.Clear(ctx); err != nil {
-			lastErr = fmt.Errorf("failed to clear store %s: %w", key, err)
-		}
-	}
-	
-	return lastErr
 }
 
 // Close releases all resources

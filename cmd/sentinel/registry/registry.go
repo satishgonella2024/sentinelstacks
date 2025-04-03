@@ -1,3 +1,4 @@
+// Package registry contains commands for interacting with the registry
 package registry
 
 import (
@@ -11,13 +12,12 @@ func NewRegistryCmd() *cobra.Command {
 		Short: "Manage agent registries",
 		Long:  `Commands for managing agent registries, including push, pull, login, and logout.`,
 	}
-
 	// Add subcommands
 	cmd.AddCommand(NewLoginCmd())
 	cmd.AddCommand(NewLogoutCmd())
 	cmd.AddCommand(NewPushCmd())
 	cmd.AddCommand(NewPullCmd())
 	cmd.AddCommand(NewSearchCmd())
-	
+	cmd.AddCommand(NewTagsCmd())
 	return cmd
 }
