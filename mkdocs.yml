@@ -82,6 +82,7 @@ nav:
     - NLP Generator: examples/nlp-generator.md
   - Development:
     - Git Strategy: development/git_strategy.md
+    - GitHub Pages: GITHUB_PAGES.md
   - Planning:
     - Roadmap: planning/roadmap.md
     - Progress Tracker: planning/progress_tracker.md
