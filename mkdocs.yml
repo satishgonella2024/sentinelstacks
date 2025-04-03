@@ -28,16 +28,43 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Commands:
+    - Overview: commands/index.md
+    - Core Commands:
+      - Init: commands/init.md
+      - Build: commands/build.md
+      - Run: commands/run.md
+      - Version: commands/version.md
+    - Agent Management:
+      - PS: commands/ps.md
+      - Stop: commands/stop.md
+      - Logs: commands/logs.md
+    - Image Management:
+      - Images: commands/images.md
+      - Pull: commands/pull.md
+      - Push: commands/push.md
+    - Registry Management:
+      - Login: commands/login.md
+      - Logout: commands/logout.md
+    - Interaction:
+      - Chat: commands/chat.md
+      - Shell: commands/shell.md
+    - Orchestration:
+      - Stack: commands/stack.md
   - Architecture:
     - Overview: architecture/README.md
     - System Design: architecture/system_design.md
-    - API Reference: architecture/api.md
+    - API Reference: architecture/api-reference.md
     - Sentinelfile Specification: architecture/sentinelfile_spec.md
+    - Stackfile Specification: architecture/stackfile_spec.md
+    - Shim Architecture: architecture/shim_architecture.md
+    - Visualizations: visualizations/README.md
   - User Guides:
     - Getting Started: user-guides/README.md
     - Quick Start: user-guides/quick_start.md
     - LLM Providers: user-guides/llm_providers.md
     - Advanced Agents: user-guides/advanced_agents.md
+    - Multimodal Support: usage/multimodal.md
   - Examples:
     - Basic Chatbot: examples/chatbot.md
     - Research Assistant: examples/research-assistant.md
@@ -50,4 +77,5 @@ nav:
     - Roadmap: planning/roadmap.md
     - Progress Tracker: planning/progress_tracker.md
     - CLI Implementation: planning/cli_implementation.md
-    - Shim Implementation: planning/shim_implementation.md 
+    - Shim Implementation: planning/shim_implementation.md
+    - Multimodal Support: planning/multimodal_support.md 
