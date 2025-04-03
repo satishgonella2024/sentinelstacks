@@ -6,6 +6,19 @@ A modern, enterprise-grade web interface for the SentinelStacks AI Agent Managem
 
 SentinelStacks Web UI provides a sophisticated yet intuitive interface for enterprise users to create, deploy, manage, and monitor AI agents at scale. The interface combines professional design with futuristic elements to create an engaging user experience without sacrificing enterprise functionality.
 
+## Comparison with Legacy Web Interface
+
+| Feature | Modern Web UI | Legacy Web Interface |
+|---------|--------------|---------------------|
+| **Technology** | React, TypeScript, Tailwind CSS | Vanilla HTML, CSS, JavaScript |
+| **Architecture** | Component-based with state management | Monolithic single-page application |
+| **API Integration** | RTK Query with mock data support | Direct fetch calls |
+| **UI Design** | Enterprise-grade with tailored components | Bootstrap-based general styling |
+| **Features** | Rich dashboard, analytics, agent building | Basic agent management and chat |
+| **Code Organization** | Structured folders and TypeScript types | Single HTML file with embedded JS |
+| **Maintainability** | High - modular, typed components | Low - tightly coupled code |
+| **Extensibility** | High - component system | Limited - requires HTML modifications |
+
 ## Key Features
 
 - **Landing Page**: Captivating introduction to SentinelStacks capabilities
@@ -39,6 +52,20 @@ SentinelStacks Web UI provides a sophisticated yet intuitive interface for enter
 3. Install dependencies: `npm install` or `yarn`
 4. Start the development server: `npm run dev` or `yarn dev`
 5. Open your browser to `http://localhost:5173`
+
+### Running with Mock API
+
+For development without a backend:
+
+```bash
+VITE_USE_MOCK_API=true npm run dev
+```
+
+Or use the provided script:
+
+```bash
+./run-fixed-app.sh
+```
 
 ### Project Structure
 

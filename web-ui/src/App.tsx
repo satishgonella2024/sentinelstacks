@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Agents from './pages/Agents';
 import Settings from './pages/Settings';
 import Builder from './pages/Builder';
+import Memory from './pages/Memory';
 
 // Simple fallback for any pages that fail to load
 const ErrorFallback = () => (
@@ -35,6 +36,7 @@ const App: React.FC = () => {
         <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
         <Route path="/agents" element={<Layout><Agents /></Layout>} />
         <Route path="/builder" element={<Layout><Builder /></Layout>} />
+        <Route path="/memory" element={<Layout><Memory /></Layout>} />
         <Route path="/settings" element={<Layout><Settings /></Layout>} />
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
