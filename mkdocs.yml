@@ -55,10 +55,15 @@ nav:
     - Overview: architecture/README.md
     - System Design: architecture/system_design.md
     - API Reference: architecture/api-reference.md
+    - API Documentation: architecture/api-documentation.md
     - Sentinelfile Specification: architecture/sentinelfile_spec.md
     - Stackfile Specification: architecture/stackfile_spec.md
     - Shim Architecture: architecture/shim_architecture.md
     - Visualizations: visualizations/README.md
+  - API:
+    - Overview: api/index.md
+    - OpenAPI Specification: api-reference.yaml
+    - Usage Guide: api-usage-guide.md
   - User Guides:
     - Getting Started: user-guides/README.md
     - Quick Start: user-guides/quick_start.md
